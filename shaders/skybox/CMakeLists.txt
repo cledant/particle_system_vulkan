@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
-project(scop_model_shader)
+project(particle_sys_skybox_shader)
 
-set(SHADER_NAME model)
+set(SHADER_NAME skybox)
 set(SHADER_SOURCE_FOLDER
         ${CMAKE_CURRENT_SOURCE_DIR})
 set(SHADER_RUNTIME_FOLDER
@@ -31,4 +31,4 @@ foreach (SHADER COMPILED_SHADER IN ZIP_LISTS SHADERS COMPILED_SHADERS)
     )
 endforeach ()
 
-add_custom_target(model_shader DEPENDS ${COMPILED_SHADERS})
+add_custom_target(skybox_shader DEPENDS ${COMPILED_SHADERS})

@@ -95,16 +95,16 @@ add_subdirectory(libraries/ui)
 add_subdirectory(libraries/app_version)
 
 #Shaders
-add_subdirectory(shaders/model)
+add_subdirectory(shaders/skybox)
 
-#Cubemap textures
-set(CUBEMAP_TEXTURE_SOURCE_FOLDER
+#Skybox textures
+set(SKYBOX_TEXTURE_SOURCE_FOLDER
         ${CMAKE_SOURCE_DIR}/textures/skybox)
-set(CUBEMAP_TEXTURE_RUNTIME_FOLDER
+set(SKYBOX_TEXTURE_RUNTIME_FOLDER
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures)
-file(COPY ${CUBEMAP_TEXTURE_SOURCE_FOLDER}
+file(COPY ${SKYBOX_TEXTURE_SOURCE_FOLDER}
         DESTINATION
-        ${CUBEMAP_TEXTURE_RUNTIME_FOLDER})
+        ${SKYBOX_TEXTURE_RUNTIME_FOLDER})
 
 #Main binary
 add_executable(particle_system
@@ -113,7 +113,7 @@ target_include_directories(particle_system
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/binary/private)
 target_link_libraries(particle_system iomanager engine vulkan)
-add_dependencies(particle_system iomanager engine model_shader ui)
+add_dependencies(particle_system iomanager engine skybox_shader ui)
 set_target_properties(particle_system PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED YES
