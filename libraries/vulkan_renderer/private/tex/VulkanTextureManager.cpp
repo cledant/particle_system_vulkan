@@ -49,9 +49,31 @@ VulkanTextureManager::loadTexture(std::string const &texturePath)
                                             tex.height,
                                             tex.mip_level);
     tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level);
+      _create_texture_image_view(tex.texture_img, tex.mip_level, false);
     tex.texture_sampler = _create_texture_sampler(tex.mip_level);
     _textures.emplace(texturePath, tex);
+}
+
+void
+VulkanTextureManager::loadCubemap(std::string const &cubemapFolder,
+                                  std::string const &fileType)
+{
+    auto existing_tex = _textures.find(cubemapFolder);
+    if (existing_tex != _textures.end()) {
+        return;
+    }
+
+    Texture tex{};
+    tex.texture_img = _create_cubemap_image(cubemapFolder,
+                                            fileType,
+                                            tex.texture_img_memory,
+                                            tex.width,
+                                            tex.height,
+                                            tex.mip_level);
+    tex.texture_img_view =
+      _create_texture_image_view(tex.texture_img, tex.mip_level, true);
+    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+    _textures.emplace(cubemapFolder, tex);
 }
 
 void
@@ -87,16 +109,38 @@ VulkanTextureManager::loadAndGetTexture(std::string const &texturePath)
     }
 
     Texture tex{};
-
     tex.texture_img = _create_texture_image(texturePath,
                                             tex.texture_img_memory,
                                             tex.width,
                                             tex.height,
                                             tex.mip_level);
     tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level);
+      _create_texture_image_view(tex.texture_img, tex.mip_level, false);
     tex.texture_sampler = _create_texture_sampler(tex.mip_level);
     _textures.emplace(texturePath, tex);
+    return (tex);
+}
+
+Texture
+VulkanTextureManager::loadAndGetCubemap(std::string const &cubemapFolder,
+                                        std::string const &fileType)
+{
+    auto existing_tex = _textures.find(cubemapFolder);
+    if (existing_tex != _textures.end()) {
+        return (existing_tex->second);
+    }
+
+    Texture tex{};
+    tex.texture_img = _create_cubemap_image(cubemapFolder,
+                                            fileType,
+                                            tex.texture_img_memory,
+                                            tex.width,
+                                            tex.height,
+                                            tex.mip_level);
+    tex.texture_img_view =
+      _create_texture_image_view(tex.texture_img, tex.mip_level, true);
+    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+    _textures.emplace(cubemapFolder, tex);
     return (tex);
 }
 
@@ -128,7 +172,8 @@ VulkanTextureManager::_create_texture_image(std::string const &texturePath,
                                VK_IMAGE_TILING_OPTIMAL,
                                VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                                  VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                 VK_IMAGE_USAGE_SAMPLED_BIT);
+                                 VK_IMAGE_USAGE_SAMPLED_BIT,
+                               false);
     allocateImage(_physical_device,
                   _device,
                   tex_img,
@@ -141,14 +186,87 @@ VulkanTextureManager::_create_texture_image(std::string const &texturePath,
                           VK_FORMAT_R8G8B8A8_SRGB,
                           mip_level,
                           VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          false);
     copyBufferToImage(_device,
                       _command_pool,
                       _gfx_queue,
                       staging_buffer,
                       tex_img,
                       tex_img_w,
-                      tex_img_h);
+                      tex_img_h,
+                      false);
+
+    vkDestroyBuffer(_device, staging_buffer, nullptr);
+    vkFreeMemory(_device, staging_buffer_memory, nullptr);
+
+    generateMipmaps(_physical_device,
+                    _device,
+                    _command_pool,
+                    _gfx_queue,
+                    tex_img,
+                    VK_FORMAT_R8G8B8A8_SRGB,
+                    tex_img_w,
+                    tex_img_h,
+                    mip_level);
+
+    return (tex_img);
+}
+
+VkImage
+VulkanTextureManager::_create_cubemap_image(std::string const &cubemapFolder,
+                                            std::string const &fileType,
+                                            VkDeviceMemory &texture_img_memory,
+                                            int32_t &tex_img_w,
+                                            int32_t &tex_img_h,
+                                            uint32_t &mip_level)
+{
+    VkBuffer staging_buffer{};
+    VkDeviceMemory staging_buffer_memory{};
+
+    loadCubemapInBuffer(_physical_device,
+                        _device,
+                        cubemapFolder,
+                        fileType,
+                        staging_buffer,
+                        staging_buffer_memory,
+                        tex_img_w,
+                        tex_img_h);
+    mip_level = static_cast<uint32_t>(
+                  std::floor(std::log2(std::max(tex_img_w, tex_img_h)))) +
+                1;
+    auto tex_img = createImage(_device,
+                               tex_img_w,
+                               tex_img_h,
+                               mip_level,
+                               VK_FORMAT_R8G8B8A8_SRGB,
+                               VK_IMAGE_TILING_OPTIMAL,
+                               VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                                 VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                                 VK_IMAGE_USAGE_SAMPLED_BIT,
+                               true);
+    allocateImage(_physical_device,
+                  _device,
+                  tex_img,
+                  texture_img_memory,
+                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    transitionImageLayout(_device,
+                          _command_pool,
+                          _gfx_queue,
+                          tex_img,
+                          VK_FORMAT_R8G8B8A8_SRGB,
+                          mip_level,
+                          VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          true);
+    copyBufferToImage(_device,
+                      _command_pool,
+                      _gfx_queue,
+                      staging_buffer,
+                      tex_img,
+                      tex_img_w,
+                      tex_img_h,
+                      true);
 
     vkDestroyBuffer(_device, staging_buffer, nullptr);
     vkFreeMemory(_device, staging_buffer_memory, nullptr);
@@ -168,13 +286,15 @@ VulkanTextureManager::_create_texture_image(std::string const &texturePath,
 
 VkImageView
 VulkanTextureManager::_create_texture_image_view(VkImage texture_img,
-                                                 uint32_t mip_level)
+                                                 uint32_t mip_level,
+                                                 bool is_cubemap)
 {
     return (createImageView(texture_img,
                             VK_FORMAT_R8G8B8A8_SRGB,
                             mip_level,
                             _device,
-                            VK_IMAGE_ASPECT_COLOR_BIT));
+                            VK_IMAGE_ASPECT_COLOR_BIT,
+                            is_cubemap));
 }
 
 VkSampler
@@ -245,7 +365,8 @@ VulkanTextureManager::_load_default_texture()
                                   VK_IMAGE_TILING_OPTIMAL,
                                   VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                                     VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                    VK_IMAGE_USAGE_SAMPLED_BIT);
+                                    VK_IMAGE_USAGE_SAMPLED_BIT,
+                                  false);
     allocateImage(_physical_device,
                   _device,
                   tex.texture_img,
@@ -258,20 +379,22 @@ VulkanTextureManager::_load_default_texture()
                           VK_FORMAT_R8G8B8A8_SRGB,
                           1,
                           VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          false);
     copyBufferToImage(_device,
                       _command_pool,
                       _gfx_queue,
                       staging_buffer,
                       tex.texture_img,
                       1,
-                      1);
+                      1,
+                      false);
 
     vkDestroyBuffer(_device, staging_buffer, nullptr);
     vkFreeMemory(_device, staging_buffer_memory, nullptr);
 
     tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level);
+      _create_texture_image_view(tex.texture_img, tex.mip_level, false);
     tex.texture_sampler = _create_texture_sampler(tex.mip_level);
 
     generateMipmaps(_physical_device,

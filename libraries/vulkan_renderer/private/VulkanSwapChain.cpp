@@ -107,6 +107,7 @@ VulkanSwapChain::_create_image_view()
                                                  swapChainImageFormat,
                                                  1,
                                                  _device,
-                                                 VK_IMAGE_ASPECT_COLOR_BIT);
+                                                 VK_IMAGE_ASPECT_COLOR_BIT,
+                                                 false);
     }
 }

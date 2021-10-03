@@ -43,6 +43,69 @@ loadTextureInBuffer(VkPhysicalDevice physical_device,
     return (img_size);
 }
 
+VkDeviceSize
+loadCubemapInBuffer(VkPhysicalDevice physical_device,
+                    VkDevice device,
+                    std::string const &cubemap_folder,
+                    std::string const &file_type,
+                    VkBuffer &tex_buffer,
+                    VkDeviceMemory &tex_buffer_memory,
+                    int &tex_w,
+                    int &tex_h)
+{
+    static std::array<std::string, 6> const faces_name = {
+        "front", "back", "top", "bottom", "right", "left",
+    };
+    std::array<uint8_t *, 6> faces_buffer{};
+
+    uint8_t i = 0;
+    for (auto const &it : faces_name) {
+        int img_chan;
+        auto fullpath = cubemap_folder;
+        fullpath += "/";
+        fullpath += it;
+        fullpath += ".";
+        fullpath += file_type;
+        faces_buffer[i] = stbi_load(
+          fullpath.c_str(), &tex_w, &tex_h, &img_chan, STBI_rgb_alpha);
+        if (!faces_buffer[i]) {
+            for (auto it_clean : faces_buffer) {
+                if (it_clean) {
+                    stbi_image_free(it_clean);
+                    it_clean = nullptr;
+                }
+            }
+            throw std::runtime_error("VkImage: failed to load cubemap: " +
+                                     fullpath);
+        }
+        ++i;
+    }
+
+    VkDeviceSize layer_size = tex_w * tex_h * 4;
+    VkDeviceSize img_size = layer_size * 6;
+
+    createBuffer(
+      device, tex_buffer, img_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    allocateBuffer(physical_device,
+                   device,
+                   tex_buffer,
+                   tex_buffer_memory,
+                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    void *data;
+    vkMapMemory(device, tex_buffer_memory, 0, img_size, 0, &data);
+    i = 0;
+    for (auto &it : faces_buffer) {
+        memcpy(static_cast<uint8_t *>(data) + (layer_size * i),
+               it,
+               static_cast<size_t>(layer_size));
+        stbi_image_free(it);
+    }
+    vkUnmapMemory(device, tex_buffer_memory);
+    return (img_size);
+}
+
 VkImage
 createImage(VkDevice device,
             uint32_t width,
@@ -50,7 +113,8 @@ createImage(VkDevice device,
             uint32_t mip_level,
             VkFormat format,
             VkImageTiling tiling,
-            VkImageUsageFlags usage)
+            VkImageUsageFlags usage,
+            bool is_cubemap)
 {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -59,13 +123,16 @@ createImage(VkDevice device,
     imageInfo.extent.height = height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = mip_level;
-    imageInfo.arrayLayers = 1;
+    imageInfo.arrayLayers = (is_cubemap) ? 6 : 1;
     imageInfo.format = format;
     imageInfo.tiling = tiling;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = usage;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    if (is_cubemap) {
+        imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    }
 
     VkImage img{};
     if (vkCreateImage(device, &imageInfo, nullptr, &img) != VK_SUCCESS) {
@@ -105,7 +172,8 @@ transitionImageLayout(VkDevice device,
                       VkFormat format,
                       uint32_t mip_level,
                       VkImageLayout old_layout,
-                      VkImageLayout new_layout)
+                      VkImageLayout new_layout,
+                      bool is_cubemap)
 {
     auto cmd_buffer = beginSingleTimeCommands(device, command_pool);
 
@@ -119,7 +187,7 @@ transitionImageLayout(VkDevice device,
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = mip_level;
     barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.layerCount = (is_cubemap) ? 6 : 1;
     if (new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         if (hasStencilComponent(format)) {
@@ -178,7 +246,8 @@ copyBufferToImage(VkDevice device,
                   VkBuffer buffer,
                   VkImage image,
                   uint32_t width,
-                  uint32_t height)
+                  uint32_t height,
+                  bool is_cubemap)
 {
     auto cmd_buffer = beginSingleTimeCommands(device, command_pool);
 
@@ -189,7 +258,7 @@ copyBufferToImage(VkDevice device,
     region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     region.imageSubresource.mipLevel = 0;
     region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount = 1;
+    region.imageSubresource.layerCount = (is_cubemap) ? 6 : 1;
     region.imageOffset = { 0, 0, 0 };
     region.imageExtent = { width, height, 1 };
     vkCmdCopyBufferToImage(cmd_buffer,
@@ -206,14 +275,16 @@ createImageView(VkImage image,
                 VkFormat format,
                 uint32_t mip_level,
                 VkDevice device,
-                VkImageAspectFlags aspect_flags)
+                VkImageAspectFlags aspect_flags,
+                bool is_cubemap)
 {
     VkImageView img_view{};
 
     VkImageViewCreateInfo create_info{};
     create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     create_info.image = image;
-    create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    create_info.viewType =
+      (is_cubemap) ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
     create_info.format = format;
     create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -223,7 +294,7 @@ createImageView(VkImage image,
     create_info.subresourceRange.baseMipLevel = 0;
     create_info.subresourceRange.levelCount = mip_level;
     create_info.subresourceRange.baseArrayLayer = 0;
-    create_info.subresourceRange.layerCount = 1;
+    create_info.subresourceRange.layerCount = (is_cubemap) ? 6 : 1;
 
     if (vkCreateImageView(device, &create_info, nullptr, &img_view) !=
         VK_SUCCESS) {

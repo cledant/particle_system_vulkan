@@ -46,6 +46,7 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
 
     _vk_instance.init(surface);
     _tex_manager.init(_vk_instance);
+    _tex_manager.loadCubemap("./resources/textures/skybox", "jpg");
     _swap_chain.init(_vk_instance, win_w, win_h);
     _sync.init(_vk_instance, _swap_chain.swapChainImageViews.size());
     _create_system_uniform_buffer();

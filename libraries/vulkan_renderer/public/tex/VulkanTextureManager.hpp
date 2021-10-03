@@ -35,9 +35,13 @@ class VulkanTextureManager final
     void init(VulkanInstance const &vkInstance);
     void clear();
     void loadTexture(std::string const &texturePath);
+    void loadCubemap(std::string const &cubemapFolder,
+                     std::string const &fileType);
     void unloadAllTextures();
     bool getTexture(std::string const &texturePath, Texture &tex);
     Texture loadAndGetTexture(std::string const &texturePath);
+    Texture loadAndGetCubemap(std::string const &cubemapFolder,
+                              std::string const &fileType);
 
   private:
     VkDevice _device{};
@@ -51,8 +55,15 @@ class VulkanTextureManager final
                                          int32_t &tex_img_w,
                                          int32_t &tex_img_h,
                                          uint32_t &mip_level);
+    inline VkImage _create_cubemap_image(std::string const &cubemapFolder,
+                                         std::string const &fileType,
+                                         VkDeviceMemory &texture_img_memory,
+                                         int32_t &tex_img_w,
+                                         int32_t &tex_img_h,
+                                         uint32_t &mip_level);
     inline VkImageView _create_texture_image_view(VkImage texture_img,
-                                                  uint32_t mip_level);
+                                                  uint32_t mip_level,
+                                                  bool is_cubemap);
     inline VkSampler _create_texture_sampler(uint32_t mip_level);
     inline void _load_default_texture();
 };
