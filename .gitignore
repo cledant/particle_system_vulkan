@@ -1,0 +1,42 @@
+# Compiled Sources #
+####################
+*.o
+*.so
+*.a
+*.dylib
+
+# Swap files #
+##############
+*.swp
+
+# OS Generated Files #
+######################
+*.DS_Store
+*.DS_Store?
+*._*
+*.Spotlight-V100
+*.Trashes
+ehthumbs.db
+Thumbs.db
+
+# CLION FOLDERS #
+#################
+cmake-build-*
+.idea
+
+# CMAKE BUILD DIR #
+###################
+build
+
+# Project Executables #
+#######################
+a.out
+scop
+
+# Folders #
+###########
+obj
+
+# Debug #
+#########
+*.dSYM
