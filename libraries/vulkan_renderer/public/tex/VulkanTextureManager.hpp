@@ -19,8 +19,10 @@ struct Texture final
     uint32_t mip_level{};
 };
 
-static constexpr char const *PARTICLE_SYS_DEFAULT_TEXTURE =
-  "PARTICLE_SYS_DEFAULT_TEXTURE";
+static constexpr char const *TEX_MANAGER_DEFAULT_TEXTURE =
+  "TEX_MANAGER_DEFAULT_TEXTURE";
+static constexpr char const *TEX_MANAGER_DEFAULT_CUBEMAP =
+  "TEX_MANAGER_DEFAULT_CUBEMAP";
 
 class VulkanTextureManager final
 {
@@ -66,6 +68,7 @@ class VulkanTextureManager final
                                                   bool is_cubemap);
     inline VkSampler _create_texture_sampler(uint32_t mip_level);
     inline void _load_default_texture();
+    inline void _load_default_cubemap();
 };
 
 #endif // PARTICLE_SYS_VULKAN_VULKANTEXTUREMANAGER_HPP

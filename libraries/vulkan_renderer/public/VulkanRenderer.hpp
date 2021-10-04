@@ -13,6 +13,7 @@
 #include "VulkanSwapChain.hpp"
 #include "VulkanSync.hpp"
 #include "ui/VulkanUi.hpp"
+#include "skybox/VulkanSkyboxPipeline.hpp"
 
 class VulkanRenderer final
 {
@@ -35,18 +36,21 @@ class VulkanRenderer final
     void resize(uint32_t win_w, uint32_t win_h);
     void clear();
 
+    // Info related
     [[nodiscard]] std::string const &getAppName() const;
     [[nodiscard]] uint32_t getAppVersion() const;
     [[nodiscard]] std::string const &getEngineName() const;
     [[nodiscard]] uint32_t getEngineVersion() const;
+
+    // Skybox related
+    bool loadSkybox(std::string const &skyboxFolder);
+    void setSkyboxInfo(glm::mat4 const &skyboxInfo);
 
     // Render related
     void draw(glm::mat4 const &view_proj_mat);
     void deviceWaitIdle() const;
 
   private:
-    static constexpr uint32_t MAX_MODEL_INSTANCE = 10;
-
     std::string _app_name;
     std::string _engine_name;
     uint32_t _app_version{};
@@ -57,24 +61,24 @@ class VulkanRenderer final
     VulkanSwapChain _swap_chain;
     VulkanSync _sync;
     VulkanUi _ui;
+    VulkanSkyboxPipeline _skybox;
 
     // Renderer global uniform
     VkBuffer _system_uniform{};
     VkDeviceMemory _system_uniform_memory{};
 
     // Drawing related
-    std::vector<VkCommandBuffer> _model_command_buffers;
+    std::vector<VkCommandBuffer> _render_command_buffers;
 
     // Draw related fct
-    inline void _create_model_command_buffers();
+    inline void _create_render_command_buffers();
 
     // Renderer global uniform related fct
     inline void _create_system_uniform_buffer();
 
     // Draw command emission related
-    inline void _emit_model_ui_cmds(uint32_t img_index,
-                                    glm::mat4 const &view_proj_mat);
-    inline void _emit_ui_cmds(uint32_t img_index);
+    inline void _emit_render_and_ui_cmds(uint32_t img_index,
+                                         glm::mat4 const &view_proj_mat);
 };
 
 #endif // PARTICLE_SYS_VULKAN_VULKANRENDERER_HPP

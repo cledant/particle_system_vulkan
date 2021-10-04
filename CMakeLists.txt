@@ -93,6 +93,7 @@ add_subdirectory(libraries/engine)
 add_subdirectory(libraries/vulkan_renderer)
 add_subdirectory(libraries/ui)
 add_subdirectory(libraries/app_version)
+add_subdirectory(libraries/model_instance)
 
 #Shaders
 add_subdirectory(shaders/skybox)

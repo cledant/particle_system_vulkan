@@ -12,11 +12,10 @@ layout(binding = 0) uniform SystemUBO {
 
 layout(binding = 1) uniform SkyboxUBO {
     mat4 model;
-    vec4 scale;
 } skyboxUbo;
 
 void main() {
-    vec4 pos = systemUbo.view_proj * skyboxUbo.model * vec4(inVertexPosition * skyboxUbo.scale.xyz, 1.0);
+    vec4 pos = systemUbo.view_proj * skyboxUbo.model * vec4(inVertexPosition, 1.0);
     gl_Position = pos.xyww;
     outFragTexCoord = inVertexPosition;
 }

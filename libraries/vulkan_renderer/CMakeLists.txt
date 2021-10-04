@@ -7,6 +7,9 @@ add_library(vulkan_renderer STATIC
         private/VulkanInstance.cpp
         private/VulkanSwapChain.cpp
         private/VulkanSync.cpp
+        private/skybox/VulkanSkyboxPipeline.cpp
+        private/skybox/VulkanSkyboxPipelineData.cpp
+        private/skybox/VulkanSkyboxRenderPass.cpp
         private/tex/VulkanTextureManager.cpp
         private/ui/VulkanUiRenderPass.cpp
         private/ui/VulkanUi.cpp
@@ -27,10 +30,12 @@ set_target_properties(vulkan_renderer PROPERTIES
         CXX_EXTENSIONS NO)
 add_dependencies(vulkan_renderer
         fmt
+        model_instance
         imgui_glfw_vulkan)
 target_link_libraries(vulkan_renderer
         glm
         fmt
         stb
+        model_instance
         imgui_glfw_vulkan)
 target_compile_options(vulkan_renderer PRIVATE -Wall -Wextra -Werror)

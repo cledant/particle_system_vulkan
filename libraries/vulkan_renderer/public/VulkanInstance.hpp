@@ -35,7 +35,7 @@ class VulkanInstance final
     uint32_t graphicQueueIndex{};
     VkQueue presentQueue{};
     uint32_t presentQueueIndex{};
-    VkCommandPool modelCommandPool{};
+    VkCommandPool renderCommandPool{};
 
   private:
     inline void _setup_vk_debug_msg();

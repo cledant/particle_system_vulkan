@@ -13,7 +13,7 @@ VulkanTextureManager::init(VulkanInstance const &vkInstance)
     _device = vkInstance.device;
     _physical_device = vkInstance.physicalDevice;
     _gfx_queue = vkInstance.graphicQueue;
-    _command_pool = vkInstance.modelCommandPool;
+    _command_pool = vkInstance.renderCommandPool;
     _load_default_texture();
 }
 
@@ -407,5 +407,89 @@ VulkanTextureManager::_load_default_texture()
                     tex.height,
                     tex.mip_level);
 
-    _textures.emplace(PARTICLE_SYS_DEFAULT_TEXTURE, tex);
+    _textures.emplace(TEX_MANAGER_DEFAULT_TEXTURE, tex);
+}
+
+void
+VulkanTextureManager::_load_default_cubemap()
+{
+    static constexpr uint8_t const white_tex_size = 4 * 6;
+    static uint8_t const white_tex[white_tex_size] = {
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255
+    };
+    Texture tex{
+        nullptr, nullptr, nullptr, nullptr, 1, 1, 1,
+    };
+
+    // Staging buffer
+    VkBuffer staging_buffer{};
+    VkDeviceMemory staging_buffer_memory{};
+    createBuffer(_device,
+                 staging_buffer,
+                 white_tex_size,
+                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    allocateBuffer(_physical_device,
+                   _device,
+                   staging_buffer,
+                   staging_buffer_memory,
+                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    void *data;
+    vkMapMemory(_device, staging_buffer_memory, 0, white_tex_size, 0, &data);
+    memcpy(data, white_tex, white_tex_size);
+    vkUnmapMemory(_device, staging_buffer_memory);
+
+    // Texture
+    tex.texture_img = createImage(_device,
+                                  tex.width,
+                                  tex.height,
+                                  tex.mip_level,
+                                  VK_FORMAT_R8G8B8A8_SRGB,
+                                  VK_IMAGE_TILING_OPTIMAL,
+                                  VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                                    VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                                    VK_IMAGE_USAGE_SAMPLED_BIT,
+                                  true);
+    allocateImage(_physical_device,
+                  _device,
+                  tex.texture_img,
+                  tex.texture_img_memory,
+                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    transitionImageLayout(_device,
+                          _command_pool,
+                          _gfx_queue,
+                          tex.texture_img,
+                          VK_FORMAT_R8G8B8A8_SRGB,
+                          1,
+                          VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          true);
+    copyBufferToImage(_device,
+                      _command_pool,
+                      _gfx_queue,
+                      staging_buffer,
+                      tex.texture_img,
+                      1,
+                      1,
+                      true);
+
+    vkDestroyBuffer(_device, staging_buffer, nullptr);
+    vkFreeMemory(_device, staging_buffer_memory, nullptr);
+
+    tex.texture_img_view =
+      _create_texture_image_view(tex.texture_img, tex.mip_level, true);
+    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+
+    generateMipmaps(_physical_device,
+                    _device,
+                    _command_pool,
+                    _gfx_queue,
+                    tex.texture_img,
+                    VK_FORMAT_R8G8B8A8_SRGB,
+                    tex.width,
+                    tex.height,
+                    tex.mip_level);
+
+    _textures.emplace(TEX_MANAGER_DEFAULT_CUBEMAP, tex);
 }

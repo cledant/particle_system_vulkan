@@ -64,13 +64,13 @@ VulkanInstance::init(VkSurfaceKHR windowSurface)
     _setup_vk_debug_msg();
     _select_physical_device();
     _create_present_and_graphic_queue();
-    modelCommandPool = createCommandPool(device, graphicQueueIndex, 0);
+    renderCommandPool = createCommandPool(device, graphicQueueIndex, 0);
 }
 
 void
 VulkanInstance::clear()
 {
-    vkDestroyCommandPool(device, modelCommandPool, nullptr);
+    vkDestroyCommandPool(device, renderCommandPool, nullptr);
     vkDestroyDevice(device, nullptr);
     if constexpr (ENABLE_VALIDATION_LAYER) {
         destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
@@ -84,7 +84,7 @@ VulkanInstance::clear()
     device = nullptr;
     graphicQueue = nullptr;
     presentQueue = nullptr;
-    modelCommandPool = nullptr;
+    renderCommandPool = nullptr;
 }
 
 void
