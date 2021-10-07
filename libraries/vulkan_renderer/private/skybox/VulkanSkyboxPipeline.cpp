@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 
+#include "skybox/SkyboxModel.hpp"
 #include "utils/VulkanShader.hpp"
 #include "utils/VulkanMemory.hpp"
 #include "utils/VulkanPhysicalDevice.hpp"
@@ -10,10 +11,10 @@
 
 void
 VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
-                          VulkanSwapChain const &swapChain,
-                          VulkanTextureManager &texManager,
-                          VkBuffer systemUbo,
-                          uint32_t maxModelNb)
+                           VulkanSwapChain const &swapChain,
+                           std::string const &skyboxFolderPath,
+                           VulkanTextureManager &texManager,
+                           VkBuffer systemUbo)
 {
     _device = vkInstance.device;
     _physical_device = vkInstance.physicalDevice;
@@ -23,7 +24,6 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
     _create_descriptor_layout();
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
-    auto mesh_list = model.getMeshList();
     _pipeline_data = _create_pipeline_skybox(
       model, model.getDirectory(), texManager, swapChain.currentSwapChainNbImg);
     _create_descriptor_pool(swapChain, _pipeline_data);
@@ -32,11 +32,9 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
 
 void
 VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
-                            VulkanTextureManager &texManager,
-                            VkBuffer systemUbo)
+                             VulkanTextureManager &texManager,
+                             VkBuffer systemUbo)
 {
-    assert(_model);
-
     vkDestroyPipeline(_device, _graphic_pipeline, nullptr);
     vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
     _pipeline_render_pass.resize(swapChain);
@@ -70,8 +68,6 @@ VulkanSkyboxPipeline::clear()
     vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
     vkFreeMemory(_device, _pipeline_data.memory, nullptr);
     vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
-    _instance_handler.clear();
-    _model = nullptr;
     _device = nullptr;
     _physical_device = nullptr;
     _cmd_pool = nullptr;
@@ -85,13 +81,13 @@ VulkanSkyboxPipeline::clear()
 VulkanSkyboxRenderPass const &
 VulkanSkyboxPipeline::getVulkanSkyboxRenderPass() const
 {
-    return (_pipeline_data);
+    return (_pipeline_render_pass);
 }
 
 void
 VulkanSkyboxPipeline::generateCommands(VkCommandBuffer cmdBuffer,
-                                      size_t descriptorSetIndex,
-                                      uint32_t currentSwapChainNbImg)
+                                       size_t descriptorSetIndex,
+                                       uint32_t currentSwapChainNbImg)
 {
     // Vertex related values
     VkBuffer vertex_buffer[] = { _pipeline_data.buffer, _pipeline_data.buffer };
@@ -370,7 +366,7 @@ VulkanSkyboxPipeline::_create_pipeline_skybox(
         pipeline_model.indicesDrawNb.emplace_back(it.nb_indices);
         pipeline_model.indicesDrawOffset.emplace_back(it.indices_offset);
         if (!it.material.tex_diffuse_name.empty()) {
-            pipeline_model.diffuseTextures.emplace_back(
+            pipeline_model.cubemapTexture.emplace_back(
               textureManager.loadAndGetTexture(modelFolder + "/" +
                                                it.material.tex_diffuse_name));
         } else {
@@ -379,7 +375,7 @@ VulkanSkyboxPipeline::_create_pipeline_skybox(
                 throw std::runtime_error(
                   "VulkanSkyboxPipeline: Default texture not loaded");
             }
-            pipeline_model.diffuseTextures.emplace_back(def_tex);
+            pipeline_model.cubemapTexture.emplace_back(def_tex);
         }
     }
 
@@ -577,8 +573,8 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
             VkDescriptorImageInfo img_info{};
             img_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             img_info.imageView =
-              pipelineData.diffuseTextures[j].texture_img_view;
-            img_info.sampler = pipelineData.diffuseTextures[j].texture_sampler;
+              pipelineData.cubemapTexture[j].texture_img_view;
+            img_info.sampler = pipelineData.cubemapTexture[j].texture_sampler;
             descriptor_write[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptor_write[2].dstSet = pipelineData.descriptorSets[ds_index];
             descriptor_write[2].dstBinding = 2;
@@ -597,4 +593,18 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
                                    nullptr);
         }
     }
+}
+
+bool
+VulkanSkyboxPipeline::setSkyboxTexture(std::string const &skyboxFolderPath,
+                                       VulkanTextureManager &texManager)
+{
+    // TODO
+    return false;
+}
+
+void
+VulkanSkyboxPipeline::setSkyboxInfo(glm::mat4 const &skyboxInfo)
+{
+    // TODO
 }

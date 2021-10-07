@@ -10,9 +10,8 @@ struct ModelInstanceInfo final
     float yaw{};
     float roll{};
     glm::vec3 scale = glm::vec3(1.0f);
-};
 
-glm::mat4 computeInstanceMatrix(glm::vec3 const &modelCenter,
-                                ModelInstanceInfo const &info);
+    [[nodiscard]] glm::mat4 computeInstanceMatrix(glm::vec3 const &modelCenter) const;
+};
 
 #endif // SCOP_VULKAN_MODELINSTANCEINFO_HPP

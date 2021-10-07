@@ -7,6 +7,7 @@
 #include "Perspective.hpp"
 #include "VulkanRenderer.hpp"
 #include "Ui.hpp"
+#include "ModelInstanceInfo.hpp"
 
 class Engine final
 {
@@ -35,6 +36,7 @@ class Engine final
     EventHandler _event_handler;
     Perspective _perspective_data{};
     Ui _ui;
+    ModelInstanceInfo _skybox{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_ENGINE_HPP

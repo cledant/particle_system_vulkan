@@ -9,6 +9,7 @@
 #include "Perspective.hpp"
 #include "VulkanRenderer.hpp"
 #include "Ui.hpp"
+#include "ModelInstanceInfo.hpp"
 
 class EventHandler final
 {
@@ -25,6 +26,7 @@ class EventHandler final
     void setPerspectiveData(Perspective *perspective);
     void setVkRenderer(VulkanRenderer *renderer);
     void setUi(Ui *ui);
+    void setSkybox(ModelInstanceInfo *skybox);
 
     void processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent);
 
@@ -100,6 +102,7 @@ class EventHandler final
     Perspective *_perspective{};
     VulkanRenderer *_renderer{};
     Ui *_ui{};
+    ModelInstanceInfo *_skybox{};
 
     EventTimers _timers;
 

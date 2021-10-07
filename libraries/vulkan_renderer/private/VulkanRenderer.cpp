@@ -107,6 +107,19 @@ VulkanRenderer::getEngineVersion() const
     return (_engine_version);
 }
 
+// Skybox related
+bool
+VulkanRenderer::setSkyboxTexture(std::string const &skyboxFolder)
+{
+    return (_skybox.setSkyboxTexture(skyboxFolder, _tex_manager));
+}
+
+void
+VulkanRenderer::setSkyboxInfo(glm::mat4 const &skyboxInfo)
+{
+    _skybox.setSkyboxInfo(skyboxInfo);
+}
+
 // Render Related
 void
 VulkanRenderer::draw(glm::mat4 const &view_proj_mat)

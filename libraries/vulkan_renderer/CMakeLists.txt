@@ -10,6 +10,7 @@ add_library(vulkan_renderer STATIC
         private/skybox/VulkanSkyboxPipeline.cpp
         private/skybox/VulkanSkyboxPipelineData.cpp
         private/skybox/VulkanSkyboxRenderPass.cpp
+        private/skybox/SkyboxModel.cpp
         private/tex/VulkanTextureManager.cpp
         private/ui/VulkanUiRenderPass.cpp
         private/ui/VulkanUi.cpp
@@ -23,19 +24,18 @@ target_include_directories(vulkan_renderer
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/public
         PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/private)
+        ${CMAKE_CURRENT_SOURCE_DIR}/private
+        ${CMAKE_CURRENT_SOURCE_DIR}/private/skybox)
 set_target_properties(vulkan_renderer PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO)
 add_dependencies(vulkan_renderer
         fmt
-        model_instance
         imgui_glfw_vulkan)
 target_link_libraries(vulkan_renderer
         glm
         fmt
         stb
-        model_instance
         imgui_glfw_vulkan)
 target_compile_options(vulkan_renderer PRIVATE -Wall -Wextra -Werror)

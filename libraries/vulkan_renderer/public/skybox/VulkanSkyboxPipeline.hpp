@@ -35,10 +35,10 @@ class VulkanSkyboxPipeline final
                 VkBuffer systemUbo);
     void clear();
 
-    void setSkyboxTexture(std::string const &skyboxFolderPath,
+    bool setSkyboxTexture(std::string const &skyboxFolderPath,
                           VulkanTextureManager &texManager);
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
-    VulkanSkyboxRenderPass const &getVulkanSkyboxRenderPass() const;
+    [[nodiscard]] VulkanSkyboxRenderPass const &getVulkanSkyboxRenderPass() const;
 
     void generateCommands(VkCommandBuffer cmdBuffer,
                           size_t descriptorSetIndex,

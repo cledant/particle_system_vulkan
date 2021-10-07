@@ -37,6 +37,12 @@ EventHandler::setUi(Ui *ui)
 }
 
 void
+EventHandler::setSkybox(ModelInstanceInfo *skybox)
+{
+    _skybox = skybox;
+}
+
+void
 EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
 {
     assert(_camera);
@@ -44,6 +50,7 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
     assert(_perspective);
     assert(_renderer);
     assert(_ui);
+    assert(_skybox);
 
     // Resetting movement tracking
     _movements = glm::ivec3(0);
@@ -106,6 +113,10 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
         _update_camera(ioEvents.mouse_position);
     }
     _timers.updated[ET_CAMERA] = 1;
+
+    // Skybox
+    _skybox->position = _camera->getPosition();
+    _renderer->setSkyboxInfo(_skybox->computeInstanceMatrix(glm::vec3(0.0f)));
 
     // Resized window case
     if (_io_manager->wasResized()) {

@@ -18,20 +18,18 @@ struct VulkanSkyboxPipelineData
     VkDeviceSize indicesSize{};
     VkDeviceSize singleUboSize{};
     VkDeviceSize singleSwapChainUboSize{};
-    VkDeviceSize instanceMatricesOffset{};
     VkDeviceSize indicesOffset{};
     VkDeviceSize uboOffset{};
     VkDescriptorPool descriptorPool{};
     std::vector<VkDescriptorSet> descriptorSets;
     glm::vec3 modelCenter{};
-    VkDeviceSize nbMaterials{};
-    std::vector<Texture> diffuseTextures;
-    std::vector<VkDeviceSize> indicesDrawOffset;
-    std::vector<VkDeviceSize> indicesDrawNb;
+    Texture cubemapTexture;
+    VkDeviceSize indicesDrawOffset;
+    VkDeviceSize indicesDrawNb;
 
-    static std::array<VkVertexInputBindingDescription, 2>
+    static std::array<VkVertexInputBindingDescription, 1>
     getInputBindingDescription();
-    static std::array<VkVertexInputAttributeDescription, 9>
+    static std::array<VkVertexInputAttributeDescription, 1>
     getInputAttributeDescription();
 
     void clear();
