@@ -17,7 +17,7 @@ class SkyboxModel final
     SkyboxModel(SkyboxModel &&src) = delete;
     SkyboxModel &operator=(SkyboxModel &&rhs) = delete;
 
-    [[nodiscard]] std::vector<glm::vec3> const &getVertices() const;
+    [[nodiscard]] std::vector<glm::vec3> const &getVertexList() const;
     [[nodiscard]] std::vector<uint32_t> const &getIndicesList() const;
 
   private:

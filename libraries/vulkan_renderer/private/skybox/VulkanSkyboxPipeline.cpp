@@ -13,6 +13,7 @@ void
 VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
                            VulkanSwapChain const &swapChain,
                            std::string const &skyboxFolderPath,
+                           std::string const &skyboxFileType,
                            VulkanTextureManager &texManager,
                            VkBuffer systemUbo)
 {
@@ -21,13 +22,17 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
     _cmd_pool = vkInstance.renderCommandPool;
     _gfx_queue = vkInstance.graphicQueue;
     _pipeline_render_pass.init(vkInstance, swapChain);
+    _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_descriptor_layout();
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
-    _pipeline_data = _create_pipeline_skybox(
-      model, model.getDirectory(), texManager, swapChain.currentSwapChainNbImg);
+    _pipeline_data = _create_pipeline_skybox();
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
+    _skybox_folder_path = skyboxFolderPath;
+    _skybox_filetype = skyboxFileType;
+    _skybox_tex =
+      texManager.loadAndGetCubemap(skyboxFolderPath, skyboxFileType);
 }
 
 void
@@ -35,32 +40,30 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
                              VulkanTextureManager &texManager,
                              VkBuffer systemUbo)
 {
+    vkDestroyBuffer(_device, _skybox_uniform, nullptr);
+    vkFreeMemory(_device, _skybox_uniform_memory, nullptr);
     vkDestroyPipeline(_device, _graphic_pipeline, nullptr);
     vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
     _pipeline_render_pass.resize(swapChain);
 
+    _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
     vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
     vkFreeMemory(_device, _pipeline_data.memory, nullptr);
     vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
-    _pipeline_data = _create_pipeline_skybox(*_model,
-                                             _model->getDirectory(),
-                                             texManager,
-                                             swapChain.currentSwapChainNbImg);
+    _pipeline_data = _create_pipeline_skybox();
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
-
-    auto updater = [&](uint32_t index,
-                       ModelInstanceInfo const &inst_info) -> void {
-        _set_instance_matrix_on_gpu(index, inst_info);
-    };
-    _instance_handler.executeUpdateFctOnInstances(updater);
+    _skybox_tex =
+      texManager.loadAndGetCubemap(_skybox_folder_path, _skybox_filetype);
 }
 
 void
 VulkanSkyboxPipeline::clear()
 {
+    vkDestroyBuffer(_device, _skybox_uniform, nullptr);
+    vkFreeMemory(_device, _skybox_uniform_memory, nullptr);
     vkDestroyPipeline(_device, _graphic_pipeline, nullptr);
     vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
     _pipeline_render_pass.clear();
@@ -78,6 +81,12 @@ VulkanSkyboxPipeline::clear()
     _pipeline_data.clear();
 }
 
+void
+VulkanSkyboxPipeline::setSkyboxInfo(glm::mat4 const &skyboxInfo)
+{
+    _skybox_model = skyboxInfo;
+}
+
 VulkanSkyboxRenderPass const &
 VulkanSkyboxPipeline::getVulkanSkyboxRenderPass() const
 {
@@ -86,40 +95,40 @@ VulkanSkyboxPipeline::getVulkanSkyboxRenderPass() const
 
 void
 VulkanSkyboxPipeline::generateCommands(VkCommandBuffer cmdBuffer,
-                                       size_t descriptorSetIndex,
-                                       uint32_t currentSwapChainNbImg)
+                                       size_t descriptorSetIndex)
 {
     // Vertex related values
-    VkBuffer vertex_buffer[] = { _pipeline_data.buffer, _pipeline_data.buffer };
-    VkDeviceSize offsets[] = { 0, _pipeline_data.instanceMatricesOffset };
+    VkBuffer vertex_buffer[] = { _pipeline_data.buffer };
+    VkDeviceSize offsets[] = { 0 };
 
     vkCmdBindPipeline(
       cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphic_pipeline);
-    vkCmdBindVertexBuffers(cmdBuffer, 0, 2, vertex_buffer, offsets);
+    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertex_buffer, offsets);
     vkCmdBindIndexBuffer(cmdBuffer,
                          _pipeline_data.buffer,
                          _pipeline_data.indicesOffset,
                          VK_INDEX_TYPE_UINT32);
 
-    for (size_t i = 0; i < _pipeline_data.nbMaterials; ++i) {
-        vkCmdBindDescriptorSets(
-          cmdBuffer,
-          VK_PIPELINE_BIND_POINT_GRAPHICS,
-          _pipeline_layout,
-          0,
-          1,
-          &_pipeline_data
-             .descriptorSets[descriptorSetIndex + i * currentSwapChainNbImg],
-          0,
-          nullptr);
+    vkCmdBindDescriptorSets(cmdBuffer,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            _pipeline_layout,
+                            0,
+                            1,
+                            &_pipeline_data.descriptorSets[descriptorSetIndex],
+                            0,
+                            nullptr);
+    vkCmdDrawIndexed(cmdBuffer, _pipeline_data.indicesDrawNb, 1, 0, 0, 0);
+}
 
-        vkCmdDrawIndexed(cmdBuffer,
-                         _pipeline_data.indicesDrawNb[i],
-                         _instance_handler.getCurrentInstanceNb(),
-                         _pipeline_data.indicesDrawOffset[i],
-                         0,
-                         0);
-    }
+void
+VulkanSkyboxPipeline::setSkyboxModelMatOnGpu(uint32_t currentImg)
+{
+    copyOnCpuCoherentMemory(_device,
+                            _skybox_uniform_memory,
+                            currentImg * sizeof(SkyboxUbo) +
+                              offsetof(SkyboxUbo, model),
+                            sizeof(glm::mat4),
+                            &_skybox_model);
 }
 
 void
@@ -133,12 +142,13 @@ VulkanSkyboxPipeline::_create_descriptor_layout()
     system_ubo_layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     system_ubo_layout_binding.pImmutableSamplers = nullptr;
 
-    VkDescriptorSetLayoutBinding model_ubo_layout_binding{};
-    model_ubo_layout_binding.binding = 1;
-    model_ubo_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    model_ubo_layout_binding.descriptorCount = 1;
-    model_ubo_layout_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    model_ubo_layout_binding.pImmutableSamplers = nullptr;
+    VkDescriptorSetLayoutBinding skybox_ubo_layout_binding{};
+    skybox_ubo_layout_binding.binding = 1;
+    skybox_ubo_layout_binding.descriptorType =
+      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    skybox_ubo_layout_binding.descriptorCount = 1;
+    skybox_ubo_layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    skybox_ubo_layout_binding.pImmutableSamplers = nullptr;
 
     VkDescriptorSetLayoutBinding sampler_layout_binding{};
     sampler_layout_binding.binding = 2;
@@ -149,7 +159,7 @@ VulkanSkyboxPipeline::_create_descriptor_layout()
     sampler_layout_binding.pImmutableSamplers = nullptr;
 
     std::array bindings{ system_ubo_layout_binding,
-                         model_ubo_layout_binding,
+                         skybox_ubo_layout_binding,
                          sampler_layout_binding };
 
     VkDescriptorSetLayoutCreateInfo layout_info{};
@@ -187,9 +197,9 @@ VulkanSkyboxPipeline::_create_gfx_pipeline(VulkanSwapChain const &swapChain)
 {
     // Shaders
     auto vert_shader =
-      loadShader(_device, "resources/shaders/model/model.vert.spv");
+      loadShader(_device, "resources/shaders/skybox/skybox.vert.spv");
     auto frag_shader =
-      loadShader(_device, "resources/shaders/model/model.frag.spv");
+      loadShader(_device, "resources/shaders/skybox/skybox.frag.spv");
 
     VkPipelineShaderStageCreateInfo vert_shader_info{};
     vert_shader_info.sType =
@@ -309,7 +319,7 @@ VulkanSkyboxPipeline::_create_gfx_pipeline(VulkanSwapChain const &swapChain)
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_stencil.depthTestEnable = VK_TRUE;
     depth_stencil.depthWriteEnable = VK_TRUE;
-    depth_stencil.depthCompareOp = VK_COMPARE_OP_LESS;
+    depth_stencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
     depth_stencil.depthBoundsTestEnable = VK_FALSE;
     depth_stencil.minDepthBounds = 0.0f;
     depth_stencil.maxDepthBounds = 1.0f;
@@ -350,61 +360,23 @@ VulkanSkyboxPipeline::_create_gfx_pipeline(VulkanSwapChain const &swapChain)
 }
 
 VulkanSkyboxPipelineData
-VulkanSkyboxPipeline::_create_pipeline_skybox(
-  Model const &model,
-  std::string const &modelFolder,
-  VulkanTextureManager &textureManager,
-  uint32_t currentSwapChainNbImg)
+VulkanSkyboxPipeline::_create_pipeline_skybox()
 {
     VulkanSkyboxPipelineData pipeline_model{};
+    SkyboxModel model;
 
-    pipeline_model.modelCenter = model.getCenter();
-
-    // Material + Texture related
-    pipeline_model.nbMaterials = model.getMeshList().size();
-    for (auto &it : model.getMeshList()) {
-        pipeline_model.indicesDrawNb.emplace_back(it.nb_indices);
-        pipeline_model.indicesDrawOffset.emplace_back(it.indices_offset);
-        if (!it.material.tex_diffuse_name.empty()) {
-            pipeline_model.cubemapTexture.emplace_back(
-              textureManager.loadAndGetTexture(modelFolder + "/" +
-                                               it.material.tex_diffuse_name));
-        } else {
-            Texture def_tex{};
-            if (textureManager.getTexture(SCOP_DEFAULT_TEXTURE, def_tex)) {
-                throw std::runtime_error(
-                  "VulkanSkyboxPipeline: Default texture not loaded");
-            }
-            pipeline_model.cubemapTexture.emplace_back(def_tex);
-        }
-    }
+    // Texture related
+    pipeline_model.cubemapTexture = _skybox_tex;
 
     // Computing sizes and offsets
-    pipeline_model.verticesSize = sizeof(Vertex) * model.getVertexList().size();
+    pipeline_model.indicesDrawNb = model.getIndicesList().size();
+    pipeline_model.verticesSize =
+      sizeof(glm::vec3) * model.getVertexList().size();
     pipeline_model.indicesSize =
       sizeof(uint32_t) * model.getIndicesList().size();
-    VkDeviceSize instance_matrices_size =
-      sizeof(glm::mat4) * _instance_handler.getMaxInstanceNb();
-    pipeline_model.instanceMatricesOffset = pipeline_model.verticesSize;
-    pipeline_model.indicesOffset =
-      pipeline_model.verticesSize + instance_matrices_size;
-    pipeline_model.uboOffset = pipeline_model.verticesSize +
-                               instance_matrices_size +
-                               pipeline_model.indicesSize;
-    // UBO offset are required to be aligned with
-    // minUniformBufferOffsetAlignment prop
-    auto ubo_alignment = getMinUniformBufferOffsetAlignment(_physical_device);
-    pipeline_model.singleUboSize =
-      (sizeof(ModelPipelineUbo) > ubo_alignment)
-        ? sizeof(ModelPipelineUbo) + sizeof(ModelPipelineUbo) % ubo_alignment
-        : ubo_alignment;
-    pipeline_model.singleSwapChainUboSize =
-      pipeline_model.singleUboSize * currentSwapChainNbImg;
-    pipeline_model.uboOffset +=
-      ubo_alignment - (pipeline_model.uboOffset % ubo_alignment);
+    pipeline_model.indicesOffset = pipeline_model.verticesSize;
     VkDeviceSize total_size =
-      pipeline_model.uboOffset +
-      pipeline_model.singleSwapChainUboSize * pipeline_model.nbMaterials;
+      pipeline_model.verticesSize + pipeline_model.indicesSize;
 
     // Creating transfer buffer CPU to GPU
     VkBuffer staging_buffer{};
@@ -429,30 +401,14 @@ VulkanSkyboxPipeline::_create_pipeline_skybox(
                             pipeline_model.indicesOffset,
                             pipeline_model.indicesSize,
                             model.getIndicesList().data());
-    for (size_t j = 0; j < pipeline_model.nbMaterials; ++j) {
-        // Ubo values
-        ModelPipelineUbo m_ubo = { model.getMeshList()[j].material.diffuse,
-                                   model.getMeshList()[j].material.specular,
-                                   model.getMeshList()[j].material.shininess };
-
-        for (size_t i = 0; i < currentSwapChainNbImg; ++i) {
-            copyOnCpuCoherentMemory(_device,
-                                    staging_buffer_memory,
-                                    pipeline_model.uboOffset +
-                                      pipeline_model.singleUboSize * i +
-                                      pipeline_model.singleSwapChainUboSize * j,
-                                    sizeof(ModelPipelineUbo),
-                                    &m_ubo);
-        }
-    }
 
     // Creating GPU buffer + copying transfer buffer
-    createBuffer(
-      _device,
-      pipeline_model.buffer,
-      total_size,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-        VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    createBuffer(_device,
+                 pipeline_model.buffer,
+                 total_size,
+                 VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
     allocateBuffer(_physical_device,
                    _device,
                    pipeline_model.buffer,
@@ -479,23 +435,19 @@ VulkanSkyboxPipeline::_create_descriptor_pool(
     std::array<VkDescriptorPoolSize, 3> pool_size{};
     // System Ubo
     pool_size[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    pool_size[0].descriptorCount =
-      swapChain.currentSwapChainNbImg * pipelineData.nbMaterials;
-    // Material Ubo
+    pool_size[0].descriptorCount = swapChain.currentSwapChainNbImg;
+    // Skybox Ubo
     pool_size[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    pool_size[1].descriptorCount =
-      swapChain.currentSwapChainNbImg * pipelineData.nbMaterials;
+    pool_size[1].descriptorCount = swapChain.currentSwapChainNbImg;
     // Texture Sampler
     pool_size[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    pool_size[2].descriptorCount =
-      swapChain.currentSwapChainNbImg * pipelineData.nbMaterials;
+    pool_size[2].descriptorCount = swapChain.currentSwapChainNbImg;
 
     VkDescriptorPoolCreateInfo pool_info{};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.poolSizeCount = pool_size.size();
     pool_info.pPoolSizes = pool_size.data();
-    pool_info.maxSets =
-      swapChain.currentSwapChainNbImg * pipelineData.nbMaterials;
+    pool_info.maxSets = swapChain.currentSwapChainNbImg;
 
     if (vkCreateDescriptorPool(
           _device, &pool_info, nullptr, &pipelineData.descriptorPool) !=
@@ -511,19 +463,16 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
   VulkanSkyboxPipelineData &pipelineData,
   VkBuffer systemUbo)
 {
-    std::vector<VkDescriptorSetLayout> layouts(swapChain.currentSwapChainNbImg *
-                                                 pipelineData.nbMaterials,
+    std::vector<VkDescriptorSetLayout> layouts(swapChain.currentSwapChainNbImg,
                                                _descriptor_set_layout);
 
     VkDescriptorSetAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = pipelineData.descriptorPool;
-    alloc_info.descriptorSetCount =
-      swapChain.currentSwapChainNbImg * pipelineData.nbMaterials;
+    alloc_info.descriptorSetCount = swapChain.currentSwapChainNbImg;
     alloc_info.pSetLayouts = layouts.data();
 
-    pipelineData.descriptorSets.resize(swapChain.currentSwapChainNbImg *
-                                       pipelineData.nbMaterials);
+    pipelineData.descriptorSets.resize(swapChain.currentSwapChainNbImg);
     if (vkAllocateDescriptorSets(
           _device, &alloc_info, pipelineData.descriptorSets.data()) !=
         VK_SUCCESS) {
@@ -531,80 +480,75 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
           "VulkanSkyboxPipeline: failed to create descriptor sets");
     }
 
-    for (size_t j = 0; j < pipelineData.nbMaterials; ++j) {
-        for (size_t i = 0; i < swapChain.currentSwapChainNbImg; ++i) {
-            std::array<VkWriteDescriptorSet, 3> descriptor_write{};
-            uint32_t ds_index = i + swapChain.currentSwapChainNbImg * j;
+    for (size_t i = 0; i < swapChain.currentSwapChainNbImg; ++i) {
+        std::array<VkWriteDescriptorSet, 3> descriptor_write{};
 
-            // System UBO
-            VkDescriptorBufferInfo system_buffer_info{};
-            system_buffer_info.buffer = systemUbo;
-            system_buffer_info.offset = 0;
-            system_buffer_info.range = sizeof(SystemUbo);
-            descriptor_write[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptor_write[0].dstSet = pipelineData.descriptorSets[ds_index];
-            descriptor_write[0].dstBinding = 0;
-            descriptor_write[0].dstArrayElement = 0;
-            descriptor_write[0].descriptorType =
-              VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptor_write[0].descriptorCount = 1;
-            descriptor_write[0].pBufferInfo = &system_buffer_info;
-            descriptor_write[0].pImageInfo = nullptr;
-            descriptor_write[0].pTexelBufferView = nullptr;
+        // System UBO
+        VkDescriptorBufferInfo system_buffer_info{};
+        system_buffer_info.buffer = systemUbo;
+        system_buffer_info.offset = 0;
+        system_buffer_info.range = sizeof(SystemUbo);
+        descriptor_write[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptor_write[0].dstSet = pipelineData.descriptorSets[i];
+        descriptor_write[0].dstBinding = 0;
+        descriptor_write[0].dstArrayElement = 0;
+        descriptor_write[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptor_write[0].descriptorCount = 1;
+        descriptor_write[0].pBufferInfo = &system_buffer_info;
+        descriptor_write[0].pImageInfo = nullptr;
+        descriptor_write[0].pTexelBufferView = nullptr;
 
-            // Model UBO
-            VkDescriptorBufferInfo model_buffer_info{};
-            model_buffer_info.buffer = pipelineData.buffer;
-            model_buffer_info.offset =
-              pipelineData.uboOffset + pipelineData.singleUboSize * i;
-            model_buffer_info.range = sizeof(ModelPipelineUbo);
-            descriptor_write[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptor_write[1].dstSet = pipelineData.descriptorSets[ds_index];
-            descriptor_write[1].dstBinding = 1;
-            descriptor_write[1].dstArrayElement = 0;
-            descriptor_write[1].descriptorType =
-              VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptor_write[1].descriptorCount = 1;
-            descriptor_write[1].pBufferInfo = &model_buffer_info;
-            descriptor_write[1].pImageInfo = nullptr;
-            descriptor_write[1].pTexelBufferView = nullptr;
+        // Skybox UBO
+        VkDescriptorBufferInfo model_buffer_info{};
+        model_buffer_info.buffer = _skybox_uniform;
+        model_buffer_info.offset = 0;
+        model_buffer_info.range = sizeof(SkyboxUbo);
+        descriptor_write[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptor_write[1].dstSet = pipelineData.descriptorSets[i];
+        descriptor_write[1].dstBinding = 1;
+        descriptor_write[1].dstArrayElement = 0;
+        descriptor_write[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptor_write[1].descriptorCount = 1;
+        descriptor_write[1].pBufferInfo = &model_buffer_info;
+        descriptor_write[1].pImageInfo = nullptr;
+        descriptor_write[1].pTexelBufferView = nullptr;
 
-            // Texture
-            VkDescriptorImageInfo img_info{};
-            img_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            img_info.imageView =
-              pipelineData.cubemapTexture[j].texture_img_view;
-            img_info.sampler = pipelineData.cubemapTexture[j].texture_sampler;
-            descriptor_write[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptor_write[2].dstSet = pipelineData.descriptorSets[ds_index];
-            descriptor_write[2].dstBinding = 2;
-            descriptor_write[2].dstArrayElement = 0;
-            descriptor_write[2].descriptorType =
-              VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptor_write[2].descriptorCount = 1;
-            descriptor_write[2].pBufferInfo = nullptr;
-            descriptor_write[2].pImageInfo = &img_info;
-            descriptor_write[2].pTexelBufferView = nullptr;
+        // Texture
+        VkDescriptorImageInfo img_info{};
+        img_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        img_info.imageView = pipelineData.cubemapTexture.texture_img_view;
+        img_info.sampler = pipelineData.cubemapTexture.texture_sampler;
+        descriptor_write[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptor_write[2].dstSet = pipelineData.descriptorSets[i];
+        descriptor_write[2].dstBinding = 2;
+        descriptor_write[2].dstArrayElement = 0;
+        descriptor_write[2].descriptorType =
+          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptor_write[2].descriptorCount = 1;
+        descriptor_write[2].pBufferInfo = nullptr;
+        descriptor_write[2].pImageInfo = &img_info;
+        descriptor_write[2].pTexelBufferView = nullptr;
 
-            vkUpdateDescriptorSets(_device,
-                                   descriptor_write.size(),
-                                   descriptor_write.data(),
-                                   0,
-                                   nullptr);
-        }
+        vkUpdateDescriptorSets(_device,
+                               descriptor_write.size(),
+                               descriptor_write.data(),
+                               0,
+                               nullptr);
     }
 }
 
-bool
-VulkanSkyboxPipeline::setSkyboxTexture(std::string const &skyboxFolderPath,
-                                       VulkanTextureManager &texManager)
-{
-    // TODO
-    return false;
-}
-
 void
-VulkanSkyboxPipeline::setSkyboxInfo(glm::mat4 const &skyboxInfo)
+VulkanSkyboxPipeline::_create_skybox_uniform_buffer(
+  uint32_t currentSwapChainNbImg)
 {
-    // TODO
+    createBuffer(_device,
+                 _skybox_uniform,
+                 sizeof(SkyboxUbo) * currentSwapChainNbImg,
+                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    allocateBuffer(_physical_device,
+                   _device,
+                   _skybox_uniform,
+                   _skybox_uniform_memory,
+                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }

@@ -22,6 +22,7 @@ Engine::init(char const *appName)
     _event_handler.setPerspectiveData(&_perspective_data);
     _event_handler.setVkRenderer(&_vk_renderer);
     _event_handler.setUi(&_ui);
+    _event_handler.setSkybox(&_skybox);
     _io_manager.createWindow(std::move(win_opts));
     _ui.init(_io_manager.getWindow());
     _vk_renderer.createInstance(
@@ -40,7 +41,6 @@ Engine::init(char const *appName)
       fb_size.x,
       fb_size.y);
     _skybox.scale = glm::vec3(30.0f);
-    _vk_renderer.setSkyboxTexture("./resources/textures/skybox");
     _perspective_data.near_far = DEFAULT_NEAR_FAR;
     _perspective_data.fov = DEFAULT_FOV;
     _perspective_data.ratio = _io_manager.getWindowRatio();

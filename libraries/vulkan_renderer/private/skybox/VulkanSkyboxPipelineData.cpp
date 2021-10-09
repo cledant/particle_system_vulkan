@@ -33,14 +33,9 @@ VulkanSkyboxPipelineData::clear()
     descriptorPool = nullptr;
     verticesSize = 0;
     indicesSize = 0;
-    singleUboSize = 0;
-    singleSwapChainUboSize = 0;
     indicesOffset = 0;
-    uboOffset = 0;
     verticesSize = 0;
     descriptorSets.clear();
     cubemapTexture = Texture{};
-    indicesDrawOffset = 0;
     indicesDrawNb = 0;
-    modelCenter = glm::vec3(0.0f);
 }

@@ -50,6 +50,12 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
     _sync.init(_vk_instance, _swap_chain.swapChainImageViews.size());
     _create_system_uniform_buffer();
     _ui.init(_vk_instance, _swap_chain);
+    _skybox.init(_vk_instance,
+                 _swap_chain,
+                 "resources/textures/skybox",
+                 "jpg",
+                 _tex_manager,
+                 _system_uniform);
 }
 
 void
@@ -73,6 +79,7 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
 void
 VulkanRenderer::clear()
 {
+    _skybox.clear();
     _ui.clear();
     _sync.clear();
     _swap_chain.clear();
@@ -108,12 +115,6 @@ VulkanRenderer::getEngineVersion() const
 }
 
 // Skybox related
-bool
-VulkanRenderer::setSkyboxTexture(std::string const &skyboxFolder)
-{
-    return (_skybox.setSkyboxTexture(skyboxFolder, _tex_manager));
-}
-
 void
 VulkanRenderer::setSkyboxInfo(glm::mat4 const &skyboxInfo)
 {
@@ -223,7 +224,7 @@ VulkanRenderer::_create_render_command_buffers()
         rp_begin_info.pClearValues = clear_vals.data();
         vkCmdBeginRenderPass(it, &rp_begin_info, VK_SUBPASS_CONTENTS_INLINE);
         // Emit skybox related commands
-        _skybox.generateCommands(it, i, _swap_chain.currentSwapChainNbImg);
+        _skybox.generateCommands(it, i);
         vkCmdEndRenderPass(it);
         if (vkEndCommandBuffer(it) != VK_SUCCESS) {
             throw std::runtime_error(
@@ -252,13 +253,14 @@ void
 VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
                                          glm::mat4 const &view_proj_mat)
 {
-    // Update view_proj matrix
+    // Update UBOs
     copyOnCpuCoherentMemory(_vk_instance.device,
                             _system_uniform_memory,
                             img_index * sizeof(SystemUbo) +
                               offsetof(SystemUbo, view_proj),
                             sizeof(glm::mat4),
                             &view_proj_mat);
+    _skybox.setSkyboxModelMatOnGpu(img_index);
 
     // Send Model rendering
     VkSemaphore wait_model_sems[] = {

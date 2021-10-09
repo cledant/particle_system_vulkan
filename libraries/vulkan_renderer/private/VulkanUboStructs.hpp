@@ -6,7 +6,7 @@ struct SystemUbo final
     alignas(16) glm::mat4 view_proj = glm::mat4(1.0);
 };
 
-struct SkyboxPipelineUbo final
+struct SkyboxUbo final
 {
     alignas(16) glm::mat4 model = glm::mat4(1.0);
 };

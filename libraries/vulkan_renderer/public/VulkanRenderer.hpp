@@ -43,7 +43,6 @@ class VulkanRenderer final
     [[nodiscard]] uint32_t getEngineVersion() const;
 
     // Skybox related
-    bool setSkyboxTexture(std::string const &skyboxFolder);
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
 
     // Render related

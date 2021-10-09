@@ -8,7 +8,7 @@
 
 void
 VulkanSkyboxRenderPass::init(VulkanInstance const &vkInstance,
-                            VulkanSwapChain const &swapChain)
+                             VulkanSwapChain const &swapChain)
 {
     _device = vkInstance.device;
     _physical_device = vkInstance.physicalDevice;
@@ -120,7 +120,8 @@ VulkanSkyboxRenderPass::_create_render_pass(VulkanSwapChain const &swapChain)
 }
 
 void
-VulkanSkyboxRenderPass::_create_depth_resources(VulkanSwapChain const &swapChain)
+VulkanSkyboxRenderPass::_create_depth_resources(
+  VulkanSwapChain const &swapChain)
 {
     depthImage = createImage(_device,
                              swapChain.swapChainExtent.width,
@@ -128,14 +129,15 @@ VulkanSkyboxRenderPass::_create_depth_resources(VulkanSwapChain const &swapChain
                              1,
                              depthFormat,
                              VK_IMAGE_TILING_OPTIMAL,
-                             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+                             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                             false);
     allocateImage(_physical_device,
                   _device,
                   depthImage,
                   depthImgMemory,
                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     depthImgView = createImageView(
-      depthImage, depthFormat, 1, _device, VK_IMAGE_ASPECT_DEPTH_BIT);
+      depthImage, depthFormat, 1, _device, VK_IMAGE_ASPECT_DEPTH_BIT, false);
     transitionImageLayout(_device,
                           _command_pool,
                           _gfx_queue,
@@ -143,7 +145,8 @@ VulkanSkyboxRenderPass::_create_depth_resources(VulkanSwapChain const &swapChain
                           depthFormat,
                           1,
                           VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                          false);
 }
 
 void
