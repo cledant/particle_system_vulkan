@@ -56,6 +56,7 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                  "jpg",
                  _tex_manager,
                  _system_uniform);
+    _create_render_command_buffers();
 }
 
 void

@@ -22,6 +22,10 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
     _cmd_pool = vkInstance.renderCommandPool;
     _gfx_queue = vkInstance.graphicQueue;
     _pipeline_render_pass.init(vkInstance, swapChain);
+    _skybox_folder_path = skyboxFolderPath;
+    _skybox_filetype = skyboxFileType;
+    _skybox_tex =
+      texManager.loadAndGetCubemap(skyboxFolderPath, skyboxFileType);
     _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_descriptor_layout();
     _create_pipeline_layout();
@@ -29,10 +33,6 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
     _pipeline_data = _create_pipeline_skybox();
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
-    _skybox_folder_path = skyboxFolderPath;
-    _skybox_filetype = skyboxFileType;
-    _skybox_tex =
-      texManager.loadAndGetCubemap(skyboxFolderPath, skyboxFileType);
 }
 
 void
@@ -46,6 +46,8 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
     vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
     _pipeline_render_pass.resize(swapChain);
 
+    _skybox_tex =
+      texManager.loadAndGetCubemap(_skybox_folder_path, _skybox_filetype);
     _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
@@ -55,8 +57,6 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
     _pipeline_data = _create_pipeline_skybox();
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
-    _skybox_tex =
-      texManager.loadAndGetCubemap(_skybox_folder_path, _skybox_filetype);
 }
 
 void
