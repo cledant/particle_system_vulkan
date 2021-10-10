@@ -69,6 +69,7 @@ void generateMipmaps(VkPhysicalDevice physical_device,
                      VkFormat image_format,
                      int32_t tex_width,
                      int32_t tex_height,
-                     uint32_t mip_levels);
+                     uint32_t mip_levels,
+                     bool is_cubemap);
 
 #endif // PARTICLE_SYS_VULKAN_VULKANIMAGE_HPP

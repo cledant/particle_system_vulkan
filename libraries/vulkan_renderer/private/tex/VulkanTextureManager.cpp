@@ -15,6 +15,7 @@ VulkanTextureManager::init(VulkanInstance const &vkInstance)
     _gfx_queue = vkInstance.graphicQueue;
     _command_pool = vkInstance.renderCommandPool;
     _load_default_texture();
+    _load_default_cubemap();
 }
 
 void
@@ -208,7 +209,8 @@ VulkanTextureManager::_create_texture_image(std::string const &texturePath,
                     VK_FORMAT_R8G8B8A8_SRGB,
                     tex_img_w,
                     tex_img_h,
-                    mip_level);
+                    mip_level,
+                    false);
 
     return (tex_img);
 }
@@ -279,7 +281,8 @@ VulkanTextureManager::_create_cubemap_image(std::string const &cubemapFolder,
                     VK_FORMAT_R8G8B8A8_SRGB,
                     tex_img_w,
                     tex_img_h,
-                    mip_level);
+                    mip_level,
+                    true);
 
     return (tex_img);
 }
@@ -405,7 +408,8 @@ VulkanTextureManager::_load_default_texture()
                     VK_FORMAT_R8G8B8A8_SRGB,
                     tex.width,
                     tex.height,
-                    tex.mip_level);
+                    tex.mip_level,
+                    false);
 
     _textures.emplace(TEX_MANAGER_DEFAULT_TEXTURE, tex);
 }
@@ -489,7 +493,8 @@ VulkanTextureManager::_load_default_cubemap()
                     VK_FORMAT_R8G8B8A8_SRGB,
                     tex.width,
                     tex.height,
-                    tex.mip_level);
+                    tex.mip_level,
+                    true);
 
     _textures.emplace(TEX_MANAGER_DEFAULT_CUBEMAP, tex);
 }
