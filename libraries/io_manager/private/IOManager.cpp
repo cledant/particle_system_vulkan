@@ -168,10 +168,8 @@ IOManager::getEvents() const
     io.events[LEFT_MOUSE] = _mouse_button[GLFW_MOUSE_BUTTON_LEFT];
     io.events[MIDDLE_MOUSE] = _mouse_button[GLFW_MOUSE_BUTTON_MIDDLE];
     io.events[RIGHT_MOUSE] = _mouse_button[GLFW_MOUSE_BUTTON_RIGHT];
-    io.events[OPEN_MODEL] = _keys[GLFW_KEY_F2];
     io.events[SHOW_FPS] = _keys[GLFW_KEY_F7];
-    io.events[MODEL_PARAMETERS_EDIT] = _keys[GLFW_KEY_F3];
-    io.events[MODEL_INFO] = _keys[GLFW_KEY_F6];
+    io.events[POSITION_INFO] = _keys[GLFW_KEY_F6];
     io.events[DISPLAY_UI] = _keys[GLFW_KEY_F9];
     io.events[ABOUT] = _keys[GLFW_KEY_F1];
     io.events[INVERSE_Y_AXIS] = _keys[GLFW_KEY_F5];

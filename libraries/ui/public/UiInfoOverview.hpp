@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "glm/glm.hpp"
+
 class UiInfoOverview final
 {
   public:
@@ -13,19 +15,17 @@ class UiInfoOverview final
     UiInfoOverview(UiInfoOverview &&src) = delete;
     UiInfoOverview &operator=(UiInfoOverview &&rhs) = delete;
 
-    void draw(bool &fps, bool &model_info) const;
+    void draw(bool &fps, bool &info) const;
     void setAvgFps(float avgFps);
     void setCurrentFps(float currentFps);
-    void setModelInfo(uint32_t nbVertices,
-                      uint32_t nbIndices,
-                      uint32_t nbFaces);
+    void setCameraPos(glm::vec3 const &cameraPos);
+    void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
 
   private:
     float _avg_fps{};
     float _current_fps{};
-    uint32_t _nb_vertices{};
-    uint32_t _nb_indices{};
-    uint32_t _nb_faces{};
+    glm::vec3 _camera_pos{};
+    glm::vec3 _gravity_center_pos{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_INFO_OVERVIEW_HPP

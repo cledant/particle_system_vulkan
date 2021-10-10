@@ -29,9 +29,9 @@ Ui::getUiEvent() const
 }
 
 void
-Ui::toggleModelInfo()
+Ui::toggleInfoPosition()
 {
-    _show_info_model = !_show_info_model;
+    _show_info_position = !_show_info_position;
 }
 
 void
@@ -59,12 +59,6 @@ Ui::toggleDisplayUi()
 }
 
 void
-Ui::toggleSelectModel()
-{
-    _select_model = !_select_model;
-}
-
-void
 Ui::toggleFullscreen()
 {
     _fullscreen = !_fullscreen;
@@ -77,15 +71,22 @@ Ui::toggleCameraMvt()
 }
 
 void
-Ui::toggleModelParam()
-{
-    _model_orientation = !_model_orientation;
-}
-
-void
 Ui::toggleInvertCameraYAxis()
 {
     _invert_camera_y_axis = !_invert_camera_y_axis;
+}
+
+// Position Info
+void
+Ui::setCameraPos(glm::vec3 const &cameraPos)
+{
+    _info_overview.setCameraPos(cameraPos);
+}
+
+void
+Ui::setGravityCenterPos(glm::vec3 const &gravityCenterPos)
+{
+    _info_overview.setGravityCenterPos(gravityCenterPos);
 }
 
 void
@@ -101,63 +102,11 @@ Ui::drawUi()
         return;
     }
 
-    if (_select_model) {
-        _model_loading_error = false;
-    }
     _draw_menu_bar();
     _about_window();
-    _info_overview.draw(_show_info_fps, _show_info_model);
-    _open_model_window.drawErrorWindow(_model_loading_error);
+    _info_overview.draw(_show_info_fps, _show_info_position);
 
     ImGui::Render();
-}
-
-void
-Ui::setModelInfo(uint32_t nbVertices, uint32_t nbIndices, uint32_t nbFaces)
-{
-    _info_overview.setModelInfo(nbVertices, nbIndices, nbFaces);
-}
-
-void
-Ui::setModelLoadingError()
-{
-    _model_loading_error = true;
-}
-
-void
-Ui::resetModelParams()
-{
-    _model_param_window.resetAllParams();
-}
-
-float
-Ui::getModelYaw() const
-{
-    return (_model_param_window.getYaw());
-}
-
-float
-Ui::getModelPitch() const
-{
-    return (_model_param_window.getPitch());
-}
-
-float
-Ui::getModelRoll() const
-{
-    return (_model_param_window.getRoll());
-}
-
-float
-Ui::getModelScale() const
-{
-    return (_model_param_window.getScale());
-}
-
-std::string
-Ui::getModelFilepath() const
-{
-    return (_open_model_window.getModelFilepath());
 }
 
 void
@@ -166,10 +115,6 @@ Ui::_draw_menu_bar()
     _ui_events = {};
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Open Model", "F2")) {
-                _select_model = !_select_model;
-            }
-            ImGui::Separator();
             if ((_ui_events.events[UET_EXIT] =
                    ImGui::MenuItem("Exit", "F10"))) {
                 _close_app = !_close_app;
@@ -177,8 +122,7 @@ Ui::_draw_menu_bar()
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {
-            if (ImGui::MenuItem("Model Parameters", "F3")) {
-                _model_orientation = !_model_orientation;
+            if (ImGui::MenuItem("TODO")) {
             }
             ImGui::EndMenu();
         }
@@ -191,7 +135,7 @@ Ui::_draw_menu_bar()
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Model Info", "F6", &_show_info_model);
+            ImGui::MenuItem("Info", "F6", &_show_info_position);
             ImGui::Separator();
             ImGui::MenuItem("Show Fps", "F7", &_show_info_fps);
             ImGui::Separator();

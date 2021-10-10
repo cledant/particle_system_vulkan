@@ -3,31 +3,35 @@
 #include "imgui.h"
 
 void
-UiInfoOverview::draw(bool &fps, bool &model_info) const
+UiInfoOverview::draw(bool &fps, bool &info) const
 {
     static constexpr float const PADDING = 10.0f;
     static constexpr ImGuiWindowFlags const WIN_FLAGS =
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
       ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
       ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
-    static ImVec2 const WIN_SIZE_SIMPLE = ImVec2(180, 60);
-    static ImVec2 const WIN_SIZE_BOTH = ImVec2(180, 100);
+    static ImVec2 const WIN_SIZE_INFO = ImVec2(470, 55);
+    static ImVec2 const WIN_SIZE_FPS = ImVec2(165, 55);
+    static ImVec2 const WIN_SIZE_BOTH = ImVec2(470, 90);
     static ImVec2 const WIN_POS_PIVOT = { 1.0f, 0.0f };
     static constexpr float const WIN_ALPHA = 0.35f;
     static ImVec4 const RED = { 255, 0, 0, 255 };
     static ImVec4 const YELLOW = { 255, 255, 0, 255 };
     static ImVec4 const GREEN = { 0, 255, 0, 255 };
 
-    if (model_info || fps) {
+    if (info || fps) {
         ImGuiViewport const *viewport = ImGui::GetMainViewport();
         ImVec2 work_pos = viewport->WorkPos;
         ImVec2 work_size = viewport->WorkSize;
         ImVec2 window_pos{ (work_pos.x + work_size.x - PADDING),
                            (work_pos.y + PADDING) };
 
-        ImGui::SetNextWindowSize(WIN_SIZE_SIMPLE);
-        if (fps && model_info) {
+        if (fps && info) {
             ImGui::SetNextWindowSize(WIN_SIZE_BOTH);
+        } else if (fps) {
+            ImGui::SetNextWindowSize(WIN_SIZE_FPS);
+        } else {
+            ImGui::SetNextWindowSize(WIN_SIZE_INFO);
         }
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, WIN_POS_PIVOT);
         ImGui::SetNextWindowBgAlpha(WIN_ALPHA);
@@ -56,14 +60,19 @@ UiInfoOverview::draw(bool &fps, bool &model_info) const
                 ImGui::Text("%.1f\n", _avg_fps);
                 ImGui::PopStyleColor();
             }
-            if (fps && model_info) {
+            if (fps && info) {
                 ImGui::Separator();
             }
-            if (model_info) {
-                ImGui::Text("Nb Vertices = %u\nNb Indices = %u\nNb Faces = %u",
-                            _nb_vertices,
-                            _nb_indices,
-                            _nb_faces);
+            if (info) {
+                ImGui::Text("Camera position: X = %.2f | Y = %.2f | Z = %.2f",
+                            _camera_pos.x,
+                            _camera_pos.y,
+                            _camera_pos.z);
+                ImGui::Text(
+                  "Particles gravity center: X = %.2f | Y = %.2f | Z = %.2f",
+                  _gravity_center_pos.x,
+                  _gravity_center_pos.y,
+                  _gravity_center_pos.z);
             }
             ImGui::End();
         }
@@ -83,11 +92,13 @@ UiInfoOverview::setCurrentFps(float currentFps)
 }
 
 void
-UiInfoOverview::setModelInfo(uint32_t nbVertices,
-                             uint32_t nbIndices,
-                             uint32_t nbFaces)
+UiInfoOverview::setCameraPos(glm::vec3 const &cameraPos)
 {
-    _nb_vertices = nbVertices;
-    _nb_faces = nbFaces;
-    _nb_indices = nbIndices;
+    _camera_pos = cameraPos;
+}
+
+void
+UiInfoOverview::setGravityCenterPos(glm::vec3 const &gravityCenterPos)
+{
+    _gravity_center_pos = gravityCenterPos;
 }

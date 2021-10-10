@@ -11,9 +11,7 @@
 
 #include "VulkanInstance.hpp"
 #include "VulkanSwapChain.hpp"
-#include "UiOpenModel.hpp"
 #include "UiInfoOverview.hpp"
-#include "UiModelParameters.hpp"
 
 enum UiEventTypes
 {
@@ -45,43 +43,30 @@ class Ui final
     [[nodiscard]] UiEvent getUiEvent() const;
 
     // Trigger from keyboard
-    void toggleModelInfo();
+    void toggleInfoPosition();
     void toggleShowFps();
     void toggleAbout();
     void toggleControl();
     void toggleDisplayUi();
-    void toggleSelectModel();
     void toggleFullscreen();
     void toggleCameraMvt();
-    void toggleModelParam();
     void toggleInvertCameraYAxis();
+
+    // Position Info
+    void setCameraPos(glm::vec3 const &cameraPos);
+    void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
 
     void drawUi();
 
-    void setModelInfo(uint32_t nbVertices,
-                      uint32_t nbIndices,
-                      uint32_t nbFaces);
-    void resetModelParams();
-    void setModelLoadingError();
-
-    [[nodiscard]] float getModelYaw() const;
-    [[nodiscard]] float getModelPitch() const;
-    [[nodiscard]] float getModelRoll() const;
-    [[nodiscard]] float getModelScale() const;
-    [[nodiscard]] std::string getModelFilepath() const;
-
   private:
-    bool _show_info_model = false;
+    bool _show_info_position = false;
     bool _show_info_fps = false;
     bool _about = false;
     bool _controls = false;
     bool _fullscreen = false;
     bool _display_ui = true;
-    bool _select_model = false;
-    bool _model_loading_error = false;
     bool _close_app = false;
     bool _toggle_camera_mvt = false;
-    bool _model_orientation = false;
     bool _invert_camera_y_axis = false;
 
     UiEvent _ui_events{};
@@ -98,8 +83,6 @@ class Ui final
     // Windows
     void _about_window();
     UiInfoOverview _info_overview;
-    UiOpenModel _open_model_window;
-    UiModelParameters _model_param_window;
 };
 
 #endif // PARTICLE_SYS_VULKAN_UI_HPP

@@ -69,10 +69,8 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
           &EventHandler::_left_mouse,
           &EventHandler::_middle_mouse,
           &EventHandler::_right_mouse,
-          &EventHandler::_open_model,
           &EventHandler::_show_fps,
-          &EventHandler::_model_parameter_edit,
-          &EventHandler::_model_info,
+          &EventHandler::_position_info,
           &EventHandler::_display_ui,
           &EventHandler::_about,
           &EventHandler::_invert_camera_y_axis,
@@ -132,6 +130,10 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
                            _perspective->near_far.x,
                            _perspective->near_far.y));
     }
+
+    // Ui info
+    _ui->setCameraPos(_camera->getPosition());
+    _ui->setGravityCenterPos(glm::vec3(42.0f));
 
     // Setting timers origin
     for (uint32_t i = 0; i < ET_NB_EVENT_TIMER_TYPES; ++i) {
@@ -254,16 +256,6 @@ EventHandler::_right_mouse()
 }
 
 void
-EventHandler::_open_model()
-{
-    if (_timers.accept_event[ET_SYSTEM]) {
-        _ui->toggleSelectModel();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
-    }
-}
-
-void
 EventHandler::_show_fps()
 {
     if (_timers.accept_event[ET_SYSTEM]) {
@@ -274,20 +266,10 @@ EventHandler::_show_fps()
 }
 
 void
-EventHandler::_model_parameter_edit()
+EventHandler::_position_info()
 {
     if (_timers.accept_event[ET_SYSTEM]) {
-        _ui->toggleModelParam();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
-    }
-}
-
-void
-EventHandler::_model_info()
-{
-    if (_timers.accept_event[ET_SYSTEM]) {
-        _ui->toggleModelInfo();
+        _ui->toggleInfoPosition();
         _timers.accept_event[ET_SYSTEM] = 0;
         _timers.updated[ET_SYSTEM] = 1;
     }

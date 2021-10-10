@@ -80,10 +80,8 @@ class EventHandler final
     inline void _left_mouse();
     inline void _middle_mouse();
     inline void _right_mouse();
-    inline void _open_model();
     inline void _show_fps();
-    inline void _model_parameter_edit();
-    inline void _model_info();
+    inline void _position_info();
     inline void _display_ui();
     inline void _about();
     inline void _invert_camera_y_axis();

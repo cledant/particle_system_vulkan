@@ -3,9 +3,7 @@ project(lib_ui)
 
 add_library(ui STATIC
         private/Ui.cpp
-        private/UiOpenModel.cpp
-        private/UiInfoOverview.cpp
-        private/UiModelParameters.cpp)
+        private/UiInfoOverview.cpp)
 target_include_directories(ui
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/public)
