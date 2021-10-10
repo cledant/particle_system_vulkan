@@ -1,10 +1,9 @@
 #include "EventHandler.hpp"
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "glm/gtc/matrix_transform.hpp"
 
 #include <functional>
-
-#include "fmt/core.h"
 
 void
 EventHandler::setCamera(Camera *camera)

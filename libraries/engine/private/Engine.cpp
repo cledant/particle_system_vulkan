@@ -40,7 +40,7 @@ Engine::init(char const *appName)
       _io_manager.createVulkanSurface(_vk_renderer.getVkInstance()),
       fb_size.x,
       fb_size.y);
-    _skybox.scale = glm::vec3(100.0f);
+    _skybox.scale = glm::vec3(1000.0f);
     _perspective_data.near_far = DEFAULT_NEAR_FAR;
     _perspective_data.fov = DEFAULT_FOV;
     _perspective_data.ratio = _io_manager.getWindowRatio();
