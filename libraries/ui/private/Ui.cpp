@@ -13,6 +13,9 @@ Ui::init(GLFWwindow *win)
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForVulkan(win, true);
     _avg_fps_time_ref = std::chrono::steady_clock::now();
+    _particle_input_win.windowName = "Set number of particles";
+    _particle_input_win.windowText = "Particles";
+    _particle_input_win.winW = 300;
 }
 
 void
@@ -111,7 +114,19 @@ Ui::drawUi()
     _draw_menu_bar();
     _draw_about_info_box();
     _info_overview.draw(_show_info_fps, _show_info_position);
-
+    auto trigger_nb_particle = _particle_input_win.drawInputWindow();
+    if (trigger_nb_particle) {
+        try {
+            _nb_particles = std::stoi(_particle_input_win.input);
+            _ui_events.events[UET_SET_PARTICLE_NUMBER] = true;
+            _info_overview.setNbParticles(_nb_particles);
+        } catch (std::exception const &e) {
+            _particle_input_win.isInputOpen = false;
+            _particle_input_win.isErrorOpen = true;
+            _particle_input_win.errorText = "Invalid number";
+        }
+    }
+    _particle_input_win.drawInputErrorWindow();
     ImGui::Render();
 }
 
@@ -119,7 +134,7 @@ void
 Ui::_draw_edit_panel()
 {
     if (ImGui::MenuItem("Set Number of particles")) {
-        _set_particle_window = !_set_particle_window;
+        _particle_input_win.isInputOpen = !_particle_input_win.isInputOpen;
     }
     ImGui::Separator();
     _ui_events.events[UET_PAUSE_START_PARTICLES] =

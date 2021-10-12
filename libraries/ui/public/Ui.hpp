@@ -12,6 +12,7 @@
 #include "VulkanInstance.hpp"
 #include "VulkanSwapChain.hpp"
 #include "UiInfoOverview.hpp"
+#include "UiSimpleInputWindow.hpp"
 
 enum UiEventTypes
 {
@@ -66,13 +67,12 @@ class Ui final
 
   private:
     // File
-    bool _close_app = false;
 
     // Edit
-    bool _set_particle_window = false;
     bool _generate_sphere = true;
     bool _generate_cube = false;
-    uint64_t _nb_particles = 0;
+    uint64_t _nb_particles{};
+    UiSimpleInputWindow _particle_input_win{};
     void _draw_edit_panel();
 
     // Controls
