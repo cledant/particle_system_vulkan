@@ -19,6 +19,11 @@ enum UiEventTypes
     UET_MOUSE_EXCLUSIVE,
     UET_INVERT_MOUSE_AXIS,
     UET_FULLSCREEN,
+    UET_PAUSE_START_PARTICLES,
+    UET_RESET_PARTICLES,
+    UET_GENERATE_SPHERE,
+    UET_GENERATE_CUBE,
+    UET_SET_PARTICLE_NUMBER,
     UET_TOTAL_NB,
 };
 
@@ -41,35 +46,47 @@ class Ui final
     void clear();
 
     [[nodiscard]] UiEvent getUiEvent() const;
+    [[nodiscard]] uint64_t getNbParticles() const;
 
     // Trigger from keyboard
     void toggleInfoPosition();
     void toggleShowFps();
     void toggleAbout();
-    void toggleControl();
     void toggleDisplayUi();
     void toggleFullscreen();
     void toggleCameraMvt();
     void toggleInvertCameraYAxis();
 
-    // Position Info
+    // Info
     void setCameraPos(glm::vec3 const &cameraPos);
     void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
+    void setNbParticles(uint64_t nbParticles);
 
     void drawUi();
 
   private:
-    bool _show_info_position = false;
-    bool _show_info_fps = false;
-    bool _about = false;
-    bool _controls = false;
-    bool _fullscreen = false;
-    bool _display_ui = true;
+    // File
     bool _close_app = false;
+
+    // Edit
+    bool _set_particle_window = false;
+    bool _generate_sphere = true;
+    bool _generate_cube = false;
+    uint64_t _nb_particles = 0;
+    void _draw_edit_panel();
+
+    // Controls
     bool _toggle_camera_mvt = false;
     bool _invert_camera_y_axis = false;
 
-    UiEvent _ui_events{};
+    // View
+    bool _fullscreen = false;
+    bool _display_ui = true;
+    bool _show_info_position = false;
+    bool _show_info_fps = false;
+
+    // Help
+    bool _about = false;
 
     // Menu Bar
     void _draw_menu_bar();
@@ -80,8 +97,11 @@ class Ui final
     std::chrono::steady_clock::time_point _avg_fps_time_ref;
     std::chrono::steady_clock::time_point _prev_frame_time_ref;
 
-    // Windows
-    void _about_window();
+    // Events from ui interaction
+    UiEvent _ui_events{};
+
+    // Informations
+    void _draw_about_info_box();
     UiInfoOverview _info_overview;
 };
 

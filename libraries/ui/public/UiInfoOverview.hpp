@@ -20,12 +20,14 @@ class UiInfoOverview final
     void setCurrentFps(float currentFps);
     void setCameraPos(glm::vec3 const &cameraPos);
     void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
+    void setNbParticles(uint64_t nbParticles);
 
   private:
     float _avg_fps{};
     float _current_fps{};
     glm::vec3 _camera_pos{};
     glm::vec3 _gravity_center_pos{};
+    uint64_t _nb_particles{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_INFO_OVERVIEW_HPP

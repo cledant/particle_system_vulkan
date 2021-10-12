@@ -28,6 +28,12 @@ Ui::getUiEvent() const
     return (_ui_events);
 }
 
+uint64_t
+Ui::getNbParticles() const
+{
+    return (_nb_particles);
+}
+
 void
 Ui::toggleInfoPosition()
 {
@@ -44,12 +50,6 @@ void
 Ui::toggleAbout()
 {
     _about = !_about;
-}
-
-void
-Ui::toggleControl()
-{
-    _controls = !_controls;
 }
 
 void
@@ -90,6 +90,12 @@ Ui::setGravityCenterPos(glm::vec3 const &gravityCenterPos)
 }
 
 void
+Ui::setNbParticles(uint64_t nbParticles)
+{
+    _info_overview.setNbParticles(nbParticles);
+}
+
+void
 Ui::drawUi()
 {
     _compute_fps();
@@ -103,10 +109,37 @@ Ui::drawUi()
     }
 
     _draw_menu_bar();
-    _about_window();
+    _draw_about_info_box();
     _info_overview.draw(_show_info_fps, _show_info_position);
 
     ImGui::Render();
+}
+
+void
+Ui::_draw_edit_panel()
+{
+    if (ImGui::MenuItem("Set Number of particles")) {
+        _set_particle_window = !_set_particle_window;
+    }
+    ImGui::Separator();
+    _ui_events.events[UET_PAUSE_START_PARTICLES] =
+      ImGui::MenuItem("Pause / Resume particles movement", "F2");
+    ImGui::Separator();
+    _ui_events.events[UET_RESET_PARTICLES] =
+      ImGui::MenuItem("Reset simulation", "F3");
+    ImGui::Separator();
+    if (ImGui::BeginMenu("Particle distribution")) {
+        if ((_ui_events.events[UET_GENERATE_SPHERE] =
+               ImGui::MenuItem("Sphere", "", &_generate_sphere))) {
+            _generate_cube = false;
+        }
+        if ((_ui_events.events[UET_GENERATE_CUBE] =
+               ImGui::MenuItem("Cube", "", &_generate_cube))) {
+            _generate_sphere = false;
+        }
+        ImGui::EndMenu();
+    }
+    ImGui::EndMenu();
 }
 
 void
@@ -115,16 +148,11 @@ Ui::_draw_menu_bar()
     _ui_events = {};
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if ((_ui_events.events[UET_EXIT] =
-                   ImGui::MenuItem("Exit", "F10"))) {
-                _close_app = !_close_app;
-            }
+            _ui_events.events[UET_EXIT] = ImGui::MenuItem("Exit", "F10");
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {
-            if (ImGui::MenuItem("TODO")) {
-            }
-            ImGui::EndMenu();
+            _draw_edit_panel();
         }
         if (ImGui::BeginMenu("Controls")) {
             _ui_events.events[UET_MOUSE_EXCLUSIVE] = ImGui::MenuItem(
@@ -173,7 +201,7 @@ Ui::_compute_fps()
 }
 
 void
-Ui::_about_window()
+Ui::_draw_about_info_box()
 {
     static constexpr ImGuiWindowFlags const WIN_FLAGS =
       ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |

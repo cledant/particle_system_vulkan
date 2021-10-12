@@ -91,6 +91,11 @@ class EventHandler final
     inline void _ui_mouse_exclusive();
     inline void _ui_invert_mouse_y_axis();
     inline void _ui_fullscreen();
+    inline void _ui_pause_start_particles();
+    inline void _ui_reset_simulation();
+    inline void _ui_generate_sphere();
+    inline void _ui_generate_cube();
+    inline void _ui_particle_number();
 
     // Camera Related
     inline void _update_camera(glm::vec2 const &mouse_pos);

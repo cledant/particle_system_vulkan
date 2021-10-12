@@ -81,6 +81,11 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
           &EventHandler::_ui_mouse_exclusive,
           &EventHandler::_ui_invert_mouse_y_axis,
           &EventHandler::_ui_fullscreen,
+          &EventHandler::_ui_pause_start_particles,
+          &EventHandler::_ui_reset_simulation,
+          &EventHandler::_ui_generate_sphere,
+          &EventHandler::_ui_generate_cube,
+          &EventHandler::_ui_particle_number,
       };
 
     // Checking Timers
@@ -329,6 +334,26 @@ EventHandler::_ui_fullscreen()
 {
     _io_manager->toggleFullscreen();
 }
+
+void
+EventHandler::_ui_pause_start_particles()
+{}
+
+void
+EventHandler::_ui_reset_simulation()
+{}
+
+void
+EventHandler::_ui_generate_sphere()
+{}
+
+void
+EventHandler::_ui_generate_cube()
+{}
+
+void
+EventHandler::_ui_particle_number()
+{}
 
 void
 EventHandler::_update_camera(glm::vec2 const &mouse_pos)
