@@ -37,6 +37,13 @@ Ui::getNbParticles() const
     return (_nb_particles);
 }
 
+bool
+Ui::isUiHovered() const
+{
+    return (ImGui::IsAnyItemHovered() ||
+            ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow));
+}
+
 void
 Ui::toggleInfoPosition()
 {
@@ -83,19 +90,31 @@ Ui::toggleInvertCameraYAxis()
 void
 Ui::setCameraPos(glm::vec3 const &cameraPos)
 {
-    _info_overview.setCameraPos(cameraPos);
+    _info_overview.cameraPos = cameraPos;
+}
+
+void
+Ui::setCursorPositionWindow(glm::vec2 const &cursorPos)
+{
+    _info_overview.cursorPositionWindow = cursorPos;
+}
+
+void
+Ui::setCursorPosition3D(glm::vec3 const &cursorPos)
+{
+    _info_overview.cursorPosition3D = cursorPos;
 }
 
 void
 Ui::setGravityCenterPos(glm::vec3 const &gravityCenterPos)
 {
-    _info_overview.setGravityCenterPos(gravityCenterPos);
+    _info_overview.gravityCenterPos = gravityCenterPos;
 }
 
 void
 Ui::setNbParticles(uint64_t nbParticles)
 {
-    _info_overview.setNbParticles(nbParticles);
+    _info_overview.nbParticles = nbParticles;
 }
 
 void
@@ -119,7 +138,7 @@ Ui::drawUi()
         try {
             _nb_particles = std::stoi(_particle_input_win.input);
             _ui_events.events[UET_SET_PARTICLE_NUMBER] = true;
-            _info_overview.setNbParticles(_nb_particles);
+            _info_overview.nbParticles = _nb_particles;
         } catch (std::exception const &e) {
             _particle_input_win.isInputOpen = false;
             _particle_input_win.isErrorOpen = true;
@@ -204,12 +223,12 @@ Ui::_compute_fps()
     ++_nb_frame;
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> diff_frame = now - _prev_frame_time_ref;
-    _info_overview.setCurrentFps(1.0f / diff_frame.count());
+    _info_overview.currentFps = 1.0f / diff_frame.count();
     _prev_frame_time_ref = now;
 
     std::chrono::duration<double> diff_avg = now - _avg_fps_time_ref;
     if (diff_avg.count() > 1.0f) {
-        _info_overview.setAvgFps(_nb_frame);
+        _info_overview.avgFps = _nb_frame;
         _nb_frame = 0;
         _avg_fps_time_ref = now;
     }

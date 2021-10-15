@@ -5,29 +5,17 @@
 
 #include "glm/glm.hpp"
 
-class UiInfoOverview final
+struct UiInfoOverview final
 {
-  public:
-    UiInfoOverview() = default;
-    ~UiInfoOverview() = default;
-    UiInfoOverview(UiInfoOverview const &src) = delete;
-    UiInfoOverview &operator=(UiInfoOverview const &rhs) = delete;
-    UiInfoOverview(UiInfoOverview &&src) = delete;
-    UiInfoOverview &operator=(UiInfoOverview &&rhs) = delete;
+    float avgFps{};
+    float currentFps{};
+    glm::vec3 cameraPos{};
+    glm::vec3 gravityCenterPos{};
+    uint64_t nbParticles{};
+    glm::vec2 cursorPositionWindow{};
+    glm::vec3 cursorPosition3D{};
 
     void draw(bool &fps, bool &info) const;
-    void setAvgFps(float avgFps);
-    void setCurrentFps(float currentFps);
-    void setCameraPos(glm::vec3 const &cameraPos);
-    void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
-    void setNbParticles(uint64_t nbParticles);
-
-  private:
-    float _avg_fps{};
-    float _current_fps{};
-    glm::vec3 _camera_pos{};
-    glm::vec3 _gravity_center_pos{};
-    uint64_t _nb_particles{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_INFO_OVERVIEW_HPP

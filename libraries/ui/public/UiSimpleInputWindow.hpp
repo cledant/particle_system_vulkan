@@ -1,5 +1,5 @@
-#ifndef SCOP_VULKAN_UISIMPLEINPUTWINDOW_HPP
-#define SCOP_VULKAN_UISIMPLEINPUTWINDOW_HPP
+#ifndef PARTICLE_SYS_VULKAN_UISIMPLEINPUTWINDOW_HPP
+#define PARTICLE_SYS_VULKAN_UISIMPLEINPUTWINDOW_HPP
 
 #include <string>
 
@@ -10,7 +10,7 @@ struct UiSimpleInputWindow final
     std::string errorText = "No Error";
     uint32_t winW = 500;
     uint32_t winH = 80;
-    char input[4096] = { 0 };
+    char input[4096]{};
     bool forceFocus = true;
     bool isInputOpen = false;
     bool isErrorOpen = false;
@@ -19,4 +19,4 @@ struct UiSimpleInputWindow final
     void drawInputErrorWindow();
 };
 
-#endif // SCOP_VULKAN_UISIMPLEINPUTWINDOW_HPP
+#endif // PARTICLE_SYS_VULKAN_UISIMPLEINPUTWINDOW_HPP

@@ -48,6 +48,7 @@ class Ui final
 
     [[nodiscard]] UiEvent getUiEvent() const;
     [[nodiscard]] uint64_t getNbParticles() const;
+    [[nodiscard]] bool isUiHovered() const;
 
     // Trigger from keyboard
     void toggleInfoPosition();
@@ -60,6 +61,8 @@ class Ui final
 
     // Info
     void setCameraPos(glm::vec3 const &cameraPos);
+    void setCursorPositionWindow(glm::vec2 const &cursorPos);
+    void setCursorPosition3D(glm::vec3 const &cursorPos);
     void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
     void setNbParticles(uint64_t nbParticles);
 

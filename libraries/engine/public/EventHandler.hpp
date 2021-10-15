@@ -55,16 +55,17 @@ class EventHandler final
 
     struct EventTimers final
     {
-        EventTimers();
-        ~EventTimers() = default;
-
-        std::array<uint8_t, ET_NB_EVENT_TIMER_TYPES> accept_event;
-        std::array<uint8_t, ET_NB_EVENT_TIMER_TYPES> updated;
+        std::array<uint8_t, ET_NB_EVENT_TIMER_TYPES> accept_event{};
+        std::array<uint8_t, ET_NB_EVENT_TIMER_TYPES> updated{};
         std::array<std::chrono::steady_clock::time_point,
                    ET_NB_EVENT_TIMER_TYPES>
-          time_ref;
-        std::array<double, ET_NB_EVENT_TIMER_TYPES> timer_diff;
-        std::array<double, ET_NB_EVENT_TIMER_TYPES> timer_values;
+          time_ref{};
+        std::array<double, ET_NB_EVENT_TIMER_TYPES> timer_diff{};
+        std::array<double, ET_NB_EVENT_TIMER_TYPES> timer_values = {
+            SYSTEM_TIMER_SECONDS,      CONFIG_TIMER_SECONDS,
+            FAST_ACTION_TIMER_SECONDS, FAST_ACTION_TIMER_SECONDS,
+            FAST_ACTION_TIMER_SECONDS, TARGET_PLAYER_TICK_DURATION
+        };
     };
 
     // IO Event handling functions
@@ -100,6 +101,9 @@ class EventHandler final
     // Camera Related
     inline void _update_camera(glm::vec2 const &mouse_pos);
 
+    // Interaction related
+    inline void _compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d);
+
     Camera *_camera{};
     IOManager *_io_manager{};
     Perspective *_perspective{};
@@ -107,7 +111,7 @@ class EventHandler final
     Ui *_ui{};
     ModelInstanceInfo *_skybox{};
 
-    EventTimers _timers;
+    EventTimers _timers{};
 
     glm::ivec3 _movements{};
     glm::vec2 _mouse_pos{};
@@ -115,6 +119,11 @@ class EventHandler final
     bool _mouse_pos_skip = true;
 
     bool _invert_y_axis = false;
+
+    // Mouse Interaction
+    glm::vec2 _mouse_pos_window{};
+    glm::vec3 _mouse_pos_3d{};
+    glm::vec3 _gravity_center{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_EVENTHANDLER_HPP

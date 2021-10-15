@@ -10,9 +10,9 @@ UiInfoOverview::draw(bool &fps, bool &info) const
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
       ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
       ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
-    static ImVec2 const WIN_SIZE_INFO = ImVec2(470, 65);
+    static ImVec2 const WIN_SIZE_INFO = ImVec2(470, 105);
     static ImVec2 const WIN_SIZE_FPS = ImVec2(165, 50);
-    static ImVec2 const WIN_SIZE_BOTH = ImVec2(470, 100);
+    static ImVec2 const WIN_SIZE_BOTH = ImVec2(470, 140);
     static ImVec2 const WIN_POS_PIVOT = { 1.0f, 0.0f };
     static constexpr float const WIN_ALPHA = 0.35f;
     static ImVec4 const RED = { 255, 0, 0, 255 };
@@ -38,26 +38,26 @@ UiInfoOverview::draw(bool &fps, bool &info) const
         if (ImGui::Begin("Info Overview", nullptr, WIN_FLAGS)) {
             if (fps) {
                 ImGui::Text("Current FPS: ");
-                if (_avg_fps <= 20.0f) {
+                if (avgFps <= 20.0f) {
                     ImGui::PushStyleColor(ImGuiCol_Text, RED);
-                } else if (_avg_fps <= 40.0f) {
+                } else if (avgFps <= 40.0f) {
                     ImGui::PushStyleColor(ImGuiCol_Text, YELLOW);
                 } else {
                     ImGui::PushStyleColor(ImGuiCol_Text, GREEN);
                 }
                 ImGui::SameLine();
-                ImGui::Text("%.1f\n", _current_fps);
+                ImGui::Text("%.1f\n", currentFps);
                 ImGui::PopStyleColor();
                 ImGui::Text("Avg FPS: ");
-                if (_avg_fps <= 20.0f) {
+                if (avgFps <= 20.0f) {
                     ImGui::PushStyleColor(ImGuiCol_Text, RED);
-                } else if (_avg_fps <= 40.0f) {
+                } else if (avgFps <= 40.0f) {
                     ImGui::PushStyleColor(ImGuiCol_Text, YELLOW);
                 } else {
                     ImGui::PushStyleColor(ImGuiCol_Text, GREEN);
                 }
                 ImGui::SameLine();
-                ImGui::Text("%.1f\n", _avg_fps);
+                ImGui::Text("%.1f\n", avgFps);
                 ImGui::PopStyleColor();
             }
             if (fps && info) {
@@ -65,47 +65,25 @@ UiInfoOverview::draw(bool &fps, bool &info) const
             }
             if (info) {
                 ImGui::Text("Camera position: X = %.2f | Y = %.2f | Z = %.2f",
-                            _camera_pos.x,
-                            _camera_pos.y,
-                            _camera_pos.z);
+                            cameraPos.x,
+                            cameraPos.y,
+                            cameraPos.z);
                 ImGui::Text(
                   "Particles gravity center: X = %.2f | Y = %.2f | Z = %.2f",
-                  _gravity_center_pos.x,
-                  _gravity_center_pos.y,
-                  _gravity_center_pos.z);
-                ImGui::Text("Nb Particles: %lu", _nb_particles);
+                  gravityCenterPos.x,
+                  gravityCenterPos.y,
+                  gravityCenterPos.z);
+                ImGui::Text("Nb Particles: %lu", nbParticles);
+                ImGui::Text("Cursor position 2D: W = %.0f | H = %.0f",
+                            cursorPositionWindow.x,
+                            cursorPositionWindow.y);
+                ImGui::Text(
+                  "Cursor position 3D: X = %.2f | Y = %.2f | Z = %.2f",
+                  cursorPosition3D.x,
+                  cursorPosition3D.y,
+                  cursorPosition3D.z);
             }
             ImGui::End();
         }
     }
-}
-
-void
-UiInfoOverview::setAvgFps(float avgFps)
-{
-    _avg_fps = avgFps;
-}
-
-void
-UiInfoOverview::setCurrentFps(float currentFps)
-{
-    _current_fps = currentFps;
-}
-
-void
-UiInfoOverview::setCameraPos(glm::vec3 const &cameraPos)
-{
-    _camera_pos = cameraPos;
-}
-
-void
-UiInfoOverview::setGravityCenterPos(glm::vec3 const &gravityCenterPos)
-{
-    _gravity_center_pos = gravityCenterPos;
-}
-
-void
-UiInfoOverview::setNbParticles(uint64_t nbParticles)
-{
-    _nb_particles = nbParticles;
 }

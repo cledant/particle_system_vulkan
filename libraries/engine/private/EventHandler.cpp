@@ -135,9 +135,17 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
                            _perspective->near_far.y));
     }
 
+    // Interaction
+    _compute_mouse_3d_coordinate(ioEvents.mouse_position);
+    if (_timers.updated[ET_LEFT_MOUSE] && !_ui->isUiHovered()) {
+        _gravity_center = _mouse_pos_3d;
+    }
+
     // Ui info
     _ui->setCameraPos(_camera->getPosition());
-    _ui->setGravityCenterPos(glm::vec3(42.0f));
+    _ui->setGravityCenterPos(_gravity_center);
+    _ui->setCursorPositionWindow(_mouse_pos_window);
+    _ui->setCursorPosition3D(_mouse_pos_3d);
 
     // Setting timers origin
     for (uint32_t i = 0; i < ET_NB_EVENT_TIMER_TYPES; ++i) {
@@ -146,21 +154,6 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
         }
         _timers.updated[i] = 0;
     }
-}
-
-EventHandler::EventTimers::EventTimers()
-  : accept_event()
-  , updated()
-  , time_ref()
-  , timer_diff()
-  , timer_values()
-{
-    timer_values[ET_SYSTEM] = SYSTEM_TIMER_SECONDS;
-    timer_values[ET_CONFIG] = CONFIG_TIMER_SECONDS;
-    timer_values[ET_LEFT_MOUSE] = FAST_ACTION_TIMER_SECONDS;
-    timer_values[ET_MIDDLE_MOUSE] = FAST_ACTION_TIMER_SECONDS;
-    timer_values[ET_RIGHT_MOUSE] = FAST_ACTION_TIMER_SECONDS;
-    timer_values[ET_CAMERA] = TARGET_PLAYER_TICK_DURATION;
 }
 
 void
@@ -244,18 +237,18 @@ EventHandler::_left_mouse()
 void
 EventHandler::_middle_mouse()
 {
-    if (_timers.accept_event[ET_LEFT_MOUSE]) {
-        _timers.accept_event[ET_LEFT_MOUSE] = 0;
-        _timers.updated[ET_LEFT_MOUSE] = 1;
+    if (_timers.accept_event[ET_MIDDLE_MOUSE]) {
+        _timers.accept_event[ET_MIDDLE_MOUSE] = 0;
+        _timers.updated[ET_MIDDLE_MOUSE] = 1;
     }
 }
 
 void
 EventHandler::_right_mouse()
 {
-    if (_timers.accept_event[ET_LEFT_MOUSE]) {
-        _timers.accept_event[ET_LEFT_MOUSE] = 0;
-        _timers.updated[ET_LEFT_MOUSE] = 1;
+    if (_timers.accept_event[ET_RIGHT_MOUSE]) {
+        _timers.accept_event[ET_RIGHT_MOUSE] = 0;
+        _timers.updated[ET_RIGHT_MOUSE] = 1;
     }
 }
 
@@ -378,4 +371,13 @@ EventHandler::_update_camera(glm::vec2 const &mouse_pos)
         _previous_mouse_pos = _mouse_pos;
     }
     _camera->updateMatrices();
+}
+
+void
+EventHandler::_compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d)
+{
+    _mouse_pos_window = (_io_manager->isMouseExclusive())
+                          ? (glm::vec2(_io_manager->getWindowSize() / 2))
+                          : mouse_pos_2d;
+    _mouse_pos_3d = glm::vec3(_mouse_pos_window, 0.0f);
 }
