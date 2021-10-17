@@ -92,6 +92,18 @@ Camera::getFront() const
     return (_front);
 }
 
+glm::vec3 const &
+Camera::getUp() const
+{
+    return (_up);
+}
+
+glm::vec3 const &
+Camera::getRight() const
+{
+    return (_right);
+}
+
 glm::mat4 const &
 Camera::getPerspectiveMatrix() const
 {

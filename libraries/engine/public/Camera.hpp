@@ -31,6 +31,8 @@ class Camera final
     // Getters
     [[nodiscard]] glm::vec3 const &getPosition() const;
     [[nodiscard]] glm::vec3 const &getFront() const;
+    [[nodiscard]] glm::vec3 const &getUp() const;
+    [[nodiscard]] glm::vec3 const &getRight() const;
     [[nodiscard]] glm::mat4 const &getPerspectiveMatrix() const;
     [[nodiscard]] glm::mat4 const &getViewMatrix() const;
     [[nodiscard]] glm::mat4 const &getPerspectiveViewMatrix() const;
