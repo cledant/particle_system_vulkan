@@ -65,6 +65,9 @@ VulkanInstance::init(VkSurfaceKHR windowSurface)
     _select_physical_device();
     _create_present_and_graphic_queue();
     renderCommandPool = createCommandPool(device, graphicQueueIndex, 0);
+    computeCommandPool = (computeQueueIndex == graphicQueueIndex)
+                           ? renderCommandPool
+                           : createCommandPool(device, computeQueueIndex, 0);
 }
 
 void
@@ -84,7 +87,9 @@ VulkanInstance::clear()
     device = nullptr;
     graphicQueue = nullptr;
     presentQueue = nullptr;
+    computeQueue = nullptr;
     renderCommandPool = nullptr;
+    computeCommandPool = nullptr;
 }
 
 void
@@ -124,7 +129,8 @@ VulkanInstance::_create_present_and_graphic_queue()
 {
     auto dfr = getDeviceRequirement(physicalDevice, surface);
     std::set<uint32_t> queue_families = { dfr.graphic_queue_index.value(),
-                                          dfr.present_queue_index.value() };
+                                          dfr.present_queue_index.value(),
+                                          dfr.compute_queue_index.value() };
     std::vector<VkDeviceQueueCreateInfo> vec_queue_create_info;
 
     // Graphic queue info
@@ -165,8 +171,10 @@ VulkanInstance::_create_present_and_graphic_queue()
     }
     vkGetDeviceQueue(device, dfr.graphic_queue_index.value(), 0, &graphicQueue);
     vkGetDeviceQueue(device, dfr.present_queue_index.value(), 0, &presentQueue);
+    vkGetDeviceQueue(device, dfr.compute_queue_index.value(), 0, &computeQueue);
     graphicQueueIndex = dfr.graphic_queue_index.value();
     presentQueueIndex = dfr.present_queue_index.value();
+    computeQueueIndex = dfr.compute_queue_index.value();
 }
 
 // Dbg related

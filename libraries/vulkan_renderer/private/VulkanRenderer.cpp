@@ -140,7 +140,6 @@ VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
                             _sync.imageAvailableSem[_sync.currentFrame],
                             VK_NULL_HANDLE,
                             &img_index);
-
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         return;
     }

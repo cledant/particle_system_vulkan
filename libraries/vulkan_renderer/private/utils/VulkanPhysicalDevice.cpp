@@ -12,7 +12,8 @@ bool
 DeviceRequirement::isValid() const
 {
     return (graphic_queue_index.has_value() &&
-            present_queue_index.has_value() && sampler_aniso &&
+            present_queue_index.has_value() &&
+            compute_queue_index.has_value() && sampler_aniso &&
             all_extension_supported);
 }
 
@@ -153,6 +154,9 @@ getDeviceQueues(VkPhysicalDevice device,
         if (it.queueFlags & VK_QUEUE_GRAPHICS_BIT && it.queueCount > 0) {
             dr.graphic_queue_index = index;
         }
+        if (it.queueFlags & VK_QUEUE_COMPUTE_BIT && it.queueCount > 0) {
+            dr.compute_queue_index = index;
+        }
 
         VkBool32 present_support = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(
@@ -162,10 +166,23 @@ getDeviceQueues(VkPhysicalDevice device,
         }
 
         if (dr.graphic_queue_index.has_value() &&
-            dr.present_queue_index.has_value()) {
+            dr.present_queue_index.has_value() &&
+            dr.compute_queue_index.has_value()) {
             break;
         }
         ++index;
+    }
+
+    index = 0;
+    if (dr.compute_queue_index == dr.graphic_queue_index) {
+        for (auto const &it : families) {
+            if (it.queueFlags & VK_QUEUE_COMPUTE_BIT && it.queueCount > 0 &&
+                index != dr.compute_queue_index) {
+                dr.compute_queue_index = index;
+                break;
+            }
+            ++index;
+        }
     }
 }
 
