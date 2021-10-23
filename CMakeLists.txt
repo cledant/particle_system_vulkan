@@ -97,6 +97,7 @@ add_subdirectory(libraries/model_instance)
 
 #Shaders
 add_subdirectory(shaders/skybox)
+add_subdirectory(shaders/particleDebug)
 
 #Skybox textures
 set(SKYBOX_TEXTURE_SOURCE_FOLDER
@@ -114,7 +115,7 @@ target_include_directories(particle_system
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/binary/private)
 target_link_libraries(particle_system iomanager engine vulkan)
-add_dependencies(particle_system iomanager engine skybox_shader ui)
+add_dependencies(particle_system iomanager engine skybox_shader particle_debug_shader ui)
 set_target_properties(particle_system PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED YES

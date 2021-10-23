@@ -14,6 +14,7 @@
 #include "VulkanSync.hpp"
 #include "ui/VulkanUi.hpp"
 #include "skybox/VulkanSkyboxPipeline.hpp"
+#include "particleDisplayDebug/VulkanParticleDebugPipeline.hpp"
 
 class VulkanRenderer final
 {
@@ -61,6 +62,7 @@ class VulkanRenderer final
     VulkanSync _sync;
     VulkanUi _ui;
     VulkanSkyboxPipeline _skybox;
+    VulkanParticleDebugPipeline _particle;
 
     // Renderer global uniform
     VkBuffer _system_uniform{};
