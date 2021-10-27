@@ -33,7 +33,10 @@ class VulkanRenderer final
                         uint32_t engine_version,
                         std::vector<char const *> &&required_extensions);
     [[nodiscard]] VkInstance getVkInstance() const;
-    void init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h);
+    void init(VkSurfaceKHR surface,
+              uint32_t win_w,
+              uint32_t win_h,
+              uint64_t nb_particles);
     void resize(uint32_t win_w, uint32_t win_h);
     void clear();
 
@@ -47,6 +50,7 @@ class VulkanRenderer final
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
 
     // Particles related
+    void setParticlesNumber(uint64_t nbParticles);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
 

@@ -39,7 +39,9 @@ Engine::init(char const *appName)
     _vk_renderer.init(
       _io_manager.createVulkanSurface(_vk_renderer.getVkInstance()),
       fb_size.x,
-      fb_size.y);
+      fb_size.y,
+      DEFAULT_NB_PARTICLES);
+    _ui.setNbParticles(DEFAULT_NB_PARTICLES);
     _skybox.scale = glm::vec3(1000.0f);
     _perspective_data.near_far = DEFAULT_NEAR_FAR;
     _perspective_data.fov = DEFAULT_FOV;

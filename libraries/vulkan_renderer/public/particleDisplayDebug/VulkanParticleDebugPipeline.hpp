@@ -64,6 +64,7 @@ class VulkanParticleDebugPipeline final
     inline void _create_gfx_pipeline(VulkanSwapChain const &swapChain);
     inline VulkanParticleDebugPipelineData _create_pipeline_particle_debug(
       uint64_t nbParticles);
+    inline void _update_pipeline_particle_debug(uint64_t nbParticles);
     inline void _create_descriptor_pool(
       VulkanSwapChain const &swapChain,
       VulkanParticleDebugPipelineData &pipelineData);

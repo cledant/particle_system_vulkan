@@ -73,9 +73,7 @@ VulkanParticleDebugPipeline::clear()
 void
 VulkanParticleDebugPipeline::setParticleNumber(uint64_t nbParticles)
 {
-    vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
-    vkFreeMemory(_device, _pipeline_data.memory, nullptr);
-    _pipeline_data = _create_pipeline_particle_debug(nbParticles);
+    _update_pipeline_particle_debug(nbParticles);
     _generate_particles();
 }
 
@@ -357,39 +355,54 @@ VulkanParticleDebugPipelineData
 VulkanParticleDebugPipeline::_create_pipeline_particle_debug(
   uint64_t nbParticles)
 {
-    VulkanParticleDebugPipelineData pipeline_model{};
+    VulkanParticleDebugPipelineData pipeline_particle{};
 
     // Computing sizes and offsets
-    pipeline_model.nbParticles = nbParticles;
-    pipeline_model.particleBufferSize = sizeof(glm::vec3) * nbParticles;
-    VkDeviceSize total_size = pipeline_model.particleBufferSize;
-
-    // Creating transfer buffer CPU to GPU
-    VkBuffer staging_buffer{};
-    VkDeviceMemory staging_buffer_memory{};
-    createBuffer(
-      _device, staging_buffer, total_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    allocateBuffer(_physical_device,
-                   _device,
-                   staging_buffer,
-                   staging_buffer_memory,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    pipeline_particle.nbParticles = nbParticles;
+    pipeline_particle.particleBufferSize = sizeof(glm::vec3) * nbParticles;
+    VkDeviceSize total_size = pipeline_particle.particleBufferSize;
 
     // Creating GPU buffer
     createBuffer(_device,
-                 pipeline_model.buffer,
+                 pipeline_particle.buffer,
                  total_size,
                  VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
     allocateBuffer(_physical_device,
                    _device,
-                   pipeline_model.buffer,
-                   pipeline_model.memory,
+                   pipeline_particle.buffer,
+                   pipeline_particle.memory,
                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    return (pipeline_model);
+    return (pipeline_particle);
+}
+
+void
+VulkanParticleDebugPipeline::_update_pipeline_particle_debug(
+  uint64_t nbParticles)
+{
+    // Remove previous buffers
+    vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
+    vkFreeMemory(_device, _pipeline_data.memory, nullptr);
+
+    // Computing sizes and offsets
+    _pipeline_data.nbParticles = nbParticles;
+    _pipeline_data.particleBufferSize = sizeof(glm::vec3) * nbParticles;
+    VkDeviceSize total_size = _pipeline_data.particleBufferSize;
+
+    // Creating GPU buffer
+    createBuffer(_device,
+                 _pipeline_data.buffer,
+                 total_size,
+                 VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    allocateBuffer(_physical_device,
+                   _device,
+                   _pipeline_data.buffer,
+                   _pipeline_data.memory,
+                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void

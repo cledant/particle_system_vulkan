@@ -23,6 +23,7 @@ class Engine final
     void run();
 
   private:
+    static constexpr uint64_t const DEFAULT_NB_PARTICLES = 1000000;
     static constexpr glm::vec2 const DEFAULT_NEAR_FAR =
       glm::vec2(0.1f, 5000.0f);
     static constexpr float const DEFAULT_FOV = 45.0f;

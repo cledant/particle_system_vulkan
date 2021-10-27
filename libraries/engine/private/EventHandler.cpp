@@ -229,10 +229,7 @@ EventHandler::_left()
 void
 EventHandler::_left_mouse()
 {
-    if (_timers.accept_event[ET_LEFT_MOUSE]) {
-        _timers.accept_event[ET_LEFT_MOUSE] = 0;
-        _timers.updated[ET_LEFT_MOUSE] = 1;
-    }
+    _timers.updated[ET_LEFT_MOUSE] = 1;
 }
 
 void
@@ -347,7 +344,9 @@ EventHandler::_ui_generate_cube()
 
 void
 EventHandler::_ui_particle_number()
-{}
+{
+    _renderer->setParticlesNumber(_ui->getNbParticles());
+}
 
 void
 EventHandler::_update_camera(glm::vec2 const &mouse_pos)
