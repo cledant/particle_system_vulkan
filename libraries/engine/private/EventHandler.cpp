@@ -385,9 +385,9 @@ EventHandler::_compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d)
 
     glm::vec2 ratio{ win_size.x / win_size.y, win_size.y / win_size.x };
     auto pitch = 1.0f / win_size;
-    glm::vec2 m{ (_mouse_pos_window - win_center) * pitch * ratio * 8.0f };
-    glm::vec3 dx = _camera->getRight() * m.x;
-    glm::vec3 dy = _camera->getUp() * -m.y;
+    glm::vec2 m{ (_mouse_pos_window - win_center) * pitch * ratio };
+    glm::vec3 dx = _camera->getRight() * m.x * PROJ_SCALE;
+    glm::vec3 dy = _camera->getUp() * -m.y * PROJ_SCALE;
     _mouse_pos_3d =
       (_camera->getPosition() + dx + dy) + _camera->getFront() * PROJ_SCALE;
 }
