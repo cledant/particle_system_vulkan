@@ -15,6 +15,7 @@ struct DeviceRequirement
     std::optional<uint32_t> compute_queue_index;
     VkBool32 geometry_shader{};
     VkBool32 sampler_aniso{};
+    VkBool32 fill_mode_non_solid{};
     VkBool32 all_extension_supported{};
 
     [[nodiscard]] bool isValid() const;

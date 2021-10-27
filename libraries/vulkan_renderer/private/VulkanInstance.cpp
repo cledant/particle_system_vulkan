@@ -148,6 +148,7 @@ VulkanInstance::_create_present_and_graphic_queue()
     VkPhysicalDeviceFeatures physical_device_features{};
     physical_device_features.geometryShader = VK_FALSE;
     physical_device_features.samplerAnisotropy = VK_TRUE;
+    physical_device_features.fillModeNonSolid = VK_TRUE;
     VkDeviceCreateInfo device_create_info{};
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.pQueueCreateInfos = vec_queue_create_info.data();

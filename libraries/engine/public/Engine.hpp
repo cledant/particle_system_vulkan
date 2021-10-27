@@ -26,7 +26,7 @@ class Engine final
     static constexpr glm::vec2 const DEFAULT_NEAR_FAR =
       glm::vec2(0.1f, 5000.0f);
     static constexpr float const DEFAULT_FOV = 45.0f;
-    static constexpr glm::vec3 const START_POS = glm::vec3(0.0f, 0.0f, 0.0f);
+    static constexpr glm::vec3 const START_POS = glm::vec3(-20.0f, 0.0f, 0.0f);
     static constexpr float const START_YAW = 0.0f;
     static constexpr float const START_PITCH = 0.0f;
 

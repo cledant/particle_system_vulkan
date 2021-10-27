@@ -1,6 +1,7 @@
 #include "particleDisplayDebug/VulkanParticleDebugPipeline.hpp"
 
 #include <stdexcept>
+#include <random>
 
 #include "utils/VulkanShader.hpp"
 #include "utils/VulkanMemory.hpp"
@@ -26,12 +27,11 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
     _pipeline_data = _create_pipeline_particle_debug(nbParticles);
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
-    generateParticles();
+    _generate_particles();
 }
 
 void
 VulkanParticleDebugPipeline::resize(VulkanSwapChain const &swapChain,
-                                    uint64_t nbParticles,
                                     VkBuffer systemUbo)
 {
     vkDestroyBuffer(_device, _particle_uniform, nullptr);
@@ -43,13 +43,9 @@ VulkanParticleDebugPipeline::resize(VulkanSwapChain const &swapChain,
     _create_particle_debug_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
-    vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
-    vkFreeMemory(_device, _pipeline_data.memory, nullptr);
     vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
-    _pipeline_data = _create_pipeline_particle_debug(nbParticles);
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
-    generateParticles();
 }
 
 void
@@ -75,35 +71,37 @@ VulkanParticleDebugPipeline::clear()
 }
 
 void
-VulkanParticleDebugPipeline::generateParticles()
-{}
-
-void
-VulkanParticleDebugPipeline::setParticleGravityCenterOnGpu(
-  glm::vec3 const &gravityCenter,
-  uint32_t currentImg)
+VulkanParticleDebugPipeline::setParticleNumber(uint64_t nbParticles)
 {
-    copyOnCpuCoherentMemory(_device,
-                            _particle_uniform_memory,
-                            currentImg * sizeof(ParticleDebugUbo) +
-                              offsetof(ParticleDebugUbo, center),
-                            sizeof(((ParticleDebugUbo *)nullptr)->center),
-                            &gravityCenter);
+    vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
+    vkFreeMemory(_device, _pipeline_data.memory, nullptr);
+    _pipeline_data = _create_pipeline_particle_debug(nbParticles);
+    _generate_particles();
 }
 
 void
-VulkanParticleDebugPipeline::setParticleColorOnGpu(
-  glm::vec3 const &particleColor,
-  uint32_t nbSwapChainImg)
+VulkanParticleDebugPipeline::setParticlesColor(glm::vec3 const &particlesColor)
 {
-    for (uint32_t i = 0; i < nbSwapChainImg; ++i) {
-        copyOnCpuCoherentMemory(_device,
-                                _particle_uniform_memory,
-                                i * sizeof(ParticleDebugUbo) +
-                                  offsetof(ParticleDebugUbo, color),
-                                sizeof(((ParticleDebugUbo *)nullptr)->color),
-                                &particleColor);
-    }
+    _particles_color = particlesColor;
+}
+
+void
+VulkanParticleDebugPipeline::setParticleGravityCenter(
+  glm::vec3 const &particleGravityCenter)
+{
+    _particles_gravity_center = particleGravityCenter;
+}
+
+void
+VulkanParticleDebugPipeline::setUniformOnGpu(uint32_t currentImg)
+{
+    ParticleDebugUbo ubo{ _particles_gravity_center, _particles_color };
+
+    copyOnCpuCoherentMemory(_device,
+                            _particle_uniform_memory,
+                            currentImg * sizeof(ParticleDebugUbo),
+                            sizeof(ParticleDebugUbo),
+                            &ubo);
 }
 
 VulkanParticleDebugRenderPass const &
@@ -264,7 +262,7 @@ VulkanParticleDebugPipeline::_create_gfx_pipeline(
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer_info.depthBiasClamp = VK_FALSE;
     rasterizer_info.rasterizerDiscardEnable = VK_FALSE;
-    rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer_info.polygonMode = VK_POLYGON_MODE_POINT;
     rasterizer_info.lineWidth = 1.0f;
     rasterizer_info.cullMode = VK_CULL_MODE_NONE;
     rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -399,7 +397,7 @@ VulkanParticleDebugPipeline::_create_descriptor_pool(
   VulkanSwapChain const &swapChain,
   VulkanParticleDebugPipelineData &pipelineData)
 {
-    std::array<VkDescriptorPoolSize, 3> pool_size{};
+    std::array<VkDescriptorPoolSize, 2> pool_size{};
     // System Ubo
     pool_size[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_size[0].descriptorCount = swapChain.currentSwapChainNbImg;
@@ -445,7 +443,7 @@ VulkanParticleDebugPipeline::_create_descriptor_sets(
     }
 
     for (size_t i = 0; i < swapChain.currentSwapChainNbImg; ++i) {
-        std::array<VkWriteDescriptorSet, 3> descriptor_write{};
+        std::array<VkWriteDescriptorSet, 2> descriptor_write{};
 
         // System UBO
         VkDescriptorBufferInfo system_buffer_info{};
@@ -499,4 +497,28 @@ VulkanParticleDebugPipeline::_create_particle_debug_uniform_buffer(
                    _particle_uniform_memory,
                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+}
+
+void
+VulkanParticleDebugPipeline::_generate_particles()
+{
+    std::vector<glm::vec3> particles(_pipeline_data.nbParticles);
+
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_real_distribution<float> dist(-5.0f, 5.0f);
+
+    for (uint64_t i = 0; i < _pipeline_data.nbParticles; ++i) {
+        auto random_location = glm::vec3(dist(gen), dist(gen), dist(gen));
+        particles[i] = random_location;
+    }
+
+    VkDeviceSize buff_size = sizeof(glm::vec3) * _pipeline_data.nbParticles;
+    copyCpuBufferToGpu(_device,
+                       _physical_device,
+                       _cmd_pool,
+                       _gfx_queue,
+                       _pipeline_data.buffer,
+                       &particles[0],
+                       { 0, 0, buff_size });
 }

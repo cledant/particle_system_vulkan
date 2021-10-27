@@ -46,6 +46,10 @@ class VulkanRenderer final
     // Skybox related
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
 
+    // Particles related
+    void setParticlesColor(glm::vec3 const &particlesColor);
+    void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+
     // Render related
     void draw(glm::mat4 const &view_proj_mat);
     void deviceWaitIdle() const;

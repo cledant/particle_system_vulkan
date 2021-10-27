@@ -56,6 +56,7 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                  "jpg",
                  _tex_manager,
                  _system_uniform);
+    _particle.init(_vk_instance, _swap_chain, 100000, _system_uniform);
     _create_render_command_buffers();
 }
 
@@ -74,6 +75,7 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
     _create_system_uniform_buffer();
     _ui.resize(_swap_chain);
     _skybox.resize(_swap_chain, _tex_manager, _system_uniform);
+    _particle.resize(_swap_chain, _system_uniform);
     _create_render_command_buffers();
 }
 
@@ -81,6 +83,7 @@ void
 VulkanRenderer::clear()
 {
     _skybox.clear();
+    _particle.clear();
     _ui.clear();
     _sync.clear();
     _swap_chain.clear();
@@ -120,6 +123,19 @@ void
 VulkanRenderer::setSkyboxInfo(glm::mat4 const &skyboxInfo)
 {
     _skybox.setSkyboxInfo(skyboxInfo);
+}
+
+// Particles related
+void
+VulkanRenderer::setParticlesColor(glm::vec3 const &particlesColor)
+{
+    _particle.setParticlesColor(particlesColor);
+}
+
+void
+VulkanRenderer::setParticleGravityCenter(glm::vec3 const &particleGravityCenter)
+{
+    _particle.setParticleGravityCenter(particleGravityCenter);
 }
 
 // Render Related
@@ -225,6 +241,7 @@ VulkanRenderer::_create_render_command_buffers()
         vkCmdBeginRenderPass(it, &rp_begin_info, VK_SUBPASS_CONTENTS_INLINE);
         // Emit skybox related commands
         _skybox.generateCommands(it, i);
+        _particle.generateCommands(it, i);
         vkCmdEndRenderPass(it);
         if (vkEndCommandBuffer(it) != VK_SUCCESS) {
             throw std::runtime_error(
@@ -261,6 +278,7 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
                             sizeof(glm::mat4),
                             &view_proj_mat);
     _skybox.setSkyboxModelMatOnGpu(img_index);
+    _particle.setUniformOnGpu(img_index);
 
     // Send Model rendering
     VkSemaphore wait_model_sems[] = {

@@ -51,10 +51,7 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
     _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
-    vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
-    vkFreeMemory(_device, _pipeline_data.memory, nullptr);
     vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
-    _pipeline_data = _create_pipeline_skybox();
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
 }

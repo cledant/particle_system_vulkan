@@ -14,7 +14,7 @@ DeviceRequirement::isValid() const
     return (graphic_queue_index.has_value() &&
             present_queue_index.has_value() &&
             compute_queue_index.has_value() && sampler_aniso &&
-            all_extension_supported);
+            fill_mode_non_solid && all_extension_supported);
 }
 
 VkPhysicalDevice
@@ -117,6 +117,9 @@ checkDeviceFeaturesSupport(VkPhysicalDevice device, DeviceRequirement &dr)
     if (features.samplerAnisotropy) {
         dr.sampler_aniso = VK_TRUE;
     }
+    if (features.fillModeNonSolid) {
+        dr.fill_mode_non_solid = VK_TRUE;
+    }
 }
 
 void
@@ -173,6 +176,7 @@ getDeviceQueues(VkPhysicalDevice device,
         ++index;
     }
 
+    // Check for dedicated compute queue
     index = 0;
     if (dr.compute_queue_index == dr.graphic_queue_index) {
         for (auto const &it : families) {

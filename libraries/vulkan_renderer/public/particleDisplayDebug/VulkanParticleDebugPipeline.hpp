@@ -30,16 +30,13 @@ class VulkanParticleDebugPipeline final
               VulkanSwapChain const &swapChain,
               uint64_t nbParticles,
               VkBuffer systemUbo);
-    void resize(VulkanSwapChain const &swapChain,
-                uint64_t nbParticles,
-                VkBuffer systemUbo);
+    void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
     void clear();
 
-    void generateParticles();
-    void setParticleGravityCenterOnGpu(glm::vec3 const &gravityCenter,
-                                       uint32_t currentImg);
-    void setParticleColorOnGpu(glm::vec3 const &particleColor,
-                               uint32_t nbSwapChainImg);
+    void setParticleNumber(uint64_t nbParticles);
+    void setParticlesColor(glm::vec3 const &particlesColor);
+    void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+    void setUniformOnGpu(uint32_t currentImg);
 
     [[nodiscard]] VulkanParticleDebugRenderPass const &getRenderPass() const;
     void generateCommands(VkCommandBuffer cmdBuffer, size_t descriptorSetIndex);
@@ -59,6 +56,8 @@ class VulkanParticleDebugPipeline final
     // Particle related
     VkBuffer _particle_uniform{};
     VkDeviceMemory _particle_uniform_memory{};
+    glm::vec3 _particles_gravity_center{};
+    glm::vec3 _particles_color{};
 
     inline void _create_descriptor_layout();
     inline void _create_pipeline_layout();
@@ -74,6 +73,7 @@ class VulkanParticleDebugPipeline final
       VkBuffer systemUbo);
     inline void _create_particle_debug_uniform_buffer(
       uint32_t currentSwapChainNbImg);
+    inline void _generate_particles();
 };
 
 #endif // PARTICLE_SYS_VULKANPARTICLEDEBUGPIPELINE_HPP

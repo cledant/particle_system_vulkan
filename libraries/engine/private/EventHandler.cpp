@@ -139,6 +139,7 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
     _compute_mouse_3d_coordinate(ioEvents.mouse_position);
     if (_timers.updated[ET_LEFT_MOUSE] && !_ui->isUiHovered()) {
         _gravity_center = _mouse_pos_3d;
+        _renderer->setParticleGravityCenter(_gravity_center);
     }
 
     // Ui info
@@ -376,7 +377,7 @@ EventHandler::_update_camera(glm::vec2 const &mouse_pos)
 void
 EventHandler::_compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d)
 {
-    static constexpr glm::vec3 const PROJ_SCALE{ 10.0f };
+    static constexpr glm::vec3 const PROJ_SCALE{ 20.0f };
 
     glm::vec2 win_size{ _io_manager->getWindowSize() };
     glm::vec2 win_center{ win_size / 2.0f };
