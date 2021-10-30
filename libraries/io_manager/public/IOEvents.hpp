@@ -25,6 +25,8 @@ enum IOEventsTypes
     DISPLAY_UI,
     ABOUT,
     INVERSE_Y_AXIS,
+    PARTICLE_POSITION_UPDATE,
+    RESET_PARTICLES,
     NB_IO_EVENTS,
 };
 

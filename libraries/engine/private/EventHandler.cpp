@@ -73,6 +73,8 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
           &EventHandler::_display_ui,
           &EventHandler::_about,
           &EventHandler::_invert_camera_y_axis,
+          &EventHandler::_particle_position_update,
+          &EventHandler::_reset_particles,
       };
 
     static const std::array<void (EventHandler::*)(), UET_TOTAL_NB>
@@ -302,6 +304,26 @@ EventHandler::_invert_camera_y_axis()
 }
 
 void
+EventHandler::_particle_position_update()
+{
+    if (_timers.accept_event[ET_SYSTEM]) {
+        _ui_pause_start_particles();
+        _timers.accept_event[ET_SYSTEM] = 0;
+        _timers.updated[ET_SYSTEM] = 1;
+    }
+}
+
+void
+EventHandler::_reset_particles()
+{
+    if (_timers.accept_event[ET_SYSTEM]) {
+        _ui_reset_simulation();
+        _timers.accept_event[ET_SYSTEM] = 0;
+        _timers.updated[ET_SYSTEM] = 1;
+    }
+}
+
+void
 EventHandler::_ui_close_app()
 {
     _io_manager->triggerClose();
@@ -328,19 +350,29 @@ EventHandler::_ui_fullscreen()
 
 void
 EventHandler::_ui_pause_start_particles()
-{}
+{
+    _renderer->toggleUpdateParticlesPosition();
+}
 
 void
 EventHandler::_ui_reset_simulation()
-{}
+{
+    _renderer->setParticleGravityCenter(
+      VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
+    _renderer->setParticlesNumber(_ui->getNbParticles());
+}
 
 void
 EventHandler::_ui_generate_sphere()
-{}
+{
+    _renderer->setParticleGenerationType(VulkanParticleGenerationType::SPHERE);
+}
 
 void
 EventHandler::_ui_generate_cube()
-{}
+{
+    _renderer->setParticleGenerationType(VulkanParticleGenerationType::CUBE);
+}
 
 void
 EventHandler::_ui_particle_number()

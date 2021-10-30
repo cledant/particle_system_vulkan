@@ -40,10 +40,7 @@ VulkanRenderer::getVkInstance() const
 }
 
 void
-VulkanRenderer::init(VkSurfaceKHR surface,
-                     uint32_t win_w,
-                     uint32_t win_h,
-                     uint64_t nb_particles)
+VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
 {
     assert(surface);
 
@@ -59,8 +56,11 @@ VulkanRenderer::init(VkSurfaceKHR surface,
                  "jpg",
                  _tex_manager,
                  _system_uniform);
-    _particle.init(
-      _vk_instance, _swap_chain, nb_particles, _system_uniform);
+    _particle.init(_vk_instance,
+                   _swap_chain,
+                   DEFAULT_NB_PARTICLES,
+                   DEFAULT_PARTICLES_COLOR,
+                   _system_uniform);
     _create_render_command_buffers();
 }
 
@@ -131,8 +131,21 @@ VulkanRenderer::setSkyboxInfo(glm::mat4 const &skyboxInfo)
 
 // Particles related
 void
+VulkanRenderer::toggleUpdateParticlesPosition()
+{
+    _update_particle_positions = !_update_particle_positions;
+}
+
+void
+VulkanRenderer::setParticleGenerationType(VulkanParticleGenerationType type)
+{
+    _particle_generation_type = type;
+}
+
+void
 VulkanRenderer::setParticlesNumber(uint64_t nbParticles)
 {
+    _update_particle_positions = false;
     deviceWaitIdle();
     _particle.setParticleNumber(nbParticles);
     _create_render_command_buffers();

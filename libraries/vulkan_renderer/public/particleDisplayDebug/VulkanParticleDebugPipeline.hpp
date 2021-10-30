@@ -29,6 +29,7 @@ class VulkanParticleDebugPipeline final
     void init(VulkanInstance const &vkInstance,
               VulkanSwapChain const &swapChain,
               uint64_t nbParticles,
+              glm::vec3 const &particles_color,
               VkBuffer systemUbo);
     void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
     void clear();

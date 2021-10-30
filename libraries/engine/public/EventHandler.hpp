@@ -86,6 +86,8 @@ class EventHandler final
     inline void _display_ui();
     inline void _about();
     inline void _invert_camera_y_axis();
+    inline void _particle_position_update();
+    inline void _reset_particles();
 
     // UI Event handling functions
     inline void _ui_close_app();

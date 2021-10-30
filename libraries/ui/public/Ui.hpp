@@ -72,8 +72,8 @@ class Ui final
     // File
 
     // Edit
-    bool _generate_sphere = true;
-    bool _generate_cube = false;
+    bool _generate_sphere = false;
+    bool _generate_cube = true;
     uint64_t _nb_particles{};
     UiSimpleInputWindow _particle_input_win{};
     void _draw_edit_panel();

@@ -16,6 +16,12 @@
 #include "skybox/VulkanSkyboxPipeline.hpp"
 #include "particleDisplayDebug/VulkanParticleDebugPipeline.hpp"
 
+enum class VulkanParticleGenerationType
+{
+    CUBE,
+    SPHERE,
+};
+
 class VulkanRenderer final
 {
   public:
@@ -33,10 +39,7 @@ class VulkanRenderer final
                         uint32_t engine_version,
                         std::vector<char const *> &&required_extensions);
     [[nodiscard]] VkInstance getVkInstance() const;
-    void init(VkSurfaceKHR surface,
-              uint32_t win_w,
-              uint32_t win_h,
-              uint64_t nb_particles);
+    void init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h);
     void resize(uint32_t win_w, uint32_t win_h);
     void clear();
 
@@ -50,9 +53,16 @@ class VulkanRenderer final
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
 
     // Particles related
+    void toggleUpdateParticlesPosition();
+    void setParticleGenerationType(VulkanParticleGenerationType type);
     void setParticlesNumber(uint64_t nbParticles);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+    static constexpr uint64_t const DEFAULT_NB_PARTICLES = 1000000;
+    static constexpr glm::vec3 const DEFAULT_PARTICLES_COLOR{ 0.0f,
+                                                              0.5f,
+                                                              0.3f };
+    static constexpr glm::vec3 const DEFAULT_PARTICLES_GRAVITY_CENTER{};
 
     // Render related
     void draw(glm::mat4 const &view_proj_mat);
@@ -71,6 +81,8 @@ class VulkanRenderer final
     VulkanUi _ui;
     VulkanSkyboxPipeline _skybox;
     VulkanParticleDebugPipeline _particle;
+    bool _update_particle_positions{};
+    VulkanParticleGenerationType _particle_generation_type{};
 
     // Renderer global uniform
     VkBuffer _system_uniform{};

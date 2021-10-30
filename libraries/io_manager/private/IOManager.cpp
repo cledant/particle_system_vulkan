@@ -173,6 +173,8 @@ IOManager::getEvents() const
     io.events[DISPLAY_UI] = _keys[GLFW_KEY_F9];
     io.events[ABOUT] = _keys[GLFW_KEY_F1];
     io.events[INVERSE_Y_AXIS] = _keys[GLFW_KEY_F5];
+    io.events[PARTICLE_POSITION_UPDATE] = _keys[GLFW_KEY_F2];
+    io.events[RESET_PARTICLES] = _keys[GLFW_KEY_F3];
     io.mouse_position = _mouse_position;
     io.mouse_scroll = _mouse_scroll;
     return (io);

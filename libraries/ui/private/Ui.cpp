@@ -115,6 +115,7 @@ void
 Ui::setNbParticles(uint64_t nbParticles)
 {
     _info_overview.nbParticles = nbParticles;
+    _nb_particles = nbParticles;
 }
 
 void

@@ -13,6 +13,7 @@ void
 VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
                                   VulkanSwapChain const &swapChain,
                                   uint64_t nbParticles,
+                                  glm::vec3 const &particles_color,
                                   VkBuffer systemUbo)
 {
     _device = vkInstance.device;
@@ -28,6 +29,7 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
     _generate_particles();
+    _particles_color = particles_color;
 }
 
 void
