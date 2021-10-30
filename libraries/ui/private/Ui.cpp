@@ -2,8 +2,6 @@
 
 #include <chrono>
 
-#include "AppVersion.hpp"
-
 void
 Ui::init(GLFWwindow *win)
 {
@@ -16,6 +14,7 @@ Ui::init(GLFWwindow *win)
     _particle_input_win.windowName = "Set number of particles";
     _particle_input_win.windowText = "Particles";
     _particle_input_win.winW = 300;
+    _particle_color_input.windowName = "Particles color selection";
 }
 
 void
@@ -35,6 +34,14 @@ uint64_t
 Ui::getNbParticles() const
 {
     return (_nb_particles);
+}
+
+glm::vec3
+Ui::getParticlesColor() const
+{
+    return (glm::vec3(_particle_color_input.color.x,
+                      _particle_color_input.color.y,
+                      _particle_color_input.color.z));
 }
 
 bool
@@ -59,7 +66,7 @@ Ui::toggleShowFps()
 void
 Ui::toggleAbout()
 {
-    _about = !_about;
+    _about_box.isOpen = !_about_box.isOpen;
 }
 
 void
@@ -132,13 +139,15 @@ Ui::drawUi()
     }
 
     _draw_menu_bar();
-    _draw_about_info_box();
     _info_overview.draw(_show_info_fps, _show_info_position);
+    _about_box.draw();
+    _ui_events.events[UET_SET_PARTICLES_COLOR] =
+      _particle_color_input.drawInputWindow();
     auto trigger_nb_particle = _particle_input_win.drawInputWindow();
     if (trigger_nb_particle) {
         try {
             _nb_particles = std::stoi(_particle_input_win.input);
-            _ui_events.events[UET_SET_PARTICLE_NUMBER] = true;
+            _ui_events.events[UET_SET_PARTICLES_NUMBER] = true;
             _info_overview.nbParticles = _nb_particles;
         } catch (std::exception const &e) {
             _particle_input_win.isInputOpen = false;
@@ -155,6 +164,10 @@ Ui::_draw_edit_panel()
 {
     if (ImGui::MenuItem("Set Number of particles")) {
         _particle_input_win.isInputOpen = !_particle_input_win.isInputOpen;
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Set Particles color")) {
+        _particle_color_input.isInputOpen = !_particle_color_input.isInputOpen;
     }
     ImGui::Separator();
     _ui_events.events[UET_PAUSE_START_PARTICLES] =
@@ -210,7 +223,7 @@ Ui::_draw_menu_bar()
         }
         if (ImGui::BeginMenu("Help")) {
             if (ImGui::MenuItem("About", "F1")) {
-                _about = !_about;
+                _about_box.isOpen = !_about_box.isOpen;
             }
             ImGui::EndMenu();
         }
@@ -232,33 +245,5 @@ Ui::_compute_fps()
         _info_overview.avgFps = _nb_frame;
         _nb_frame = 0;
         _avg_fps_time_ref = now;
-    }
-}
-
-void
-Ui::_draw_about_info_box()
-{
-    static constexpr ImGuiWindowFlags const WIN_FLAGS =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoMove;
-    static ImVec2 const WIN_POS_PIVOT = { 0.5f, 0.5f };
-
-    if (_about) {
-        ImGuiViewport const *viewport = ImGui::GetMainViewport();
-        auto viewport_center = viewport->GetCenter();
-        ImVec2 window_pos{ viewport_center.x, viewport_center.y };
-
-        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, WIN_POS_PIVOT);
-        ImGui::Begin("About", &_about, WIN_FLAGS);
-        ImGui::Text("particle_system");
-        ImGui::Separator();
-        ImGui::Text("Version: %d.%d.%d",
-                    particle_sys::APP_VERSION_MAJOR,
-                    particle_sys::APP_VERSION_MINOR,
-                    particle_sys::APP_VERSION_PATCH);
-        ImGui::Separator();
-        ImGui::Text("Commit: %s", particle_sys::APP_COMMIT_HASH);
-        ImGui::End();
     }
 }

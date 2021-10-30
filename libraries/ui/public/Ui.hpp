@@ -13,6 +13,8 @@
 #include "VulkanSwapChain.hpp"
 #include "UiInfoOverview.hpp"
 #include "UiSimpleInputWindow.hpp"
+#include "UiRGBColorInputWindow.hpp"
+#include "UiAboutBox.hpp"
 
 enum UiEventTypes
 {
@@ -24,7 +26,8 @@ enum UiEventTypes
     UET_RESET_PARTICLES,
     UET_GENERATE_SPHERE,
     UET_GENERATE_CUBE,
-    UET_SET_PARTICLE_NUMBER,
+    UET_SET_PARTICLES_NUMBER,
+    UET_SET_PARTICLES_COLOR,
     UET_TOTAL_NB,
 };
 
@@ -48,6 +51,7 @@ class Ui final
 
     [[nodiscard]] UiEvent getUiEvent() const;
     [[nodiscard]] uint64_t getNbParticles() const;
+    [[nodiscard]] glm::vec3 getParticlesColor() const;
     [[nodiscard]] bool isUiHovered() const;
 
     // Trigger from keyboard
@@ -76,6 +80,7 @@ class Ui final
     bool _generate_cube = true;
     uint64_t _nb_particles{};
     UiSimpleInputWindow _particle_input_win{};
+    UiRGBColorInputWindow _particle_color_input;
     void _draw_edit_panel();
 
     // Controls
@@ -89,7 +94,7 @@ class Ui final
     bool _show_info_fps = false;
 
     // Help
-    bool _about = false;
+    UiAboutBox _about_box;
 
     // Menu Bar
     void _draw_menu_bar();
@@ -104,7 +109,6 @@ class Ui final
     UiEvent _ui_events{};
 
     // Informations
-    void _draw_about_info_box();
     UiInfoOverview _info_overview;
 };
 

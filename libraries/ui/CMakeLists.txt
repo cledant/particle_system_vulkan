@@ -4,7 +4,9 @@ project(lib_ui)
 add_library(ui STATIC
         private/Ui.cpp
         private/UiInfoOverview.cpp
-        private/UiSimpleInputWindow.cpp)
+        private/UiSimpleInputWindow.cpp
+        private/UiRGBColorInputWindow.cpp
+        private/UiAboutBox.cpp)
 target_include_directories(ui
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/public)
