@@ -450,7 +450,7 @@ VulkanParticleDebugPipeline::_create_descriptor_pool(
   VulkanSwapChain const &swapChain,
   VulkanParticleDebugPipelineData &pipelineData)
 {
-    std::array<VkDescriptorPoolSize, 3> pool_size{};
+    std::array<VkDescriptorPoolSize, 4> pool_size{};
     // System Ubo
     pool_size[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_size[0].descriptorCount = swapChain.currentSwapChainNbImg;
@@ -460,12 +460,15 @@ VulkanParticleDebugPipeline::_create_descriptor_pool(
     // Storage buffer
     pool_size[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     pool_size[2].descriptorCount = 1;
+    // ParticleDebug Compute Ubo
+    pool_size[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    pool_size[3].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo pool_info{};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.poolSizeCount = pool_size.size();
     pool_info.pPoolSizes = pool_size.data();
-    pool_info.maxSets = swapChain.currentSwapChainNbImg + 3;
+    pool_info.maxSets = swapChain.currentSwapChainNbImg + 1;
 
     if (vkCreateDescriptorPool(
           _device, &pool_info, nullptr, &pipelineData.descriptorPool) !=
