@@ -1,0 +1,31 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+// GPU Buffer layout
+struct Particle
+{
+    vec4 pos;
+};
+
+layout (local_size_x = 256) in;
+
+layout(binding = 0) buffer Pos
+{
+    Particle particles[];
+};
+
+layout(binding = 1) uniform ParticleTestComputeUbo {
+    int particleCount;
+} particleTestComputeUbo;
+
+
+void main()
+{
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= particleTestComputeUbo.particleCount) {
+        return;
+    }
+
+    vec3 readPos = particles[index].pos.xyz;
+    particles[index].pos.x = readPos.x + 0.001f;
+}

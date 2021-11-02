@@ -91,8 +91,14 @@ class VulkanRenderer final
     // Drawing related
     std::vector<VkCommandBuffer> _render_command_buffers;
 
+    // Compute related
+    VkCommandBuffer _compute_command_buffers;
+
     // Draw related fct
     inline void _create_render_command_buffers();
+
+    // Compute related fct
+    inline void _create_compute_command_buffers();
 
     // Renderer global uniform related fct
     inline void _create_system_uniform_buffer();

@@ -39,6 +39,8 @@ class VulkanParticleDebugRenderPass final
     VkCommandPool _command_pool{};
     VkQueue _gfx_queue{};
 
+
+
     inline void _create_render_pass(VulkanSwapChain const &swapChain);
     inline void _create_depth_resources(VulkanSwapChain const &swapChain);
     inline void _create_framebuffers(VulkanSwapChain const &swapChain);

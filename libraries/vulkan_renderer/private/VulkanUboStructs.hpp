@@ -17,4 +17,9 @@ struct ParticleDebugUbo final
     alignas(16) glm::vec3 color{};
 };
 
+struct ParticleComputeDebugUbo final
+{
+    alignas(16) int32_t nbParticles{};
+};
+
 #endif // PARTICLE_SYS_VULKAN_VULKANUBOSTRUCTS_HPP

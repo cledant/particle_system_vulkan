@@ -45,7 +45,7 @@ class VulkanInstance final
   private:
     inline void _setup_vk_debug_msg();
     inline void _select_physical_device();
-    inline void _create_present_and_graphic_queue();
+    inline void _create_queues();
 
     // Dbg related
     static inline bool _check_validation_layer_support();

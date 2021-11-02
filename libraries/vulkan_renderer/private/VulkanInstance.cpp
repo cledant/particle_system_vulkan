@@ -63,7 +63,7 @@ VulkanInstance::init(VkSurfaceKHR windowSurface)
     surface = windowSurface;
     _setup_vk_debug_msg();
     _select_physical_device();
-    _create_present_and_graphic_queue();
+    _create_queues();
     renderCommandPool = createCommandPool(device, graphicQueueIndex, 0);
     computeCommandPool = (computeQueueIndex == graphicQueueIndex)
                            ? renderCommandPool
@@ -125,7 +125,7 @@ VulkanInstance::_select_physical_device()
 }
 
 void
-VulkanInstance::_create_present_and_graphic_queue()
+VulkanInstance::_create_queues()
 {
     auto dfr = getDeviceRequirement(physicalDevice, surface);
     std::set<uint32_t> queue_families = { dfr.graphic_queue_index.value(),

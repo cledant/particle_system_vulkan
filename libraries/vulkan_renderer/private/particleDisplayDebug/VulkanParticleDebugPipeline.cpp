@@ -30,6 +30,14 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
     _generate_particles();
     _particles_color = particles_color;
+
+    _compute_cmd_pool = vkInstance.computeCommandPool;
+    _compute_queue = vkInstance.computeQueue;
+    _create_particle_compute_debug_uniform_buffer();
+    _create_compute_descriptor_layout();
+    _create_compute_descriptor_sets(_pipeline_data);
+    _create_compute_pipeline_layout();
+    _create_compute_pipeline();
 }
 
 void
@@ -53,6 +61,8 @@ VulkanParticleDebugPipeline::resize(VulkanSwapChain const &swapChain,
 void
 VulkanParticleDebugPipeline::clear()
 {
+    vkDestroyBuffer(_device, _particle_compute_uniform, nullptr);
+    vkFreeMemory(_device, _particle_compute_uniform_memory, nullptr);
     vkDestroyBuffer(_device, _particle_uniform, nullptr);
     vkFreeMemory(_device, _particle_uniform_memory, nullptr);
     vkDestroyPipeline(_device, _graphic_pipeline, nullptr);
@@ -62,6 +72,12 @@ VulkanParticleDebugPipeline::clear()
     vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
     vkFreeMemory(_device, _pipeline_data.memory, nullptr);
     vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
+
+    vkDestroyPipeline(_device, _compute_pipeline, nullptr);
+    vkDestroyPipelineLayout(_device, _compute_pipeline_layout, nullptr);
+    vkDestroyDescriptorSetLayout(
+      _device, _compute_descriptor_set_layout, nullptr);
+
     _device = nullptr;
     _physical_device = nullptr;
     _cmd_pool = nullptr;
@@ -70,12 +86,16 @@ VulkanParticleDebugPipeline::clear()
     _pipeline_layout = nullptr;
     _graphic_pipeline = nullptr;
     _pipeline_data.clear();
+
+    _compute_cmd_pool = nullptr;
+    _compute_queue = nullptr;
 }
 
 void
 VulkanParticleDebugPipeline::setParticleNumber(uint64_t nbParticles)
 {
-    _update_pipeline_particle_debug(nbParticles);
+    _reallocate_pipeline_particle_debug_buffers(nbParticles);
+    _create_compute_descriptor_sets(_pipeline_data);
     _generate_particles();
 }
 
@@ -131,6 +151,22 @@ VulkanParticleDebugPipeline::generateCommands(VkCommandBuffer cmdBuffer,
                             0,
                             nullptr);
     vkCmdDraw(cmdBuffer, _pipeline_data.nbParticles, 1, 0, 0);
+}
+
+void
+VulkanParticleDebugPipeline::generateComputeCommands(VkCommandBuffer cmdBuffer)
+{
+    vkCmdBindPipeline(
+      cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _compute_pipeline);
+    vkCmdBindDescriptorSets(cmdBuffer,
+                            VK_PIPELINE_BIND_POINT_COMPUTE,
+                            _compute_pipeline_layout,
+                            0,
+                            1,
+                            &_pipeline_data.computeDescriptorSet,
+                            0,
+                            0);
+    vkCmdDispatch(cmdBuffer, _pipeline_data.nbParticles / 256, 1, 1);
 }
 
 void
@@ -361,7 +397,8 @@ VulkanParticleDebugPipeline::_create_pipeline_particle_debug(
 
     // Computing sizes and offsets
     pipeline_particle.nbParticles = nbParticles;
-    pipeline_particle.particleBufferSize = sizeof(glm::vec3) * nbParticles;
+    pipeline_particle.particleBufferSize =
+      sizeof(VulkanParticleDebug) * nbParticles;
     VkDeviceSize total_size = pipeline_particle.particleBufferSize;
 
     // Creating GPU buffer
@@ -370,7 +407,7 @@ VulkanParticleDebugPipeline::_create_pipeline_particle_debug(
                  total_size,
                  VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+                   VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
     allocateBuffer(_physical_device,
                    _device,
                    pipeline_particle.buffer,
@@ -381,7 +418,7 @@ VulkanParticleDebugPipeline::_create_pipeline_particle_debug(
 }
 
 void
-VulkanParticleDebugPipeline::_update_pipeline_particle_debug(
+VulkanParticleDebugPipeline::_reallocate_pipeline_particle_debug_buffers(
   uint64_t nbParticles)
 {
     // Remove previous buffers
@@ -390,7 +427,8 @@ VulkanParticleDebugPipeline::_update_pipeline_particle_debug(
 
     // Computing sizes and offsets
     _pipeline_data.nbParticles = nbParticles;
-    _pipeline_data.particleBufferSize = sizeof(glm::vec3) * nbParticles;
+    _pipeline_data.particleBufferSize =
+      sizeof(VulkanParticleDebug) * nbParticles;
     VkDeviceSize total_size = _pipeline_data.particleBufferSize;
 
     // Creating GPU buffer
@@ -412,19 +450,22 @@ VulkanParticleDebugPipeline::_create_descriptor_pool(
   VulkanSwapChain const &swapChain,
   VulkanParticleDebugPipelineData &pipelineData)
 {
-    std::array<VkDescriptorPoolSize, 2> pool_size{};
+    std::array<VkDescriptorPoolSize, 3> pool_size{};
     // System Ubo
     pool_size[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_size[0].descriptorCount = swapChain.currentSwapChainNbImg;
     // ParticleDebug Ubo
     pool_size[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     pool_size[1].descriptorCount = swapChain.currentSwapChainNbImg;
+    // Storage buffer
+    pool_size[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    pool_size[2].descriptorCount = 1;
 
     VkDescriptorPoolCreateInfo pool_info{};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.poolSizeCount = pool_size.size();
     pool_info.pPoolSizes = pool_size.data();
-    pool_info.maxSets = swapChain.currentSwapChainNbImg;
+    pool_info.maxSets = swapChain.currentSwapChainNbImg + 3;
 
     if (vkCreateDescriptorPool(
           _device, &pool_info, nullptr, &pipelineData.descriptorPool) !=
@@ -517,15 +558,14 @@ VulkanParticleDebugPipeline::_create_particle_debug_uniform_buffer(
 void
 VulkanParticleDebugPipeline::_generate_particles()
 {
-    std::vector<glm::vec3> particles(_pipeline_data.nbParticles);
+    std::vector<VulkanParticleDebug> particles(_pipeline_data.nbParticles);
 
     std::random_device rd;
     std::mt19937_64 gen(rd());
     std::uniform_real_distribution<float> dist(-5.0f, 5.0f);
 
     for (uint64_t i = 0; i < _pipeline_data.nbParticles; ++i) {
-        auto random_location = glm::vec3(dist(gen), dist(gen), dist(gen));
-        particles[i] = random_location;
+        particles[i].position = glm::vec3(dist(gen), dist(gen), dist(gen));
     }
 
     VkDeviceSize buff_size = sizeof(glm::vec3) * _pipeline_data.nbParticles;
@@ -536,4 +576,161 @@ VulkanParticleDebugPipeline::_generate_particles()
                        _pipeline_data.buffer,
                        &particles[0],
                        { 0, 0, buff_size });
+}
+
+void
+VulkanParticleDebugPipeline::_create_particle_compute_debug_uniform_buffer()
+{
+
+    createBuffer(_device,
+                 _particle_compute_uniform,
+                 sizeof(ParticleComputeDebugUbo),
+                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    allocateBuffer(_physical_device,
+                   _device,
+                   _particle_compute_uniform,
+                   _particle_compute_uniform_memory,
+                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+}
+
+void
+VulkanParticleDebugPipeline::_create_compute_descriptor_layout()
+{
+    VkDescriptorSetLayoutBinding storage_buffer_layout_binding{};
+    storage_buffer_layout_binding.binding = 0;
+    storage_buffer_layout_binding.descriptorType =
+      VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    storage_buffer_layout_binding.descriptorCount = 1;
+    storage_buffer_layout_binding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    storage_buffer_layout_binding.pImmutableSamplers = nullptr;
+
+    VkDescriptorSetLayoutBinding particle_debug_compute_layout_binding{};
+    particle_debug_compute_layout_binding.binding = 1;
+    particle_debug_compute_layout_binding.descriptorType =
+      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    particle_debug_compute_layout_binding.descriptorCount = 1;
+    particle_debug_compute_layout_binding.stageFlags =
+      VK_SHADER_STAGE_COMPUTE_BIT;
+    particle_debug_compute_layout_binding.pImmutableSamplers = nullptr;
+
+    std::array bindings{ storage_buffer_layout_binding,
+                         particle_debug_compute_layout_binding };
+
+    VkDescriptorSetLayoutCreateInfo layout_info{};
+    layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layout_info.bindingCount = bindings.size();
+    layout_info.pBindings = bindings.data();
+
+    if (vkCreateDescriptorSetLayout(
+          _device, &layout_info, nullptr, &_compute_descriptor_set_layout) !=
+        VK_SUCCESS) {
+        throw std::runtime_error("VulkanParticleDebugPipeline: failed to "
+                                 "create compute descriptor set layout");
+    }
+}
+
+void
+VulkanParticleDebugPipeline::_create_compute_pipeline_layout()
+{
+    VkPipelineLayoutCreateInfo pipeline_layout_info{};
+    pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipeline_layout_info.setLayoutCount = 1;
+    pipeline_layout_info.pSetLayouts = &_compute_descriptor_set_layout;
+    pipeline_layout_info.pushConstantRangeCount = 0;
+    pipeline_layout_info.pPushConstantRanges = nullptr;
+    if (vkCreatePipelineLayout(
+          _device, &pipeline_layout_info, nullptr, &_compute_pipeline_layout) !=
+        VK_SUCCESS) {
+        throw std::runtime_error("VulkanParticleDebugPipeline: Failed to "
+                                 "create compute pipeline layout");
+    }
+}
+
+void
+VulkanParticleDebugPipeline::_create_compute_pipeline()
+{
+    // Shaders
+    auto comp_shader = loadShader(
+      _device, "resources/shaders/particleDebug/particleDebug.comp.spv");
+
+    VkPipelineShaderStageCreateInfo comp_shader_info{};
+    comp_shader_info.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    comp_shader_info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    comp_shader_info.module = comp_shader;
+    comp_shader_info.pName = "main";
+
+    // Compute pipeline creation
+    VkComputePipelineCreateInfo comp_pipeline_info{};
+    comp_pipeline_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    comp_pipeline_info.layout = _compute_pipeline_layout;
+    comp_pipeline_info.flags = 0;
+    comp_pipeline_info.stage = comp_shader_info;
+
+    if (vkCreateComputePipelines(_device,
+                                 VK_NULL_HANDLE,
+                                 1,
+                                 &comp_pipeline_info,
+                                 nullptr,
+                                 &_compute_pipeline) != VK_SUCCESS) {
+        throw std::runtime_error(
+          "VulkanParticleDebugPipeline: Failed to create compute pipeline");
+    }
+
+    vkDestroyShaderModule(_device, comp_shader, nullptr);
+}
+
+void
+VulkanParticleDebugPipeline::_create_compute_descriptor_sets(
+  VulkanParticleDebugPipelineData &pipelineData)
+{
+    VkDescriptorSetAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool = pipelineData.descriptorPool;
+    alloc_info.descriptorSetCount = 1;
+    alloc_info.pSetLayouts = &_compute_descriptor_set_layout;
+
+    if (vkAllocateDescriptorSets(
+          _device, &alloc_info, &_pipeline_data.computeDescriptorSet) !=
+        VK_SUCCESS) {
+        throw std::runtime_error("VulkanParticleDebugPipeline: failed to "
+                                 "create compute descriptor sets");
+    }
+
+    std::array<VkWriteDescriptorSet, 2> descriptor_write{};
+
+    // Storage buffer
+    VkDescriptorBufferInfo storage_buffer_info{};
+    storage_buffer_info.buffer = _pipeline_data.buffer;
+    storage_buffer_info.offset = 0;
+    storage_buffer_info.range =
+      sizeof(VulkanParticleDebug) * pipelineData.nbParticles;
+    descriptor_write[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptor_write[0].dstSet = pipelineData.computeDescriptorSet;
+    descriptor_write[0].dstBinding = 0;
+    descriptor_write[0].dstArrayElement = 0;
+    descriptor_write[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    descriptor_write[0].descriptorCount = 1;
+    descriptor_write[0].pBufferInfo = &storage_buffer_info;
+    descriptor_write[0].pImageInfo = nullptr;
+    descriptor_write[0].pTexelBufferView = nullptr;
+
+    // ParticleComputeDebug UBO
+    VkDescriptorBufferInfo particle_compute_ubo_buffer_info{};
+    particle_compute_ubo_buffer_info.buffer = _particle_uniform;
+    particle_compute_ubo_buffer_info.offset = 0;
+    particle_compute_ubo_buffer_info.range = sizeof(ParticleComputeDebugUbo);
+    descriptor_write[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptor_write[1].dstSet = pipelineData.computeDescriptorSet;
+    descriptor_write[1].dstBinding = 1;
+    descriptor_write[1].dstArrayElement = 0;
+    descriptor_write[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptor_write[1].descriptorCount = 1;
+    descriptor_write[1].pBufferInfo = &particle_compute_ubo_buffer_info;
+    descriptor_write[1].pImageInfo = nullptr;
+    descriptor_write[1].pTexelBufferView = nullptr;
+
+    vkUpdateDescriptorSets(
+      _device, descriptor_write.size(), descriptor_write.data(), 0, nullptr);
 }

@@ -62,6 +62,7 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                    DEFAULT_PARTICLES_COLOR,
                    _system_uniform);
     _create_render_command_buffers();
+    _create_compute_command_buffers();
 }
 
 void
@@ -274,6 +275,37 @@ VulkanRenderer::_create_render_command_buffers()
         }
         ++i;
     }
+}
+
+void
+VulkanRenderer::_create_compute_command_buffers()
+{
+    VkCommandBufferAllocateInfo cb_allocate_info{};
+    cb_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cb_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    cb_allocate_info.commandPool = _vk_instance.computeCommandPool;
+    cb_allocate_info.commandBufferCount = 1;
+
+    if (vkAllocateCommandBuffers(_vk_instance.device,
+                                 &cb_allocate_info,
+                                 &_compute_command_buffers) != VK_SUCCESS) {
+        throw std::runtime_error(
+          "VulkanRenderer: Failed to allocate compute command buffers");
+    }
+
+    VkCommandBufferBeginInfo cb_begin_info{};
+    cb_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    cb_begin_info.flags = 0;
+    cb_begin_info.pInheritanceInfo = nullptr;
+    if (vkBeginCommandBuffer(_compute_command_buffers, &cb_begin_info) !=
+        VK_SUCCESS) {
+        throw std::runtime_error("VulkanRenderer: Failed to begin "
+                                 "recording compute command buffer");
+    }
+
+    _particle.generateComputeCommands(_compute_command_buffers);
+
+    vkEndCommandBuffer(_compute_command_buffers);
 }
 
 void

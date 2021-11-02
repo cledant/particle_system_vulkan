@@ -10,6 +10,11 @@
 
 #include "tex/VulkanTextureManager.hpp"
 
+struct VulkanParticleDebug
+{
+    alignas(16) glm::vec3 position;
+};
+
 struct VulkanParticleDebugPipelineData
 {
     VkBuffer buffer{};
@@ -18,6 +23,7 @@ struct VulkanParticleDebugPipelineData
     VkDeviceSize particleBufferSize{};
     VkDescriptorPool descriptorPool{};
     std::vector<VkDescriptorSet> descriptorSets;
+    VkDescriptorSet computeDescriptorSet;
 
     static std::array<VkVertexInputBindingDescription, 1>
     getInputBindingDescription();

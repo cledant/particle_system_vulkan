@@ -6,7 +6,7 @@ VulkanParticleDebugPipelineData::getInputBindingDescription()
     std::array<VkVertexInputBindingDescription, 1> binding_description{};
 
     binding_description[0].binding = 0;
-    binding_description[0].stride = sizeof(glm::vec3);
+    binding_description[0].stride = sizeof(VulkanParticleDebug);
     binding_description[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     return (binding_description);
@@ -34,4 +34,5 @@ VulkanParticleDebugPipelineData::clear()
     nbParticles = 0;
     particleBufferSize = 0;
     descriptorSets.clear();
+    computeDescriptorSet = nullptr;
 }
