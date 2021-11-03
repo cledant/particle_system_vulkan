@@ -38,6 +38,13 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
     _create_compute_descriptor_sets(_pipeline_data);
     _create_compute_pipeline_layout();
     _create_compute_pipeline();
+    ParticleComputeDebugUbo ubo{ static_cast<int32_t>(
+      _pipeline_data.nbParticles) };
+    copyOnCpuCoherentMemory(_device,
+                            _particle_compute_uniform_memory,
+                            0,
+                            sizeof(ParticleComputeDebugUbo),
+                            &ubo);
 }
 
 void
@@ -97,6 +104,13 @@ VulkanParticleDebugPipeline::setParticleNumber(uint64_t nbParticles)
     _reallocate_pipeline_particle_debug_buffers(nbParticles);
     _create_compute_descriptor_sets(_pipeline_data);
     _generate_particles();
+    ParticleComputeDebugUbo ubo{ static_cast<int32_t>(
+      _pipeline_data.nbParticles) };
+    copyOnCpuCoherentMemory(_device,
+                            _particle_compute_uniform_memory,
+                            0,
+                            sizeof(ParticleComputeDebugUbo),
+                            &ubo);
 }
 
 void
@@ -166,7 +180,12 @@ VulkanParticleDebugPipeline::generateComputeCommands(VkCommandBuffer cmdBuffer)
                             &_pipeline_data.computeDescriptorSet,
                             0,
                             0);
-    vkCmdDispatch(cmdBuffer, _pipeline_data.nbParticles / 256, 1, 1);
+    vkCmdDispatch(cmdBuffer,
+                  (_pipeline_data.nbParticles % 256)
+                    ? (_pipeline_data.nbParticles / 256) + 1
+                    : _pipeline_data.nbParticles / 256,
+                  1,
+                  1);
 }
 
 void
@@ -721,7 +740,7 @@ VulkanParticleDebugPipeline::_create_compute_descriptor_sets(
 
     // ParticleComputeDebug UBO
     VkDescriptorBufferInfo particle_compute_ubo_buffer_info{};
-    particle_compute_ubo_buffer_info.buffer = _particle_uniform;
+    particle_compute_ubo_buffer_info.buffer = _particle_compute_uniform;
     particle_compute_ubo_buffer_info.offset = 0;
     particle_compute_ubo_buffer_info.range = sizeof(ParticleComputeDebugUbo);
     descriptor_write[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

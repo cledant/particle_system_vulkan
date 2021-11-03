@@ -302,9 +302,7 @@ VulkanRenderer::_create_compute_command_buffers()
         throw std::runtime_error("VulkanRenderer: Failed to begin "
                                  "recording compute command buffer");
     }
-
     _particle.generateComputeCommands(_compute_command_buffers);
-
     vkEndCommandBuffer(_compute_command_buffers);
 }
 
@@ -337,9 +335,35 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
     _skybox.setSkyboxModelMatOnGpu(img_index);
     _particle.setUniformOnGpu(img_index);
 
+    // Send Compute rendering
+    VkSemaphore wait_compute_sems[] = {
+        _sync.imageAvailableSem[_sync.currentFrame],
+    };
+    VkPipelineStageFlags compute_wait_stages[] = {
+        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+    };
+    VkSemaphore finish_compute_sig_sems[] = {
+        _sync.computeFinishedSem[_sync.currentFrame],
+    };
+    VkSubmitInfo compute_submit_info{};
+    compute_submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    compute_submit_info.pWaitSemaphores = wait_compute_sems;
+    compute_submit_info.pWaitDstStageMask = compute_wait_stages;
+    compute_submit_info.waitSemaphoreCount = 1;
+    compute_submit_info.pSignalSemaphores = finish_compute_sig_sems;
+    compute_submit_info.signalSemaphoreCount = 1;
+    compute_submit_info.pCommandBuffers = &_compute_command_buffers;
+    compute_submit_info.commandBufferCount = 1;
+    if (vkQueueSubmit(
+          _vk_instance.computeQueue, 1, &compute_submit_info, VK_NULL_HANDLE) !=
+        VK_SUCCESS) {
+        throw std::runtime_error(
+          "VulkanRenderer: Failed to submit compute draw command buffer");
+    }
+
     // Send Model rendering
     VkSemaphore wait_model_sems[] = {
-        _sync.imageAvailableSem[_sync.currentFrame],
+        _sync.computeFinishedSem[_sync.currentFrame],
     };
     VkPipelineStageFlags model_wait_stages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
