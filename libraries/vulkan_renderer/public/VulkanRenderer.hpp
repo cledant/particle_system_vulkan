@@ -92,7 +92,7 @@ class VulkanRenderer final
     std::vector<VkCommandBuffer> _render_command_buffers;
 
     // Compute related
-    VkCommandBuffer _compute_command_buffers;
+    std::vector<VkCommandBuffer> _compute_command_buffers;
 
     // Draw related fct
     inline void _create_render_command_buffers();

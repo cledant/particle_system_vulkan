@@ -82,6 +82,7 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
     _skybox.resize(_swap_chain, _tex_manager, _system_uniform);
     _particle.resize(_swap_chain, _system_uniform);
     _create_render_command_buffers();
+    _create_compute_command_buffers();
 }
 
 void
@@ -149,7 +150,7 @@ VulkanRenderer::setParticlesNumber(uint64_t nbParticles)
     _update_particle_positions = false;
     deviceWaitIdle();
     _particle.setParticleNumber(nbParticles);
-    _create_render_command_buffers();
+    _create_compute_command_buffers();
 }
 
 void
@@ -280,15 +281,18 @@ VulkanRenderer::_create_render_command_buffers()
 void
 VulkanRenderer::_create_compute_command_buffers()
 {
+    _compute_command_buffers.resize(_swap_chain.swapChainImageViews.size());
+
     VkCommandBufferAllocateInfo cb_allocate_info{};
     cb_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     cb_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cb_allocate_info.commandPool = _vk_instance.computeCommandPool;
-    cb_allocate_info.commandBufferCount = 1;
+    cb_allocate_info.commandBufferCount = _compute_command_buffers.size();
 
     if (vkAllocateCommandBuffers(_vk_instance.device,
                                  &cb_allocate_info,
-                                 &_compute_command_buffers) != VK_SUCCESS) {
+                                 _compute_command_buffers.data()) !=
+        VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderer: Failed to allocate compute command buffers");
     }
@@ -297,13 +301,14 @@ VulkanRenderer::_create_compute_command_buffers()
     cb_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     cb_begin_info.flags = 0;
     cb_begin_info.pInheritanceInfo = nullptr;
-    if (vkBeginCommandBuffer(_compute_command_buffers, &cb_begin_info) !=
-        VK_SUCCESS) {
-        throw std::runtime_error("VulkanRenderer: Failed to begin "
-                                 "recording compute command buffer");
+    for (auto &it : _compute_command_buffers) {
+        if (vkBeginCommandBuffer(it, &cb_begin_info) != VK_SUCCESS) {
+            throw std::runtime_error("VulkanRenderer: Failed to begin "
+                                     "recording compute command buffer");
+        }
+        _particle.generateComputeCommands(it);
+        vkEndCommandBuffer(it);
     }
-    _particle.generateComputeCommands(_compute_command_buffers);
-    vkEndCommandBuffer(_compute_command_buffers);
 }
 
 void
@@ -352,7 +357,7 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
     compute_submit_info.waitSemaphoreCount = 1;
     compute_submit_info.pSignalSemaphores = finish_compute_sig_sems;
     compute_submit_info.signalSemaphoreCount = 1;
-    compute_submit_info.pCommandBuffers = &_compute_command_buffers;
+    compute_submit_info.pCommandBuffers = &_compute_command_buffers[img_index];
     compute_submit_info.commandBufferCount = 1;
     if (vkQueueSubmit(
           _vk_instance.computeQueue, 1, &compute_submit_info, VK_NULL_HANDLE) !=

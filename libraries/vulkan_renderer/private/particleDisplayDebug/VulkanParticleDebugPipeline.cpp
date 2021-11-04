@@ -63,6 +63,7 @@ VulkanParticleDebugPipeline::resize(VulkanSwapChain const &swapChain,
     vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
+    _create_compute_descriptor_sets(_pipeline_data);
 }
 
 void
@@ -179,7 +180,7 @@ VulkanParticleDebugPipeline::generateComputeCommands(VkCommandBuffer cmdBuffer)
                             1,
                             &_pipeline_data.computeDescriptorSet,
                             0,
-                            0);
+                            nullptr);
     vkCmdDispatch(cmdBuffer,
                   (_pipeline_data.nbParticles % 256)
                     ? (_pipeline_data.nbParticles / 256) + 1
