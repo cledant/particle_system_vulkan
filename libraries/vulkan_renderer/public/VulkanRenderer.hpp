@@ -66,7 +66,6 @@ class VulkanRenderer final
 
     // Render related
     void draw(glm::mat4 const &view_proj_mat);
-    void deviceWaitIdle() const;
 
   private:
     std::string _app_name;

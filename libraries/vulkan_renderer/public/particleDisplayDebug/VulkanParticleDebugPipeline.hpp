@@ -34,7 +34,9 @@ class VulkanParticleDebugPipeline final
     void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
     void clear();
 
-    void setParticleNumber(uint64_t nbParticles);
+    void setParticleNumber(uint64_t nbParticles,
+                           VulkanSwapChain const &swapChain,
+                           VkBuffer systemUbo);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
     void setUniformOnGpu(uint32_t currentImg);

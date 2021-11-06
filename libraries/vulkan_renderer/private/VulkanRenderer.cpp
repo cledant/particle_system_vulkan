@@ -88,6 +88,7 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
 void
 VulkanRenderer::clear()
 {
+    vkDeviceWaitIdle(_vk_instance.device);
     _skybox.clear();
     _particle.clear();
     _ui.clear();
@@ -148,8 +149,9 @@ void
 VulkanRenderer::setParticlesNumber(uint64_t nbParticles)
 {
     _update_particle_positions = false;
-    deviceWaitIdle();
-    _particle.setParticleNumber(nbParticles);
+    vkDeviceWaitIdle(_vk_instance.device);
+    _particle.setParticleNumber(nbParticles, _swap_chain, _system_uniform);
+    _create_render_command_buffers();
     _create_compute_command_buffers();
 }
 
@@ -214,12 +216,6 @@ VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
     vkQueuePresentKHR(_vk_instance.presentQueue, &present_info);
     _sync.currentFrame =
       (_sync.currentFrame + 1) % VulkanSync::MAX_FRAME_INFLIGHT;
-}
-
-void
-VulkanRenderer::deviceWaitIdle() const
-{
-    vkDeviceWaitIdle(_vk_instance.device);
 }
 
 void

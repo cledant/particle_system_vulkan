@@ -100,9 +100,15 @@ VulkanParticleDebugPipeline::clear()
 }
 
 void
-VulkanParticleDebugPipeline::setParticleNumber(uint64_t nbParticles)
+VulkanParticleDebugPipeline::setParticleNumber(uint64_t nbParticles,
+                                               VulkanSwapChain const &swapChain,
+                                               VkBuffer systemUbo)
 {
+    vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
+
     _reallocate_pipeline_particle_debug_buffers(nbParticles);
+    _create_descriptor_pool(swapChain, _pipeline_data);
+    _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
     _create_compute_descriptor_sets(_pipeline_data);
     _generate_particles();
     ParticleComputeDebugUbo ubo{ static_cast<int32_t>(
@@ -457,7 +463,7 @@ VulkanParticleDebugPipeline::_reallocate_pipeline_particle_debug_buffers(
                  total_size,
                  VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+                   VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
     allocateBuffer(_physical_device,
                    _device,
                    _pipeline_data.buffer,

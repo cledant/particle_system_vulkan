@@ -62,7 +62,6 @@ Engine::run()
         _ui.drawUi();
         _vk_renderer.draw(_camera.getPerspectiveViewMatrix());
     }
-    _vk_renderer.deviceWaitIdle();
     _vk_renderer.clear();
     _ui.clear();
     _io_manager.deleteWindow();
