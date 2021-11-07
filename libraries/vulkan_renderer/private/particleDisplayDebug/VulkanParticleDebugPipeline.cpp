@@ -16,8 +16,8 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
                                   glm::vec3 const &particles_color,
                                   VkBuffer systemUbo)
 {
-    _device = vkInstance.device;
-    _physical_device = vkInstance.physicalDevice;
+    _device = vkInstance.devices.device;
+    _physical_device = vkInstance.devices.physicalDevice;
     _cmd_pool = vkInstance.cmdPools.renderCommandPool;
     _gfx_queue = vkInstance.queues.graphicQueue;
     _pipeline_render_pass.init(vkInstance, swapChain);

@@ -6,8 +6,27 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanQueues.hpp"
-#include "VulkanCommandPools.hpp"
+struct VulkanDevices
+{
+    VkPhysicalDevice physicalDevice{};
+    VkDevice device{};
+};
+
+struct VulkanCommandPools
+{
+    VkCommandPool renderCommandPool{};
+    VkCommandPool computeCommandPool{};
+};
+
+struct VulkanQueues
+{
+    VkQueue graphicQueue{};
+    VkQueue presentQueue{};
+    VkQueue computeQueue{};
+    uint32_t graphicQueueIndex{};
+    uint32_t presentQueueIndex{};
+    uint32_t computeQueueIndex{};
+};
 
 class VulkanInstance final
 {
@@ -31,8 +50,8 @@ class VulkanInstance final
     VkInstance instance{};
     VkSurfaceKHR surface{};
     VkDebugUtilsMessengerEXT debugMessenger{};
-    VkPhysicalDevice physicalDevice{};
-    VkDevice device{};
+
+    VulkanDevices devices;
     char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE]{};
 
     VulkanQueues queues;

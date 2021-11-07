@@ -5,10 +5,9 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanInstance.hpp"
-#include "VulkanSwapChain.hpp"
+#include "interface/AVulkanRenderPass.hpp"
 
-class VulkanUiRenderPass final
+class VulkanUiRenderPass final : public AVulkanRenderPass<VulkanUiRenderPass>
 {
   public:
     VulkanUiRenderPass() = default;
@@ -18,21 +17,25 @@ class VulkanUiRenderPass final
     VulkanUiRenderPass(VulkanUiRenderPass &&src) = delete;
     VulkanUiRenderPass &operator=(VulkanUiRenderPass &&rhs) = delete;
 
-    void init(VulkanInstance const &vkInstance,
-              VulkanSwapChain const &swapChain);
-    void resize(VulkanSwapChain const &swapChain);
-    void clear();
+    void implInit(VulkanInstance const &vkInstance,
+                  VulkanSwapChain const &swapChain);
+    void implResize(VulkanSwapChain const &swapChain);
+    void implClean();
+    void implClear();
 
-    std::vector<VkFramebuffer> framebuffers;
-    VkRenderPass renderPass{};
-    VkRenderPass noModelRenderPass{};
+    std::vector<VkFramebuffer> clearFramebuffers;
+    VkRenderPass clearRenderPass{};
 
   private:
-    VkDevice _device{};
-
-    inline void _create_render_pass(VulkanSwapChain const &swapChain);
-    inline void _create_no_model_render_pass(VulkanSwapChain const &swapChain);
-    inline void _create_framebuffers(VulkanSwapChain const &swapChain);
+    inline static VkRenderPass createRenderPass(
+      VkDevice device,
+      VulkanSwapChain const &swapChain,
+      bool clearPrevious);
+    inline static void createFramebuffers(
+      VkDevice device,
+      VulkanSwapChain const &swapChain,
+      VkRenderPass renderPass,
+      std::vector<VkFramebuffer> &framebuffers);
 };
 
-#endif // PARTICLE_SYS_VULKAN_VULKANMODELRENDERPASS_HPP
+#endif // PARTICLE_SYS_VULKAN_VULKANUIRENDERPASS_HPP

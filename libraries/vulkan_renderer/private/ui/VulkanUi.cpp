@@ -10,8 +10,8 @@ VulkanUi::init(VulkanInstance const &vkInstance,
                VulkanSwapChain const &swapChain)
 {
     _instance = vkInstance.instance;
-    _physicalDevice = vkInstance.physicalDevice;
-    _device = vkInstance.device;
+    _physicalDevice = vkInstance.devices.physicalDevice;
+    _device = vkInstance.devices.device;
     _graphicQueue = vkInstance.queues.graphicQueue;
     _graphicQueueIndex = vkInstance.queues.graphicQueueIndex;
     _render_pass.init(vkInstance, swapChain);
@@ -75,7 +75,7 @@ VulkanUi::generateCommandBuffer(uint32_t frameIndex,
     std::array<VkClearValue, 1> clear_vals{};
     if (noModel) {
         clear_vals[0].color = { { 0.2f, 0.2f, 0.2f, 1.0f } };
-        rp_begin_info.renderPass = _render_pass.noModelRenderPass;
+        rp_begin_info.renderPass = _render_pass.clearRenderPass;
     } else {
         clear_vals[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
         rp_begin_info.renderPass = _render_pass.renderPass;

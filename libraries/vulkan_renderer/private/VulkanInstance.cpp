@@ -65,21 +65,22 @@ VulkanInstance::init(VkSurfaceKHR windowSurface)
     _select_physical_device();
     _create_queues();
     cmdPools.renderCommandPool =
-      createCommandPool(device, queues.graphicQueueIndex, 0);
+      createCommandPool(devices.device, queues.graphicQueueIndex, 0);
     cmdPools.computeCommandPool =
       (queues.computeQueueIndex == queues.graphicQueueIndex)
         ? cmdPools.renderCommandPool
-        : createCommandPool(device, queues.computeQueueIndex, 0);
+        : createCommandPool(devices.device, queues.computeQueueIndex, 0);
 }
 
 void
 VulkanInstance::clear()
 {
     if (cmdPools.computeCommandPool != cmdPools.renderCommandPool) {
-        vkDestroyCommandPool(device, cmdPools.renderCommandPool, nullptr);
+        vkDestroyCommandPool(
+          devices.device, cmdPools.renderCommandPool, nullptr);
     }
-    vkDestroyCommandPool(device, cmdPools.renderCommandPool, nullptr);
-    vkDestroyDevice(device, nullptr);
+    vkDestroyCommandPool(devices.device, cmdPools.renderCommandPool, nullptr);
+    vkDestroyDevice(devices.device, nullptr);
     if constexpr (ENABLE_VALIDATION_LAYER) {
         destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
@@ -88,8 +89,7 @@ VulkanInstance::clear()
     instance = nullptr;
     surface = nullptr;
     debugMessenger = nullptr;
-    physicalDevice = nullptr;
-    device = nullptr;
+    devices = VulkanDevices{};
     queues = VulkanQueues{};
     cmdPools = VulkanCommandPools{};
 }
@@ -115,21 +115,22 @@ VulkanInstance::_select_physical_device()
         throw std::runtime_error("VulkanInstance: No physical device");
     }
 
-    std::vector<VkPhysicalDevice> devices(nb_physical_device);
-    vkEnumeratePhysicalDevices(instance, &nb_physical_device, devices.data());
+    std::vector<VkPhysicalDevice> phy_devices(nb_physical_device);
+    vkEnumeratePhysicalDevices(
+      instance, &nb_physical_device, phy_devices.data());
 
-    physicalDevice = selectBestDevice(devices, surface);
-    if (physicalDevice == VK_NULL_HANDLE) {
+    devices.physicalDevice = selectBestDevice(phy_devices, surface);
+    if (devices.physicalDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("VulkanInstance: No Suitable device found");
     }
-    getDeviceName(deviceName, physicalDevice);
+    getDeviceName(deviceName, devices.physicalDevice);
     fmt::print("Device: {}\n", deviceName);
 }
 
 void
 VulkanInstance::_create_queues()
 {
-    auto dfr = getDeviceRequirement(physicalDevice, surface);
+    auto dfr = getDeviceRequirement(devices.physicalDevice, surface);
     std::set<uint32_t> queue_families = { dfr.graphic_queue_index.value(),
                                           dfr.present_queue_index.value(),
                                           dfr.compute_queue_index.value() };
@@ -167,17 +168,19 @@ VulkanInstance::_create_queues()
     device_create_info.pEnabledFeatures = &physical_device_features;
 
     // Device creation
-    if (vkCreateDevice(physicalDevice, &device_create_info, nullptr, &device) !=
-        VK_SUCCESS) {
+    if (vkCreateDevice(devices.physicalDevice,
+                       &device_create_info,
+                       nullptr,
+                       &devices.device) != VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanInstance: Failed to create logical device");
     }
     vkGetDeviceQueue(
-      device, dfr.graphic_queue_index.value(), 0, &queues.graphicQueue);
+      devices.device, dfr.graphic_queue_index.value(), 0, &queues.graphicQueue);
     vkGetDeviceQueue(
-      device, dfr.present_queue_index.value(), 0, &queues.presentQueue);
+      devices.device, dfr.present_queue_index.value(), 0, &queues.presentQueue);
     vkGetDeviceQueue(
-      device, dfr.compute_queue_index.value(), 0, &queues.computeQueue);
+      devices.device, dfr.compute_queue_index.value(), 0, &queues.computeQueue);
     queues.graphicQueueIndex = dfr.graphic_queue_index.value();
     queues.presentQueueIndex = dfr.present_queue_index.value();
     queues.computeQueueIndex = dfr.compute_queue_index.value();

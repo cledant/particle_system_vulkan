@@ -11,8 +11,8 @@ VulkanSwapChain::init(VulkanInstance const &vkInstance,
                       uint32_t fb_w,
                       uint32_t fb_h)
 {
-    _device = vkInstance.device;
-    _physical_device = vkInstance.physicalDevice;
+    _device = vkInstance.devices.device;
+    _physical_device = vkInstance.devices.physicalDevice;
     _surface = vkInstance.surface;
     _create_swap_chain(fb_w, fb_h);
     _create_image_view();

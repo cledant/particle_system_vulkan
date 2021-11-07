@@ -68,15 +68,15 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
 void
 VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
 {
-    vkDeviceWaitIdle(_vk_instance.device);
+    vkDeviceWaitIdle(_vk_instance.devices.device);
     if (win_w <= 0 || win_h <= 0) {
         return;
     }
 
     _swap_chain.resize(win_w, win_h);
     _sync.resize(_swap_chain.currentSwapChainNbImg);
-    vkDestroyBuffer(_vk_instance.device, _system_uniform, nullptr);
-    vkFreeMemory(_vk_instance.device, _system_uniform_memory, nullptr);
+    vkDestroyBuffer(_vk_instance.devices.device, _system_uniform, nullptr);
+    vkFreeMemory(_vk_instance.devices.device, _system_uniform_memory, nullptr);
     _create_system_uniform_buffer();
     _ui.resize(_swap_chain);
     _skybox.resize(_swap_chain, _tex_manager, _system_uniform);
@@ -88,15 +88,15 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
 void
 VulkanRenderer::clear()
 {
-    vkDeviceWaitIdle(_vk_instance.device);
+    vkDeviceWaitIdle(_vk_instance.devices.device);
     _skybox.clear();
     _particle.clear();
     _ui.clear();
     _sync.clear();
     _swap_chain.clear();
     _tex_manager.clear();
-    vkDestroyBuffer(_vk_instance.device, _system_uniform, nullptr);
-    vkFreeMemory(_vk_instance.device, _system_uniform_memory, nullptr);
+    vkDestroyBuffer(_vk_instance.devices.device, _system_uniform, nullptr);
+    vkFreeMemory(_vk_instance.devices.device, _system_uniform_memory, nullptr);
     _vk_instance.clear();
 }
 
@@ -149,7 +149,7 @@ void
 VulkanRenderer::setParticlesNumber(uint64_t nbParticles)
 {
     _update_particle_positions = false;
-    vkDeviceWaitIdle(_vk_instance.device);
+    vkDeviceWaitIdle(_vk_instance.devices.device);
     _particle.setParticleNumber(nbParticles, _swap_chain, _system_uniform);
     _create_render_command_buffers();
     _create_compute_command_buffers();
@@ -171,7 +171,7 @@ VulkanRenderer::setParticleGravityCenter(glm::vec3 const &particleGravityCenter)
 void
 VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
 {
-    vkWaitForFences(_vk_instance.device,
+    vkWaitForFences(_vk_instance.devices.device,
                     1,
                     &_sync.inflightFence[_sync.currentFrame],
                     VK_TRUE,
@@ -179,7 +179,7 @@ VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
 
     uint32_t img_index;
     auto result =
-      vkAcquireNextImageKHR(_vk_instance.device,
+      vkAcquireNextImageKHR(_vk_instance.devices.device,
                             _swap_chain.swapChain,
                             UINT64_MAX,
                             _sync.imageAvailableSem[_sync.currentFrame],
@@ -190,7 +190,7 @@ VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
     }
 
     if (_sync.imgsInflightFence[img_index] != VK_NULL_HANDLE) {
-        vkWaitForFences(_vk_instance.device,
+        vkWaitForFences(_vk_instance.devices.device,
                         1,
                         &_sync.imgsInflightFence[img_index],
                         VK_TRUE,
@@ -229,7 +229,7 @@ VulkanRenderer::_create_render_command_buffers()
     cb_allocate_info.commandPool = _vk_instance.cmdPools.renderCommandPool;
     cb_allocate_info.commandBufferCount = _render_command_buffers.size();
 
-    if (vkAllocateCommandBuffers(_vk_instance.device,
+    if (vkAllocateCommandBuffers(_vk_instance.devices.device,
                                  &cb_allocate_info,
                                  _render_command_buffers.data()) !=
         VK_SUCCESS) {
@@ -285,7 +285,7 @@ VulkanRenderer::_create_compute_command_buffers()
     cb_allocate_info.commandPool = _vk_instance.cmdPools.computeCommandPool;
     cb_allocate_info.commandBufferCount = _compute_command_buffers.size();
 
-    if (vkAllocateCommandBuffers(_vk_instance.device,
+    if (vkAllocateCommandBuffers(_vk_instance.devices.device,
                                  &cb_allocate_info,
                                  _compute_command_buffers.data()) !=
         VK_SUCCESS) {
@@ -310,12 +310,12 @@ VulkanRenderer::_create_compute_command_buffers()
 void
 VulkanRenderer::_create_system_uniform_buffer()
 {
-    createBuffer(_vk_instance.device,
+    createBuffer(_vk_instance.devices.device,
                  _system_uniform,
                  sizeof(SystemUbo) * _swap_chain.currentSwapChainNbImg,
                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    allocateBuffer(_vk_instance.physicalDevice,
-                   _vk_instance.device,
+    allocateBuffer(_vk_instance.devices.physicalDevice,
+                   _vk_instance.devices.device,
                    _system_uniform,
                    _system_uniform_memory,
                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -327,7 +327,7 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
                                          glm::mat4 const &view_proj_mat)
 {
     // Update UBOs
-    copyOnCpuCoherentMemory(_vk_instance.device,
+    copyOnCpuCoherentMemory(_vk_instance.devices.device,
                             _system_uniform_memory,
                             img_index * sizeof(SystemUbo) +
                               offsetof(SystemUbo, view_proj),
@@ -411,7 +411,7 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
     ui_submit_info.commandBufferCount = 1;
     ui_submit_info.pCommandBuffers = &ui_cmd_buffer;
     vkResetFences(
-      _vk_instance.device, 1, &_sync.inflightFence[_sync.currentFrame]);
+      _vk_instance.devices.device, 1, &_sync.inflightFence[_sync.currentFrame]);
     if (vkQueueSubmit(_vk_instance.queues.graphicQueue,
                       1,
                       &ui_submit_info,

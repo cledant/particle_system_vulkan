@@ -5,7 +5,7 @@
 void
 VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
 {
-    _device = vkInstance.device;
+    _device = vkInstance.devices.device;
     imageAvailableSem.resize(MAX_FRAME_INFLIGHT);
     computeFinishedSem.resize(MAX_FRAME_INFLIGHT);
     renderFinishedSem.resize(MAX_FRAME_INFLIGHT);

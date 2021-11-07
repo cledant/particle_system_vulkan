@@ -10,8 +10,8 @@
 void
 VulkanTextureManager::init(VulkanInstance const &vkInstance)
 {
-    _device = vkInstance.device;
-    _physical_device = vkInstance.physicalDevice;
+    _device = vkInstance.devices.device;
+    _physical_device = vkInstance.devices.physicalDevice;
     _gfx_queue = vkInstance.queues.graphicQueue;
     _command_pool = vkInstance.cmdPools.renderCommandPool;
     _load_default_texture();
