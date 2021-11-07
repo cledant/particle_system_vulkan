@@ -19,8 +19,8 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
 {
     _device = vkInstance.device;
     _physical_device = vkInstance.physicalDevice;
-    _cmd_pool = vkInstance.renderCommandPool;
-    _gfx_queue = vkInstance.graphicQueue;
+    _cmd_pool = vkInstance.cmdPools.renderCommandPool;
+    _gfx_queue = vkInstance.queues.graphicQueue;
     _pipeline_render_pass.init(vkInstance, swapChain);
     _skybox_folder_path = skyboxFolderPath;
     _skybox_filetype = skyboxFileType;

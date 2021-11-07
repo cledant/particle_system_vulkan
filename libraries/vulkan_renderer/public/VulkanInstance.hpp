@@ -6,6 +6,9 @@
 
 #include <vulkan/vulkan.h>
 
+#include "VulkanQueues.hpp"
+#include "VulkanCommandPools.hpp"
+
 class VulkanInstance final
 {
   public:
@@ -32,15 +35,8 @@ class VulkanInstance final
     VkDevice device{};
     char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE]{};
 
-    VkQueue graphicQueue{};
-    uint32_t graphicQueueIndex{};
-    VkQueue presentQueue{};
-    uint32_t presentQueueIndex{};
-    VkCommandPool renderCommandPool{};
-
-    VkQueue computeQueue{};
-    uint32_t computeQueueIndex{};
-    VkCommandPool computeCommandPool{};
+    VulkanQueues queues;
+    VulkanCommandPools cmdPools;
 
   private:
     inline void _setup_vk_debug_msg();

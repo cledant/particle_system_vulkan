@@ -12,8 +12,8 @@ VulkanUi::init(VulkanInstance const &vkInstance,
     _instance = vkInstance.instance;
     _physicalDevice = vkInstance.physicalDevice;
     _device = vkInstance.device;
-    _graphicQueue = vkInstance.graphicQueue;
-    _graphicQueueIndex = vkInstance.graphicQueueIndex;
+    _graphicQueue = vkInstance.queues.graphicQueue;
+    _graphicQueueIndex = vkInstance.queues.graphicQueueIndex;
     _render_pass.init(vkInstance, swapChain);
     _init_imgui(swapChain);
     _ui_command_pools =

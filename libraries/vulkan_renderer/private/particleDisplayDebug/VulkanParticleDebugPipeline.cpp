@@ -18,8 +18,8 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
 {
     _device = vkInstance.device;
     _physical_device = vkInstance.physicalDevice;
-    _cmd_pool = vkInstance.renderCommandPool;
-    _gfx_queue = vkInstance.graphicQueue;
+    _cmd_pool = vkInstance.cmdPools.renderCommandPool;
+    _gfx_queue = vkInstance.queues.graphicQueue;
     _pipeline_render_pass.init(vkInstance, swapChain);
     _create_particle_debug_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_descriptor_layout();
@@ -31,8 +31,8 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
     _generate_particles();
     _particles_color = particles_color;
 
-    _compute_cmd_pool = vkInstance.computeCommandPool;
-    _compute_queue = vkInstance.computeQueue;
+    _compute_cmd_pool = vkInstance.cmdPools.computeCommandPool;
+    _compute_queue = vkInstance.queues.computeQueue;
     _create_particle_compute_debug_uniform_buffer();
     _create_compute_descriptor_layout();
     _create_compute_descriptor_sets(_pipeline_data);

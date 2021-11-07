@@ -213,7 +213,7 @@ VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
     present_info.pSwapchains = swap_chains;
     present_info.pImageIndices = &img_index;
     present_info.pResults = nullptr;
-    vkQueuePresentKHR(_vk_instance.presentQueue, &present_info);
+    vkQueuePresentKHR(_vk_instance.queues.presentQueue, &present_info);
     _sync.currentFrame =
       (_sync.currentFrame + 1) % VulkanSync::MAX_FRAME_INFLIGHT;
 }
@@ -226,7 +226,7 @@ VulkanRenderer::_create_render_command_buffers()
     VkCommandBufferAllocateInfo cb_allocate_info{};
     cb_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     cb_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cb_allocate_info.commandPool = _vk_instance.renderCommandPool;
+    cb_allocate_info.commandPool = _vk_instance.cmdPools.renderCommandPool;
     cb_allocate_info.commandBufferCount = _render_command_buffers.size();
 
     if (vkAllocateCommandBuffers(_vk_instance.device,
@@ -282,7 +282,7 @@ VulkanRenderer::_create_compute_command_buffers()
     VkCommandBufferAllocateInfo cb_allocate_info{};
     cb_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     cb_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cb_allocate_info.commandPool = _vk_instance.computeCommandPool;
+    cb_allocate_info.commandPool = _vk_instance.cmdPools.computeCommandPool;
     cb_allocate_info.commandBufferCount = _compute_command_buffers.size();
 
     if (vkAllocateCommandBuffers(_vk_instance.device,
@@ -355,9 +355,10 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
     compute_submit_info.signalSemaphoreCount = 1;
     compute_submit_info.pCommandBuffers = &_compute_command_buffers[img_index];
     compute_submit_info.commandBufferCount = 1;
-    if (vkQueueSubmit(
-          _vk_instance.computeQueue, 1, &compute_submit_info, VK_NULL_HANDLE) !=
-        VK_SUCCESS) {
+    if (vkQueueSubmit(_vk_instance.queues.computeQueue,
+                      1,
+                      &compute_submit_info,
+                      VK_NULL_HANDLE) != VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderer: Failed to submit compute draw command buffer");
     }
@@ -382,7 +383,7 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
     submit_info.pCommandBuffers = &_render_command_buffers[img_index];
     submit_info.commandBufferCount = 1;
     if (vkQueueSubmit(
-          _vk_instance.graphicQueue, 1, &submit_info, VK_NULL_HANDLE) !=
+          _vk_instance.queues.graphicQueue, 1, &submit_info, VK_NULL_HANDLE) !=
         VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderer: Failed to submit render draw command buffer");
@@ -411,7 +412,7 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
     ui_submit_info.pCommandBuffers = &ui_cmd_buffer;
     vkResetFences(
       _vk_instance.device, 1, &_sync.inflightFence[_sync.currentFrame]);
-    if (vkQueueSubmit(_vk_instance.graphicQueue,
+    if (vkQueueSubmit(_vk_instance.queues.graphicQueue,
                       1,
                       &ui_submit_info,
                       _sync.inflightFence[_sync.currentFrame]) != VK_SUCCESS) {

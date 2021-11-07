@@ -12,8 +12,8 @@ VulkanTextureManager::init(VulkanInstance const &vkInstance)
 {
     _device = vkInstance.device;
     _physical_device = vkInstance.physicalDevice;
-    _gfx_queue = vkInstance.graphicQueue;
-    _command_pool = vkInstance.renderCommandPool;
+    _gfx_queue = vkInstance.queues.graphicQueue;
+    _command_pool = vkInstance.cmdPools.renderCommandPool;
     _load_default_texture();
     _load_default_cubemap();
 }

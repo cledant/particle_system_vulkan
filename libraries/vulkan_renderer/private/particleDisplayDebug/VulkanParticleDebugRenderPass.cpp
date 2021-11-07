@@ -12,8 +12,8 @@ VulkanParticleDebugRenderPass::init(VulkanInstance const &vkInstance,
 {
     _device = vkInstance.device;
     _physical_device = vkInstance.physicalDevice;
-    _command_pool = vkInstance.renderCommandPool;
-    _gfx_queue = vkInstance.graphicQueue;
+    _command_pool = vkInstance.cmdPools.renderCommandPool;
+    _gfx_queue = vkInstance.queues.graphicQueue;
     _create_render_pass(swapChain);
     _create_depth_resources(swapChain);
     _create_framebuffers(swapChain);
