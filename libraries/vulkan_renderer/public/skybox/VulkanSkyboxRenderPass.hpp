@@ -10,12 +10,13 @@ class VulkanSkyboxRenderPass final
 {
   public:
     VulkanSkyboxRenderPass() = default;
-    ~VulkanSkyboxRenderPass() = default;
+    ~VulkanSkyboxRenderPass() override = default;
     VulkanSkyboxRenderPass(VulkanSkyboxRenderPass const &src) = default;
     VulkanSkyboxRenderPass &operator=(VulkanSkyboxRenderPass const &rhs) =
       default;
-    VulkanSkyboxRenderPass(VulkanSkyboxRenderPass &&src) = default;
-    VulkanSkyboxRenderPass &operator=(VulkanSkyboxRenderPass &&rhs) = default;
+    VulkanSkyboxRenderPass(VulkanSkyboxRenderPass &&src) noexcept = default;
+    VulkanSkyboxRenderPass &operator=(VulkanSkyboxRenderPass &&rhs) noexcept =
+      default;
 
     void implInit(VulkanInstance const &vkInstance,
                   VulkanSwapChain const &swapChain);

@@ -8,7 +8,7 @@
 #include "VulkanInstance.hpp"
 #include <VulkanSwapChain.hpp>
 
-class VulkanSync
+class VulkanSync final
 {
   public:
     VulkanSync() = default;

@@ -11,11 +11,11 @@ class VulkanUiRenderPass final : public AVulkanRenderPass<VulkanUiRenderPass>
 {
   public:
     VulkanUiRenderPass() = default;
-    ~VulkanUiRenderPass() = default;
-    VulkanUiRenderPass(VulkanUiRenderPass const &src) = delete;
-    VulkanUiRenderPass &operator=(VulkanUiRenderPass const &rhs) = delete;
-    VulkanUiRenderPass(VulkanUiRenderPass &&src) = delete;
-    VulkanUiRenderPass &operator=(VulkanUiRenderPass &&rhs) = delete;
+    ~VulkanUiRenderPass() override = default;
+    VulkanUiRenderPass(VulkanUiRenderPass const &src) = default;
+    VulkanUiRenderPass &operator=(VulkanUiRenderPass const &rhs) = default;
+    VulkanUiRenderPass(VulkanUiRenderPass &&src) noexcept = default;
+    VulkanUiRenderPass &operator=(VulkanUiRenderPass &&rhs) noexcept = default;
 
     void implInit(VulkanInstance const &vkInstance,
                   VulkanSwapChain const &swapChain);

@@ -12,6 +12,12 @@ template<class Child>
 class AVulkanRenderPass
 {
   public:
+    AVulkanRenderPass() = default;
+    virtual ~AVulkanRenderPass() = default;
+    AVulkanRenderPass(AVulkanRenderPass const &src) = default;
+    AVulkanRenderPass &operator=(AVulkanRenderPass const &rhs) = default;
+    AVulkanRenderPass(AVulkanRenderPass &&src) noexcept = default;
+    AVulkanRenderPass &operator=(AVulkanRenderPass &&rhs) noexcept = default;
     void init(VulkanInstance const &vkInstance,
               VulkanSwapChain const &swapChain);
     void resize(VulkanSwapChain const &swapChain);

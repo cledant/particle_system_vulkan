@@ -10,14 +10,15 @@ class VulkanParticleDebugRenderPass final
 {
   public:
     VulkanParticleDebugRenderPass() = default;
-    ~VulkanParticleDebugRenderPass() = default;
+    ~VulkanParticleDebugRenderPass() override = default;
     VulkanParticleDebugRenderPass(VulkanParticleDebugRenderPass const &src) =
-      delete;
+      default;
     VulkanParticleDebugRenderPass &operator=(
-      VulkanParticleDebugRenderPass const &rhs) = delete;
-    VulkanParticleDebugRenderPass(VulkanParticleDebugRenderPass &&src) = delete;
+      VulkanParticleDebugRenderPass const &rhs) = default;
+    VulkanParticleDebugRenderPass(
+      VulkanParticleDebugRenderPass &&src) noexcept = default;
     VulkanParticleDebugRenderPass &operator=(
-      VulkanParticleDebugRenderPass &&rhs) = delete;
+      VulkanParticleDebugRenderPass &&rhs) noexcept = default;
 
     void implInit(VulkanInstance const &vkInstance,
                   VulkanSwapChain const &swapChain);
