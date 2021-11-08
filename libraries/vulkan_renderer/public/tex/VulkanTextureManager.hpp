@@ -46,10 +46,9 @@ class VulkanTextureManager final
                               std::string const &fileType);
 
   private:
-    VkDevice _device{};
-    VkPhysicalDevice _physical_device{};
-    VkQueue _gfx_queue{};
-    VkCommandPool _command_pool{};
+    VulkanDevices _devices;
+    VulkanQueues _queues;
+    VulkanCommandPools _cmdPools;
     std::unordered_map<std::string, Texture> _textures;
 
     inline VkImage _create_texture_image(std::string const &texturePath,

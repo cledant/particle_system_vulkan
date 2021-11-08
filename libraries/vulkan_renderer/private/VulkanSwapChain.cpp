@@ -11,8 +11,7 @@ VulkanSwapChain::init(VulkanInstance const &vkInstance,
                       uint32_t fb_w,
                       uint32_t fb_h)
 {
-    _device = vkInstance.devices.device;
-    _physical_device = vkInstance.devices.physicalDevice;
+    _devices = vkInstance.devices;
     _surface = vkInstance.surface;
     _create_swap_chain(fb_w, fb_h);
     _create_image_view();
@@ -22,18 +21,26 @@ void
 VulkanSwapChain::resize(uint32_t fb_w, uint32_t fb_h)
 {
     oldSwapChainNbImg = currentSwapChainNbImg;
-    clear();
+    clean();
     _create_swap_chain(fb_w, fb_h);
     _create_image_view();
 }
 
 void
-VulkanSwapChain::clear()
+VulkanSwapChain::clean()
 {
     for (auto iv : swapChainImageViews) {
-        vkDestroyImageView(_device, iv, nullptr);
+        vkDestroyImageView(_devices.device, iv, nullptr);
     }
-    vkDestroySwapchainKHR(_device, swapChain, nullptr);
+    vkDestroySwapchainKHR(_devices.device, swapChain, nullptr);
+}
+
+void
+VulkanSwapChain::clear()
+{
+    clean();
+    _devices = VulkanDevices{};
+    _surface = nullptr;
 }
 
 void
@@ -42,7 +49,8 @@ VulkanSwapChain::_create_swap_chain(uint32_t fb_w, uint32_t fb_h)
     // Creating swap chain
     VkExtent2D actual_extent = { fb_w, fb_h };
 
-    auto scs = getSwapChainSupport(_physical_device, _surface, actual_extent);
+    auto scs =
+      getSwapChainSupport(_devices.physicalDevice, _surface, actual_extent);
     if (!scs.isValid()) {
         throw std::runtime_error("VulkanRenderPass: SwapChain error");
     }
@@ -64,7 +72,7 @@ VulkanSwapChain::_create_swap_chain(uint32_t fb_w, uint32_t fb_h)
     create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     DeviceRequirement dr{};
-    getDeviceQueues(_physical_device, _surface, dr);
+    getDeviceQueues(_devices.physicalDevice, _surface, dr);
     uint32_t queue_family_indices[] = { dr.present_queue_index.value(),
                                         dr.graphic_queue_index.value() };
     if (dr.present_queue_index.value() != dr.graphic_queue_index.value()) {
@@ -81,19 +89,19 @@ VulkanSwapChain::_create_swap_chain(uint32_t fb_w, uint32_t fb_h)
     create_info.presentMode = scs.present_mode.value();
     create_info.clipped = VK_TRUE;
     create_info.oldSwapchain = nullptr;
-    if (vkCreateSwapchainKHR(_device, &create_info, nullptr, &swapChain) !=
-        VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(
+          _devices.device, &create_info, nullptr, &swapChain) != VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderPass: Failed to create swap chain");
     }
 
     // Retrieving img buffer + keeping info
     uint32_t nb_img_sc;
-    vkGetSwapchainImagesKHR(_device, swapChain, &nb_img_sc, nullptr);
+    vkGetSwapchainImagesKHR(_devices.device, swapChain, &nb_img_sc, nullptr);
     swapChainImages.resize(nb_img_sc);
     currentSwapChainNbImg = nb_img_sc;
     vkGetSwapchainImagesKHR(
-      _device, swapChain, &nb_img_sc, swapChainImages.data());
+      _devices.device, swapChain, &nb_img_sc, swapChainImages.data());
     swapChainExtent = scs.extent;
     swapChainImageFormat = scs.surface_format.value().format;
 }
@@ -106,7 +114,7 @@ VulkanSwapChain::_create_image_view()
         swapChainImageViews[i] = createImageView(swapChainImages[i],
                                                  swapChainImageFormat,
                                                  1,
-                                                 _device,
+                                                 _devices.device,
                                                  VK_IMAGE_ASPECT_COLOR_BIT,
                                                  false);
     }

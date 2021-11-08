@@ -10,15 +10,13 @@ VulkanUi::init(VulkanInstance const &vkInstance,
                VulkanSwapChain const &swapChain)
 {
     _instance = vkInstance.instance;
-    _physicalDevice = vkInstance.devices.physicalDevice;
-    _device = vkInstance.devices.device;
-    _graphicQueue = vkInstance.queues.graphicQueue;
-    _graphicQueueIndex = vkInstance.queues.graphicQueueIndex;
+    _devices = vkInstance.devices;
+    _queues = vkInstance.queues;
     _render_pass.init(vkInstance, swapChain);
     _init_imgui(swapChain);
     _ui_command_pools =
-      createCommandPool(_device,
-                        _graphicQueueIndex,
+      createCommandPool(_devices.device,
+                        _queues.graphicQueueIndex,
                         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     _create_ui_command_buffers(swapChain.currentSwapChainNbImg);
     _load_fonts();
@@ -27,15 +25,15 @@ VulkanUi::init(VulkanInstance const &vkInstance,
 void
 VulkanUi::resize(VulkanSwapChain const &swapChain)
 {
-    vkDeviceWaitIdle(_device);
+    vkDeviceWaitIdle(_devices.device);
     ImGui_ImplVulkan_Shutdown();
     _render_pass.resize(swapChain);
-    vkDestroyCommandPool(_device, _ui_command_pools, nullptr);
-    vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
+    vkDestroyCommandPool(_devices.device, _ui_command_pools, nullptr);
+    vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
     _init_imgui(swapChain);
     _ui_command_pools =
-      createCommandPool(_device,
-                        _graphicQueueIndex,
+      createCommandPool(_devices.device,
+                        _queues.graphicQueueIndex,
                         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     _create_ui_command_buffers(swapChain.currentSwapChainNbImg);
     _load_fonts();
@@ -44,16 +42,14 @@ VulkanUi::resize(VulkanSwapChain const &swapChain)
 void
 VulkanUi::clear()
 {
-    vkDeviceWaitIdle(_device);
+    vkDeviceWaitIdle(_devices.device);
     ImGui_ImplVulkan_Shutdown();
     _render_pass.clear();
-    vkDestroyCommandPool(_device, _ui_command_pools, nullptr);
-    vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
+    vkDestroyCommandPool(_devices.device, _ui_command_pools, nullptr);
+    vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
     _instance = nullptr;
-    _physicalDevice = nullptr;
-    _device = nullptr;
-    _graphicQueue = nullptr;
-    _graphicQueueIndex = UINT32_MAX;
+    _devices = VulkanDevices{};
+    _queues = VulkanQueues{};
 }
 
 VkCommandBuffer
@@ -122,15 +118,16 @@ VulkanUi::_init_imgui(VulkanSwapChain const &swapChain)
     pool_info.poolSizeCount = static_cast<uint32_t>(IM_ARRAYSIZE(pool_sizes));
     pool_info.pPoolSizes = pool_sizes;
     if (vkCreateDescriptorPool(
-          _device, &pool_info, nullptr, &_descriptorPool) != VK_SUCCESS) {
+          _devices.device, &pool_info, nullptr, &_descriptorPool) !=
+        VK_SUCCESS) {
         throw std::runtime_error("VulkanUi: failed to create descriptor pool");
     }
     init_info.DescriptorPool = _descriptorPool;
     init_info.Instance = _instance;
-    init_info.PhysicalDevice = _physicalDevice;
-    init_info.Device = _device;
-    init_info.QueueFamily = _graphicQueueIndex;
-    init_info.Queue = _graphicQueue;
+    init_info.PhysicalDevice = _devices.physicalDevice;
+    init_info.Device = _devices.device;
+    init_info.QueueFamily = _queues.graphicQueueIndex;
+    init_info.Queue = _queues.graphicQueue;
     init_info.PipelineCache = VK_NULL_HANDLE;
     init_info.Allocator = VK_NULL_HANDLE;
     init_info.MinImageCount = 2;
@@ -146,10 +143,11 @@ VulkanUi::_init_imgui(VulkanSwapChain const &swapChain)
 void
 VulkanUi::_load_fonts()
 {
-    auto cmd_buffer = beginSingleTimeCommands(_device, _ui_command_pools);
+    auto cmd_buffer =
+      beginSingleTimeCommands(_devices.device, _ui_command_pools);
     ImGui_ImplVulkan_CreateFontsTexture(cmd_buffer);
     endSingleTimeCommands(
-      _device, _ui_command_pools, cmd_buffer, _graphicQueue);
+      _devices.device, _ui_command_pools, cmd_buffer, _queues.graphicQueue);
     ImGui_ImplVulkan_DestroyFontUploadObjects();
 }
 
@@ -164,7 +162,7 @@ VulkanUi::_create_ui_command_buffers(uint32_t nbSwapChainFrames)
     cb_allocate_info.commandPool = _ui_command_pools;
     cb_allocate_info.commandBufferCount = nbSwapChainFrames;
 
-    if (vkAllocateCommandBuffers(_device,
+    if (vkAllocateCommandBuffers(_devices.device,
                                  &cb_allocate_info,
                                  _ui_command_buffers.data()) != VK_SUCCESS) {
         throw std::runtime_error(

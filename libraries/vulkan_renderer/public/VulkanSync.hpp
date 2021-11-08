@@ -33,7 +33,7 @@ class VulkanSync final
     std::vector<VkFence> imgsInflightFence;
 
   private:
-    VkDevice _device{};
+    VulkanDevices _devices;
 };
 
 #endif // PARTICLE_SYS_VULKAN_VULKANSYNC_HPP

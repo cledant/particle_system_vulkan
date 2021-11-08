@@ -19,6 +19,7 @@ class VulkanSwapChain final
 
     void init(VulkanInstance const &vkInstance, uint32_t fb_w, uint32_t fb_h);
     void resize(uint32_t fb_w, uint32_t fb_h);
+    void clean();
     void clear();
 
     uint32_t oldSwapChainNbImg{};
@@ -30,8 +31,7 @@ class VulkanSwapChain final
     std::vector<VkImageView> swapChainImageViews;
 
   private:
-    VkDevice _device{};
-    VkPhysicalDevice _physical_device{};
+    VulkanDevices _devices{};
     VkSurfaceKHR _surface{};
 
     inline void _create_swap_chain(uint32_t fb_w, uint32_t fb_h);

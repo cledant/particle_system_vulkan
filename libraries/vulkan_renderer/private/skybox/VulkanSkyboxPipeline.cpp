@@ -17,10 +17,9 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
                            VulkanTextureManager &texManager,
                            VkBuffer systemUbo)
 {
-    _device = vkInstance.devices.device;
-    _physical_device = vkInstance.devices.physicalDevice;
-    _cmd_pool = vkInstance.cmdPools.renderCommandPool;
-    _gfx_queue = vkInstance.queues.graphicQueue;
+    _devices = vkInstance.devices;
+    _cmdPools = vkInstance.cmdPools;
+    _queues = vkInstance.queues;
     _pipeline_render_pass.init(vkInstance, swapChain);
     _skybox_folder_path = skyboxFolderPath;
     _skybox_filetype = skyboxFileType;
@@ -40,10 +39,10 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
                              VulkanTextureManager &texManager,
                              VkBuffer systemUbo)
 {
-    vkDestroyBuffer(_device, _skybox_uniform, nullptr);
-    vkFreeMemory(_device, _skybox_uniform_memory, nullptr);
-    vkDestroyPipeline(_device, _graphic_pipeline, nullptr);
-    vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
+    vkDestroyBuffer(_devices.device, _skybox_uniform, nullptr);
+    vkFreeMemory(_devices.device, _skybox_uniform_memory, nullptr);
+    vkDestroyPipeline(_devices.device, _graphic_pipeline, nullptr);
+    vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
     _pipeline_render_pass.resize(swapChain);
 
     _skybox_tex =
@@ -51,7 +50,8 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
     _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
-    vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
+    vkDestroyDescriptorPool(
+      _devices.device, _pipeline_data.descriptorPool, nullptr);
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
 }
@@ -59,19 +59,20 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
 void
 VulkanSkyboxPipeline::clear()
 {
-    vkDestroyBuffer(_device, _skybox_uniform, nullptr);
-    vkFreeMemory(_device, _skybox_uniform_memory, nullptr);
-    vkDestroyPipeline(_device, _graphic_pipeline, nullptr);
-    vkDestroyPipelineLayout(_device, _pipeline_layout, nullptr);
+    vkDestroyBuffer(_devices.device, _skybox_uniform, nullptr);
+    vkFreeMemory(_devices.device, _skybox_uniform_memory, nullptr);
+    vkDestroyPipeline(_devices.device, _graphic_pipeline, nullptr);
+    vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
     _pipeline_render_pass.clear();
-    vkDestroyDescriptorSetLayout(_device, _descriptor_set_layout, nullptr);
-    vkDestroyBuffer(_device, _pipeline_data.buffer, nullptr);
-    vkFreeMemory(_device, _pipeline_data.memory, nullptr);
-    vkDestroyDescriptorPool(_device, _pipeline_data.descriptorPool, nullptr);
-    _device = nullptr;
-    _physical_device = nullptr;
-    _cmd_pool = nullptr;
-    _gfx_queue = nullptr;
+    vkDestroyDescriptorSetLayout(
+      _devices.device, _descriptor_set_layout, nullptr);
+    vkDestroyBuffer(_devices.device, _pipeline_data.buffer, nullptr);
+    vkFreeMemory(_devices.device, _pipeline_data.memory, nullptr);
+    vkDestroyDescriptorPool(
+      _devices.device, _pipeline_data.descriptorPool, nullptr);
+    _devices = VulkanDevices{};
+    _cmdPools = VulkanCommandPools{};
+    _queues = VulkanQueues{};
     _descriptor_set_layout = nullptr;
     _pipeline_layout = nullptr;
     _graphic_pipeline = nullptr;
@@ -120,7 +121,7 @@ VulkanSkyboxPipeline::generateCommands(VkCommandBuffer cmdBuffer,
 void
 VulkanSkyboxPipeline::setSkyboxModelMatOnGpu(uint32_t currentImg)
 {
-    copyOnCpuCoherentMemory(_device,
+    copyOnCpuCoherentMemory(_devices.device,
                             _skybox_uniform_memory,
                             currentImg * sizeof(SkyboxUbo) +
                               offsetof(SkyboxUbo, model),
@@ -165,7 +166,7 @@ VulkanSkyboxPipeline::_create_descriptor_layout()
     layout_info.pBindings = bindings.data();
 
     if (vkCreateDescriptorSetLayout(
-          _device, &layout_info, nullptr, &_descriptor_set_layout) !=
+          _devices.device, &layout_info, nullptr, &_descriptor_set_layout) !=
         VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanSkyboxPipeline: failed to create descriptor set layout");
@@ -182,7 +183,7 @@ VulkanSkyboxPipeline::_create_pipeline_layout()
     pipeline_layout_info.pushConstantRangeCount = 0;
     pipeline_layout_info.pPushConstantRanges = nullptr;
     if (vkCreatePipelineLayout(
-          _device, &pipeline_layout_info, nullptr, &_pipeline_layout) !=
+          _devices.device, &pipeline_layout_info, nullptr, &_pipeline_layout) !=
         VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanSkyboxPipeline: Failed to create pipeline layout");
@@ -194,9 +195,9 @@ VulkanSkyboxPipeline::_create_gfx_pipeline(VulkanSwapChain const &swapChain)
 {
     // Shaders
     auto vert_shader =
-      loadShader(_device, "resources/shaders/skybox/skybox.vert.spv");
+      loadShader(_devices.device, "resources/shaders/skybox/skybox.vert.spv");
     auto frag_shader =
-      loadShader(_device, "resources/shaders/skybox/skybox.frag.spv");
+      loadShader(_devices.device, "resources/shaders/skybox/skybox.frag.spv");
 
     VkPipelineShaderStageCreateInfo vert_shader_info{};
     vert_shader_info.sType =
@@ -342,7 +343,7 @@ VulkanSkyboxPipeline::_create_gfx_pipeline(VulkanSwapChain const &swapChain)
     gfx_pipeline_info.subpass = 0;
     gfx_pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
     gfx_pipeline_info.basePipelineIndex = -1;
-    if (vkCreateGraphicsPipelines(_device,
+    if (vkCreateGraphicsPipelines(_devices.device,
                                   VK_NULL_HANDLE,
                                   1,
                                   &gfx_pipeline_info,
@@ -352,8 +353,8 @@ VulkanSkyboxPipeline::_create_gfx_pipeline(VulkanSwapChain const &swapChain)
           "VulkanSkyboxPipeline: Failed to create graphic pipeline");
     }
 
-    vkDestroyShaderModule(_device, vert_shader, nullptr);
-    vkDestroyShaderModule(_device, frag_shader, nullptr);
+    vkDestroyShaderModule(_devices.device, vert_shader, nullptr);
+    vkDestroyShaderModule(_devices.device, frag_shader, nullptr);
 }
 
 VulkanSkyboxPipelineData
@@ -378,48 +379,50 @@ VulkanSkyboxPipeline::_create_pipeline_skybox()
     // Creating transfer buffer CPU to GPU
     VkBuffer staging_buffer{};
     VkDeviceMemory staging_buffer_memory{};
-    createBuffer(
-      _device, staging_buffer, total_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    allocateBuffer(_physical_device,
-                   _device,
+    createBuffer(_devices.device,
+                 staging_buffer,
+                 total_size,
+                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    allocateBuffer(_devices.physicalDevice,
+                   _devices.device,
                    staging_buffer,
                    staging_buffer_memory,
                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     // Copying data into staging buffer
-    copyOnCpuCoherentMemory(_device,
+    copyOnCpuCoherentMemory(_devices.device,
                             staging_buffer_memory,
                             0,
                             pipeline_model.verticesSize,
                             model.getVertexList().data());
-    copyOnCpuCoherentMemory(_device,
+    copyOnCpuCoherentMemory(_devices.device,
                             staging_buffer_memory,
                             pipeline_model.indicesOffset,
                             pipeline_model.indicesSize,
                             model.getIndicesList().data());
 
     // Creating GPU buffer + copying transfer buffer
-    createBuffer(_device,
+    createBuffer(_devices.device,
                  pipeline_model.buffer,
                  total_size,
                  VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-    allocateBuffer(_physical_device,
-                   _device,
+    allocateBuffer(_devices.physicalDevice,
+                   _devices.device,
                    pipeline_model.buffer,
                    pipeline_model.memory,
                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    copyBufferOnGpu(_device,
-                    _cmd_pool,
-                    _gfx_queue,
+    copyBufferOnGpu(_devices.device,
+                    _cmdPools.renderCommandPool,
+                    _queues.graphicQueue,
                     pipeline_model.buffer,
                     staging_buffer,
                     total_size);
 
-    vkDestroyBuffer(_device, staging_buffer, nullptr);
-    vkFreeMemory(_device, staging_buffer_memory, nullptr);
+    vkDestroyBuffer(_devices.device, staging_buffer, nullptr);
+    vkFreeMemory(_devices.device, staging_buffer_memory, nullptr);
 
     return (pipeline_model);
 }
@@ -447,7 +450,7 @@ VulkanSkyboxPipeline::_create_descriptor_pool(
     pool_info.maxSets = swapChain.currentSwapChainNbImg;
 
     if (vkCreateDescriptorPool(
-          _device, &pool_info, nullptr, &pipelineData.descriptorPool) !=
+          _devices.device, &pool_info, nullptr, &pipelineData.descriptorPool) !=
         VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanSkyboxPipeline: failed to create descriptor pool");
@@ -471,7 +474,7 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
 
     pipelineData.descriptorSets.resize(swapChain.currentSwapChainNbImg);
     if (vkAllocateDescriptorSets(
-          _device, &alloc_info, pipelineData.descriptorSets.data()) !=
+          _devices.device, &alloc_info, pipelineData.descriptorSets.data()) !=
         VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanSkyboxPipeline: failed to create descriptor sets");
@@ -526,7 +529,7 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
         descriptor_write[2].pImageInfo = &img_info;
         descriptor_write[2].pTexelBufferView = nullptr;
 
-        vkUpdateDescriptorSets(_device,
+        vkUpdateDescriptorSets(_devices.device,
                                descriptor_write.size(),
                                descriptor_write.data(),
                                0,
@@ -538,12 +541,12 @@ void
 VulkanSkyboxPipeline::_create_skybox_uniform_buffer(
   uint32_t currentSwapChainNbImg)
 {
-    createBuffer(_device,
+    createBuffer(_devices.device,
                  _skybox_uniform,
                  sizeof(SkyboxUbo) * currentSwapChainNbImg,
                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    allocateBuffer(_physical_device,
-                   _device,
+    allocateBuffer(_devices.physicalDevice,
+                   _devices.device,
                    _skybox_uniform,
                    _skybox_uniform_memory,
                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |

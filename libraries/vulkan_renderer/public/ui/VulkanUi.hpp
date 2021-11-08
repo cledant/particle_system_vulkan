@@ -32,10 +32,8 @@ class VulkanUi final
 
   private:
     VkInstance _instance{};
-    VkPhysicalDevice _physicalDevice{};
-    VkDevice _device{};
-    VkQueue _graphicQueue{};
-    uint32_t _graphicQueueIndex{};
+    VulkanDevices _devices;
+    VulkanQueues _queues;
 
     VulkanUiRenderPass _render_pass;
     VkDescriptorPool _descriptorPool{};

@@ -5,7 +5,7 @@
 void
 VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
 {
-    _device = vkInstance.devices.device;
+    _devices = vkInstance.devices;
     imageAvailableSem.resize(MAX_FRAME_INFLIGHT);
     computeFinishedSem.resize(MAX_FRAME_INFLIGHT);
     renderFinishedSem.resize(MAX_FRAME_INFLIGHT);
@@ -22,17 +22,19 @@ VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
 
     for (size_t i = 0; i < MAX_FRAME_INFLIGHT; ++i) {
         if (vkCreateSemaphore(
-              _device, &sem_info, nullptr, &imageAvailableSem[i]) !=
+              _devices.device, &sem_info, nullptr, &imageAvailableSem[i]) !=
               VK_SUCCESS ||
             vkCreateSemaphore(
-              _device, &sem_info, nullptr, &renderFinishedSem[i]) !=
+              _devices.device, &sem_info, nullptr, &renderFinishedSem[i]) !=
               VK_SUCCESS ||
             vkCreateSemaphore(
-              _device, &sem_info, nullptr, &computeFinishedSem[i]) !=
+              _devices.device, &sem_info, nullptr, &computeFinishedSem[i]) !=
               VK_SUCCESS ||
-            vkCreateSemaphore(_device, &sem_info, nullptr, &uiFinishedSem[i]) !=
+            vkCreateSemaphore(
+              _devices.device, &sem_info, nullptr, &uiFinishedSem[i]) !=
               VK_SUCCESS ||
-            vkCreateFence(_device, &fence_info, nullptr, &inflightFence[i]) !=
+            vkCreateFence(
+              _devices.device, &fence_info, nullptr, &inflightFence[i]) !=
               VK_SUCCESS) {
             throw std::runtime_error("VulkanSync: failed to create semaphores");
         }
@@ -49,10 +51,11 @@ void
 VulkanSync::clear()
 {
     for (size_t i = 0; i < MAX_FRAME_INFLIGHT; ++i) {
-        vkDestroySemaphore(_device, imageAvailableSem[i], nullptr);
-        vkDestroySemaphore(_device, renderFinishedSem[i], nullptr);
-        vkDestroySemaphore(_device, computeFinishedSem[i], nullptr);
-        vkDestroySemaphore(_device, uiFinishedSem[i], nullptr);
-        vkDestroyFence(_device, inflightFence[i], nullptr);
+        vkDestroySemaphore(_devices.device, imageAvailableSem[i], nullptr);
+        vkDestroySemaphore(_devices.device, renderFinishedSem[i], nullptr);
+        vkDestroySemaphore(_devices.device, computeFinishedSem[i], nullptr);
+        vkDestroySemaphore(_devices.device, uiFinishedSem[i], nullptr);
+        vkDestroyFence(_devices.device, inflightFence[i], nullptr);
     }
+    _devices = VulkanDevices{};
 }

@@ -45,10 +45,10 @@ class VulkanSkyboxPipeline final
 
   private:
     // Vulkan related
-    VkDevice _device{};
-    VkPhysicalDevice _physical_device{};
-    VkCommandPool _cmd_pool{};
-    VkQueue _gfx_queue{};
+    VulkanDevices _devices;
+    VulkanCommandPools _cmdPools;
+    VulkanQueues _queues;
+
     VkDescriptorSetLayout _descriptor_set_layout{};
     VkPipelineLayout _pipeline_layout{};
     VkPipeline _graphic_pipeline{};

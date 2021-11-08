@@ -47,12 +47,9 @@ class VulkanParticleDebugPipeline final
 
   private:
     // Vulkan related
-    VkDevice _device{};
-    VkPhysicalDevice _physical_device{};
-    VkCommandPool _cmd_pool{};
-    VkQueue _gfx_queue{};
-    VkCommandPool _compute_cmd_pool{};
-    VkQueue _compute_queue{};
+    VulkanDevices _devices;
+    VulkanQueues _queues;
+    VulkanCommandPools _cmdPools;
 
     // Vertex / Fragment shader related
     VkDescriptorSetLayout _descriptor_set_layout{};
