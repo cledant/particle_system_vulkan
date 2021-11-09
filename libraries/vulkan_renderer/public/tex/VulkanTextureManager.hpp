@@ -7,17 +7,7 @@
 #include <vulkan/vulkan.h>
 
 #include "VulkanInstance.hpp"
-
-struct Texture final
-{
-    VkImage texture_img{};
-    VkDeviceMemory texture_img_memory{};
-    VkImageView texture_img_view{};
-    VkSampler texture_sampler{};
-    int32_t width{};
-    int32_t height{};
-    uint32_t mip_level{};
-};
+#include "VulkanTexture.hpp"
 
 static constexpr char const *TEX_MANAGER_DEFAULT_TEXTURE =
   "TEX_MANAGER_DEFAULT_TEXTURE";
@@ -40,16 +30,16 @@ class VulkanTextureManager final
     void loadCubemap(std::string const &cubemapFolder,
                      std::string const &fileType);
     void unloadAllTextures();
-    bool getTexture(std::string const &texturePath, Texture &tex);
-    Texture loadAndGetTexture(std::string const &texturePath);
-    Texture loadAndGetCubemap(std::string const &cubemapFolder,
+    bool getTexture(std::string const &texturePath, VulkanTexture &tex);
+    VulkanTexture loadAndGetTexture(std::string const &texturePath);
+    VulkanTexture loadAndGetCubemap(std::string const &cubemapFolder,
                               std::string const &fileType);
 
   private:
     VulkanDevices _devices;
     VulkanQueues _queues;
     VulkanCommandPools _cmdPools;
-    std::unordered_map<std::string, Texture> _textures;
+    std::unordered_map<std::string, VulkanTexture> _textures;
 
     inline VkImage _create_texture_image(std::string const &texturePath,
                                          VkDeviceMemory &texture_img_memory,

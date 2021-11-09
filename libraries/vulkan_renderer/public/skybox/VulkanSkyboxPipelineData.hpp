@@ -12,14 +12,13 @@
 
 struct VulkanSkyboxPipelineData
 {
-    VkBuffer buffer{};
-    VkDeviceMemory memory{};
+    VulkanBuffer data{};
     VkDeviceSize verticesSize{};
     VkDeviceSize indicesSize{};
     VkDeviceSize indicesOffset{};
     VkDescriptorPool descriptorPool{};
     std::vector<VkDescriptorSet> descriptorSets;
-    Texture cubemapTexture;
+    VulkanTexture cubemapTexture;
     VkDeviceSize indicesDrawNb;
 
     static std::array<VkVertexInputBindingDescription, 1>

@@ -6,27 +6,7 @@
 
 #include <vulkan/vulkan.h>
 
-struct VulkanDevices
-{
-    VkPhysicalDevice physicalDevice{};
-    VkDevice device{};
-};
-
-struct VulkanCommandPools
-{
-    VkCommandPool renderCommandPool{};
-    VkCommandPool computeCommandPool{};
-};
-
-struct VulkanQueues
-{
-    VkQueue graphicQueue{};
-    VkQueue presentQueue{};
-    VkQueue computeQueue{};
-    uint32_t graphicQueueIndex{};
-    uint32_t presentQueueIndex{};
-    uint32_t computeQueueIndex{};
-};
+#include "common/VulkanCommonStruct.hpp"
 
 class VulkanInstance final
 {

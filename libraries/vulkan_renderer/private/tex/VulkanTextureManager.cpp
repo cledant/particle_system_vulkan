@@ -21,11 +21,11 @@ void
 VulkanTextureManager::clear()
 {
     for (auto &it : _textures) {
-        vkDestroySampler(_devices.device, it.second.texture_sampler, nullptr);
+        vkDestroySampler(_devices.device, it.second.textureSampler, nullptr);
         vkDestroyImageView(
-          _devices.device, it.second.texture_img_view, nullptr);
-        vkDestroyImage(_devices.device, it.second.texture_img, nullptr);
-        vkFreeMemory(_devices.device, it.second.texture_img_memory, nullptr);
+          _devices.device, it.second.textureImgView, nullptr);
+        vkDestroyImage(_devices.device, it.second.textureImg, nullptr);
+        vkFreeMemory(_devices.device, it.second.textureImgMemory, nullptr);
     }
     _textures.clear();
     _devices.device = nullptr;
@@ -42,16 +42,16 @@ VulkanTextureManager::loadTexture(std::string const &texturePath)
         return;
     }
 
-    Texture tex{};
+    VulkanTexture tex{};
 
-    tex.texture_img = _create_texture_image(texturePath,
-                                            tex.texture_img_memory,
+    tex.textureImg = _create_texture_image(texturePath,
+                                            tex.textureImgMemory,
                                             tex.width,
                                             tex.height,
-                                            tex.mip_level);
-    tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level, false);
-    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+                                            tex.mipLevel);
+    tex.textureImgView =
+      _create_texture_image_view(tex.textureImg, tex.mipLevel, false);
+    tex.textureSampler = _create_texture_sampler(tex.mipLevel);
     _textures.emplace(texturePath, tex);
 }
 
@@ -64,16 +64,16 @@ VulkanTextureManager::loadCubemap(std::string const &cubemapFolder,
         return;
     }
 
-    Texture tex{};
-    tex.texture_img = _create_cubemap_image(cubemapFolder,
+    VulkanTexture tex{};
+    tex.textureImg = _create_cubemap_image(cubemapFolder,
                                             fileType,
-                                            tex.texture_img_memory,
+                                            tex.textureImgMemory,
                                             tex.width,
                                             tex.height,
-                                            tex.mip_level);
-    tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level, true);
-    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+                                            tex.mipLevel);
+    tex.textureImgView =
+      _create_texture_image_view(tex.textureImg, tex.mipLevel, true);
+    tex.textureSampler = _create_texture_sampler(tex.mipLevel);
     _textures.emplace(cubemapFolder, tex);
 }
 
@@ -81,18 +81,19 @@ void
 VulkanTextureManager::unloadAllTextures()
 {
     for (auto &it : _textures) {
-        vkDestroySampler(_devices.device, it.second.texture_sampler, nullptr);
+        vkDestroySampler(_devices.device, it.second.textureSampler, nullptr);
         vkDestroyImageView(
-          _devices.device, it.second.texture_img_view, nullptr);
-        vkDestroyImage(_devices.device, it.second.texture_img, nullptr);
-        vkFreeMemory(_devices.device, it.second.texture_img_memory, nullptr);
+          _devices.device, it.second.textureImgView, nullptr);
+        vkDestroyImage(_devices.device, it.second.textureImg, nullptr);
+        vkFreeMemory(_devices.device, it.second.textureImgMemory, nullptr);
     }
     _textures.clear();
     _load_default_texture();
 }
 
 bool
-VulkanTextureManager::getTexture(std::string const &texturePath, Texture &tex)
+VulkanTextureManager::getTexture(std::string const &texturePath,
+                                 VulkanTexture &tex)
 {
     auto existing_tex = _textures.find(texturePath);
     if (existing_tex != _textures.end()) {
@@ -102,7 +103,7 @@ VulkanTextureManager::getTexture(std::string const &texturePath, Texture &tex)
     return (true);
 }
 
-Texture
+VulkanTexture
 VulkanTextureManager::loadAndGetTexture(std::string const &texturePath)
 {
     auto existing_tex = _textures.find(texturePath);
@@ -110,20 +111,20 @@ VulkanTextureManager::loadAndGetTexture(std::string const &texturePath)
         return (existing_tex->second);
     }
 
-    Texture tex{};
-    tex.texture_img = _create_texture_image(texturePath,
-                                            tex.texture_img_memory,
+    VulkanTexture tex{};
+    tex.textureImg = _create_texture_image(texturePath,
+                                            tex.textureImgMemory,
                                             tex.width,
                                             tex.height,
-                                            tex.mip_level);
-    tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level, false);
-    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+                                            tex.mipLevel);
+    tex.textureImgView =
+      _create_texture_image_view(tex.textureImg, tex.mipLevel, false);
+    tex.textureSampler = _create_texture_sampler(tex.mipLevel);
     _textures.emplace(texturePath, tex);
     return (tex);
 }
 
-Texture
+VulkanTexture
 VulkanTextureManager::loadAndGetCubemap(std::string const &cubemapFolder,
                                         std::string const &fileType)
 {
@@ -132,16 +133,16 @@ VulkanTextureManager::loadAndGetCubemap(std::string const &cubemapFolder,
         return (existing_tex->second);
     }
 
-    Texture tex{};
-    tex.texture_img = _create_cubemap_image(cubemapFolder,
+    VulkanTexture tex{};
+    tex.textureImg = _create_cubemap_image(cubemapFolder,
                                             fileType,
-                                            tex.texture_img_memory,
+                                            tex.textureImgMemory,
                                             tex.width,
                                             tex.height,
-                                            tex.mip_level);
-    tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level, true);
-    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+                                            tex.mipLevel);
+    tex.textureImgView =
+      _create_texture_image_view(tex.textureImg, tex.mipLevel, true);
+    tex.textureSampler = _create_texture_sampler(tex.mipLevel);
     _textures.emplace(cubemapFolder, tex);
     return (tex);
 }
@@ -342,7 +343,7 @@ void
 VulkanTextureManager::_load_default_texture()
 {
     static uint8_t const white_tex[4] = { 255, 255, 255, 255 };
-    Texture tex{
+    VulkanTexture tex{
         nullptr, nullptr, nullptr, nullptr, 1, 1, 1,
     };
 
@@ -363,10 +364,10 @@ VulkanTextureManager::_load_default_texture()
     vkUnmapMemory(_devices.device, staging_buffer_memory);
 
     // Texture
-    tex.texture_img = createImage(_devices.device,
+    tex.textureImg = createImage(_devices.device,
                                   tex.width,
                                   tex.height,
-                                  tex.mip_level,
+                                  tex.mipLevel,
                                   VK_FORMAT_R8G8B8A8_SRGB,
                                   VK_IMAGE_TILING_OPTIMAL,
                                   VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
@@ -375,13 +376,13 @@ VulkanTextureManager::_load_default_texture()
                                   false);
     allocateImage(_devices.physicalDevice,
                   _devices.device,
-                  tex.texture_img,
-                  tex.texture_img_memory,
+                  tex.textureImg,
+                  tex.textureImgMemory,
                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     transitionImageLayout(_devices.device,
                           _cmdPools.renderCommandPool,
                           _queues.graphicQueue,
-                          tex.texture_img,
+                          tex.textureImg,
                           VK_FORMAT_R8G8B8A8_SRGB,
                           1,
                           VK_IMAGE_LAYOUT_UNDEFINED,
@@ -391,7 +392,7 @@ VulkanTextureManager::_load_default_texture()
                       _cmdPools.renderCommandPool,
                       _queues.graphicQueue,
                       staging_buffer,
-                      tex.texture_img,
+                      tex.textureImg,
                       1,
                       1,
                       false);
@@ -399,19 +400,19 @@ VulkanTextureManager::_load_default_texture()
     vkDestroyBuffer(_devices.device, staging_buffer, nullptr);
     vkFreeMemory(_devices.device, staging_buffer_memory, nullptr);
 
-    tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level, false);
-    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+    tex.textureImgView =
+      _create_texture_image_view(tex.textureImg, tex.mipLevel, false);
+    tex.textureSampler = _create_texture_sampler(tex.mipLevel);
 
     generateMipmaps(_devices.physicalDevice,
                     _devices.device,
                     _cmdPools.renderCommandPool,
                     _queues.graphicQueue,
-                    tex.texture_img,
+                    tex.textureImg,
                     VK_FORMAT_R8G8B8A8_SRGB,
                     tex.width,
                     tex.height,
-                    tex.mip_level,
+                    tex.mipLevel,
                     false);
 
     _textures.emplace(TEX_MANAGER_DEFAULT_TEXTURE, tex);
@@ -425,7 +426,7 @@ VulkanTextureManager::_load_default_cubemap()
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255
     };
-    Texture tex{
+    VulkanTexture tex{
         nullptr, nullptr, nullptr, nullptr, 1, 1, 1,
     };
 
@@ -449,10 +450,10 @@ VulkanTextureManager::_load_default_cubemap()
     vkUnmapMemory(_devices.device, staging_buffer_memory);
 
     // Texture
-    tex.texture_img = createImage(_devices.device,
+    tex.textureImg = createImage(_devices.device,
                                   tex.width,
                                   tex.height,
-                                  tex.mip_level,
+                                  tex.mipLevel,
                                   VK_FORMAT_R8G8B8A8_SRGB,
                                   VK_IMAGE_TILING_OPTIMAL,
                                   VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
@@ -461,13 +462,13 @@ VulkanTextureManager::_load_default_cubemap()
                                   true);
     allocateImage(_devices.physicalDevice,
                   _devices.device,
-                  tex.texture_img,
-                  tex.texture_img_memory,
+                  tex.textureImg,
+                  tex.textureImgMemory,
                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     transitionImageLayout(_devices.device,
                           _cmdPools.renderCommandPool,
                           _queues.graphicQueue,
-                          tex.texture_img,
+                          tex.textureImg,
                           VK_FORMAT_R8G8B8A8_SRGB,
                           1,
                           VK_IMAGE_LAYOUT_UNDEFINED,
@@ -477,7 +478,7 @@ VulkanTextureManager::_load_default_cubemap()
                       _cmdPools.renderCommandPool,
                       _queues.graphicQueue,
                       staging_buffer,
-                      tex.texture_img,
+                      tex.textureImg,
                       1,
                       1,
                       true);
@@ -485,19 +486,19 @@ VulkanTextureManager::_load_default_cubemap()
     vkDestroyBuffer(_devices.device, staging_buffer, nullptr);
     vkFreeMemory(_devices.device, staging_buffer_memory, nullptr);
 
-    tex.texture_img_view =
-      _create_texture_image_view(tex.texture_img, tex.mip_level, true);
-    tex.texture_sampler = _create_texture_sampler(tex.mip_level);
+    tex.textureImgView =
+      _create_texture_image_view(tex.textureImg, tex.mipLevel, true);
+    tex.textureSampler = _create_texture_sampler(tex.mipLevel);
 
     generateMipmaps(_devices.physicalDevice,
                     _devices.device,
                     _cmdPools.renderCommandPool,
                     _queues.graphicQueue,
-                    tex.texture_img,
+                    tex.textureImg,
                     VK_FORMAT_R8G8B8A8_SRGB,
                     tex.width,
                     tex.height,
-                    tex.mip_level,
+                    tex.mipLevel,
                     true);
 
     _textures.emplace(TEX_MANAGER_DEFAULT_CUBEMAP, tex);

@@ -79,7 +79,7 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
     vkFreeMemory(_vk_instance.devices.device, _system_uniform_memory, nullptr);
     _create_system_uniform_buffer();
     _ui.resize(_swap_chain);
-    _skybox.resize(_swap_chain, _tex_manager, _system_uniform);
+    _skybox.resize(_swap_chain, _system_uniform);
     _particle.resize(_swap_chain, _system_uniform);
     _create_render_command_buffers();
     _create_compute_command_buffers();

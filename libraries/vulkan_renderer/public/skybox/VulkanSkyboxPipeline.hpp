@@ -32,7 +32,6 @@ class VulkanSkyboxPipeline final
               VulkanTextureManager &texManager,
               VkBuffer systemUbo);
     void resize(VulkanSwapChain const &swapChain,
-                VulkanTextureManager &texManager,
                 VkBuffer systemUbo);
     void clear();
 
@@ -56,23 +55,20 @@ class VulkanSkyboxPipeline final
     VulkanSkyboxRenderPass _pipeline_render_pass;
 
     // Skybox related
-    VkBuffer _skybox_uniform{};
-    VkDeviceMemory _skybox_uniform_memory{};
-    Texture _skybox_tex{};
+    VulkanBuffer _uniform;
     std::string _skybox_folder_path;
     std::string _skybox_filetype;
-    glm::mat4 _skybox_model{};
+    glm::mat4 _skybox_model_mat{};
 
     inline void _create_descriptor_layout();
     inline void _create_pipeline_layout();
     inline void _create_gfx_pipeline(VulkanSwapChain const &swapChain);
-    inline VulkanSkyboxPipelineData _create_pipeline_skybox();
+    inline VulkanSkyboxPipelineData _create_pipeline_data_skybox(VulkanTexture const &skyboxTex);
     inline void _create_descriptor_pool(VulkanSwapChain const &swapChain,
                                         VulkanSkyboxPipelineData &pipelineData);
     inline void _create_descriptor_sets(VulkanSwapChain const &swapChain,
                                         VulkanSkyboxPipelineData &pipelineData,
                                         VkBuffer systemUbo);
-    inline void _create_skybox_uniform_buffer(uint32_t currentSwapChainNbImg);
 };
 
 #endif // PARTICLE_SYS_VULKANSKYBOXPIPELINE_HPP

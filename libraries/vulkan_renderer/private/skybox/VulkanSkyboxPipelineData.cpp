@@ -28,14 +28,13 @@ VulkanSkyboxPipelineData::getInputAttributeDescription()
 void
 VulkanSkyboxPipelineData::clear()
 {
-    buffer = nullptr;
-    memory = nullptr;
+    data.clear();
     descriptorPool = nullptr;
     verticesSize = 0;
     indicesSize = 0;
     indicesOffset = 0;
     verticesSize = 0;
     descriptorSets.clear();
-    cubemapTexture = Texture{};
+    cubemapTexture = VulkanTexture{};
     indicesDrawNb = 0;
 }

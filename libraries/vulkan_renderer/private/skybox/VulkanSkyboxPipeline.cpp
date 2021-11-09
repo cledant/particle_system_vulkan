@@ -23,31 +23,34 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
     _pipeline_render_pass.init(vkInstance, swapChain);
     _skybox_folder_path = skyboxFolderPath;
     _skybox_filetype = skyboxFileType;
-    _skybox_tex =
-      texManager.loadAndGetCubemap(skyboxFolderPath, skyboxFileType);
-    _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
+    _uniform.allocate(_devices,
+                      sizeof(SkyboxUbo) * swapChain.currentSwapChainNbImg,
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     _create_descriptor_layout();
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
-    _pipeline_data = _create_pipeline_skybox();
+    _pipeline_data = _create_pipeline_data_skybox(
+      texManager.loadAndGetCubemap(_skybox_folder_path, _skybox_filetype));
     _create_descriptor_pool(swapChain, _pipeline_data);
     _create_descriptor_sets(swapChain, _pipeline_data, systemUbo);
 }
 
 void
 VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
-                             VulkanTextureManager &texManager,
                              VkBuffer systemUbo)
 {
-    vkDestroyBuffer(_devices.device, _skybox_uniform, nullptr);
-    vkFreeMemory(_devices.device, _skybox_uniform_memory, nullptr);
+    _uniform.clear();
     vkDestroyPipeline(_devices.device, _graphic_pipeline, nullptr);
     vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
     _pipeline_render_pass.resize(swapChain);
 
-    _skybox_tex =
-      texManager.loadAndGetCubemap(_skybox_folder_path, _skybox_filetype);
-    _create_skybox_uniform_buffer(swapChain.currentSwapChainNbImg);
+    _uniform.allocate(_devices,
+                      sizeof(SkyboxUbo) * swapChain.currentSwapChainNbImg,
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     _create_pipeline_layout();
     _create_gfx_pipeline(swapChain);
     vkDestroyDescriptorPool(
@@ -59,15 +62,12 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
 void
 VulkanSkyboxPipeline::clear()
 {
-    vkDestroyBuffer(_devices.device, _skybox_uniform, nullptr);
-    vkFreeMemory(_devices.device, _skybox_uniform_memory, nullptr);
+    _uniform.clear();
     vkDestroyPipeline(_devices.device, _graphic_pipeline, nullptr);
     vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
     _pipeline_render_pass.clear();
     vkDestroyDescriptorSetLayout(
       _devices.device, _descriptor_set_layout, nullptr);
-    vkDestroyBuffer(_devices.device, _pipeline_data.buffer, nullptr);
-    vkFreeMemory(_devices.device, _pipeline_data.memory, nullptr);
     vkDestroyDescriptorPool(
       _devices.device, _pipeline_data.descriptorPool, nullptr);
     _devices = VulkanDevices{};
@@ -82,7 +82,7 @@ VulkanSkyboxPipeline::clear()
 void
 VulkanSkyboxPipeline::setSkyboxInfo(glm::mat4 const &skyboxInfo)
 {
-    _skybox_model = skyboxInfo;
+    _skybox_model_mat = skyboxInfo;
 }
 
 VulkanSkyboxRenderPass const &
@@ -96,14 +96,14 @@ VulkanSkyboxPipeline::generateCommands(VkCommandBuffer cmdBuffer,
                                        size_t descriptorSetIndex)
 {
     // Vertex related values
-    VkBuffer vertex_buffer[] = { _pipeline_data.buffer };
+    VkBuffer vertex_buffer[] = { _pipeline_data.data.buffer };
     VkDeviceSize offsets[] = { 0 };
 
     vkCmdBindPipeline(
       cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphic_pipeline);
     vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertex_buffer, offsets);
     vkCmdBindIndexBuffer(cmdBuffer,
-                         _pipeline_data.buffer,
+                         _pipeline_data.data.buffer,
                          _pipeline_data.indicesOffset,
                          VK_INDEX_TYPE_UINT32);
 
@@ -122,11 +122,11 @@ void
 VulkanSkyboxPipeline::setSkyboxModelMatOnGpu(uint32_t currentImg)
 {
     copyOnCpuCoherentMemory(_devices.device,
-                            _skybox_uniform_memory,
+                            _uniform.memory,
                             currentImg * sizeof(SkyboxUbo) +
                               offsetof(SkyboxUbo, model),
                             sizeof(glm::mat4),
-                            &_skybox_model);
+                            &_skybox_model_mat);
 }
 
 void
@@ -358,13 +358,14 @@ VulkanSkyboxPipeline::_create_gfx_pipeline(VulkanSwapChain const &swapChain)
 }
 
 VulkanSkyboxPipelineData
-VulkanSkyboxPipeline::_create_pipeline_skybox()
+VulkanSkyboxPipeline::_create_pipeline_data_skybox(
+  VulkanTexture const &skyboxTex)
 {
     VulkanSkyboxPipelineData pipeline_model{};
     SkyboxModel model;
 
     // Texture related
-    pipeline_model.cubemapTexture = _skybox_tex;
+    pipeline_model.cubemapTexture = skyboxTex;
 
     // Computing sizes and offsets
     pipeline_model.indicesDrawNb = model.getIndicesList().size();
@@ -377,53 +378,40 @@ VulkanSkyboxPipeline::_create_pipeline_skybox()
       pipeline_model.verticesSize + pipeline_model.indicesSize;
 
     // Creating transfer buffer CPU to GPU
-    VkBuffer staging_buffer{};
-    VkDeviceMemory staging_buffer_memory{};
-    createBuffer(_devices.device,
-                 staging_buffer,
-                 total_size,
-                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    allocateBuffer(_devices.physicalDevice,
-                   _devices.device,
-                   staging_buffer,
-                   staging_buffer_memory,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    VulkanBuffer staging_buff{};
+    staging_buff.allocate(_devices,
+                          total_size,
+                          VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     // Copying data into staging buffer
     copyOnCpuCoherentMemory(_devices.device,
-                            staging_buffer_memory,
+                            staging_buff.memory,
                             0,
                             pipeline_model.verticesSize,
                             model.getVertexList().data());
     copyOnCpuCoherentMemory(_devices.device,
-                            staging_buffer_memory,
+                            staging_buff.memory,
                             pipeline_model.indicesOffset,
                             pipeline_model.indicesSize,
                             model.getIndicesList().data());
 
     // Creating GPU buffer + copying transfer buffer
-    createBuffer(_devices.device,
-                 pipeline_model.buffer,
-                 total_size,
-                 VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-    allocateBuffer(_devices.physicalDevice,
-                   _devices.device,
-                   pipeline_model.buffer,
-                   pipeline_model.memory,
-                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    pipeline_model.data.allocate(_devices,
+                                 total_size,
+                                 VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     copyBufferOnGpu(_devices.device,
                     _cmdPools.renderCommandPool,
                     _queues.graphicQueue,
-                    pipeline_model.buffer,
-                    staging_buffer,
+                    pipeline_model.data.buffer,
+                    staging_buff.buffer,
                     total_size);
 
-    vkDestroyBuffer(_devices.device, staging_buffer, nullptr);
-    vkFreeMemory(_devices.device, staging_buffer_memory, nullptr);
-
+    staging_buff.clear();
     return (pipeline_model);
 }
 
@@ -500,7 +488,7 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
 
         // Skybox UBO
         VkDescriptorBufferInfo model_buffer_info{};
-        model_buffer_info.buffer = _skybox_uniform;
+        model_buffer_info.buffer = _uniform.buffer;
         model_buffer_info.offset = 0;
         model_buffer_info.range = sizeof(SkyboxUbo);
         descriptor_write[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -516,8 +504,8 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
         // Texture
         VkDescriptorImageInfo img_info{};
         img_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        img_info.imageView = pipelineData.cubemapTexture.texture_img_view;
-        img_info.sampler = pipelineData.cubemapTexture.texture_sampler;
+        img_info.imageView = pipelineData.cubemapTexture.textureImgView;
+        img_info.sampler = pipelineData.cubemapTexture.textureSampler;
         descriptor_write[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptor_write[2].dstSet = pipelineData.descriptorSets[i];
         descriptor_write[2].dstBinding = 2;
@@ -535,20 +523,4 @@ VulkanSkyboxPipeline::_create_descriptor_sets(
                                0,
                                nullptr);
     }
-}
-
-void
-VulkanSkyboxPipeline::_create_skybox_uniform_buffer(
-  uint32_t currentSwapChainNbImg)
-{
-    createBuffer(_devices.device,
-                 _skybox_uniform,
-                 sizeof(SkyboxUbo) * currentSwapChainNbImg,
-                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    allocateBuffer(_devices.physicalDevice,
-                   _devices.device,
-                   _skybox_uniform,
-                   _skybox_uniform_memory,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
