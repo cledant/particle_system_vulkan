@@ -28,7 +28,7 @@ class VulkanSwapChain final
     VkFormat swapChainImageFormat{};
     VkExtent2D swapChainExtent{};
     std::vector<VkImage> swapChainImages;
-    std::vector<VkImageView> swapChainImageViews;
+    std::vector<VulkanTexture> swapChainImageViews;
 
   private:
     VulkanDevices _devices{};

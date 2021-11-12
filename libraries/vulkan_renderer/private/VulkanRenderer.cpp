@@ -48,19 +48,24 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
     _tex_manager.init(_vk_instance);
     _swap_chain.init(_vk_instance, win_w, win_h);
     _sync.init(_vk_instance, _swap_chain.swapChainImageViews.size());
-    _create_system_uniform_buffer();
+    _system_uniform.allocate(_vk_instance.devices,
+                             sizeof(SystemUbo) *
+                               _swap_chain.currentSwapChainNbImg,
+                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     _ui.init(_vk_instance, _swap_chain);
     _skybox.init(_vk_instance,
                  _swap_chain,
                  "resources/textures/skybox",
                  "jpg",
                  _tex_manager,
-                 _system_uniform);
+                 _system_uniform.buffer);
     _particle.init(_vk_instance,
                    _swap_chain,
                    DEFAULT_NB_PARTICLES,
                    DEFAULT_PARTICLES_COLOR,
-                   _system_uniform);
+                   _system_uniform.buffer);
     _create_render_command_buffers();
     _create_compute_command_buffers();
 }
@@ -75,12 +80,16 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
 
     _swap_chain.resize(win_w, win_h);
     _sync.resize(_swap_chain.currentSwapChainNbImg);
-    vkDestroyBuffer(_vk_instance.devices.device, _system_uniform, nullptr);
-    vkFreeMemory(_vk_instance.devices.device, _system_uniform_memory, nullptr);
-    _create_system_uniform_buffer();
+    _system_uniform.clear();
+    _system_uniform.allocate(_vk_instance.devices,
+                             sizeof(SystemUbo) *
+                               _swap_chain.currentSwapChainNbImg,
+                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     _ui.resize(_swap_chain);
-    _skybox.resize(_swap_chain, _system_uniform);
-    _particle.resize(_swap_chain, _system_uniform);
+    _skybox.resize(_swap_chain, _system_uniform.buffer);
+    _particle.resize(_swap_chain, _system_uniform.buffer);
     _create_render_command_buffers();
     _create_compute_command_buffers();
 }
@@ -95,8 +104,7 @@ VulkanRenderer::clear()
     _sync.clear();
     _swap_chain.clear();
     _tex_manager.clear();
-    vkDestroyBuffer(_vk_instance.devices.device, _system_uniform, nullptr);
-    vkFreeMemory(_vk_instance.devices.device, _system_uniform_memory, nullptr);
+    _system_uniform.clear();
     _vk_instance.clear();
 }
 
@@ -150,7 +158,8 @@ VulkanRenderer::setParticlesNumber(uint64_t nbParticles)
 {
     _update_particle_positions = false;
     vkDeviceWaitIdle(_vk_instance.devices.device);
-    _particle.setParticleNumber(nbParticles, _swap_chain, _system_uniform);
+    _particle.setParticleNumber(
+      nbParticles, _swap_chain, _system_uniform.buffer);
     _create_render_command_buffers();
     _create_compute_command_buffers();
 }
@@ -308,27 +317,12 @@ VulkanRenderer::_create_compute_command_buffers()
 }
 
 void
-VulkanRenderer::_create_system_uniform_buffer()
-{
-    createBuffer(_vk_instance.devices.device,
-                 _system_uniform,
-                 sizeof(SystemUbo) * _swap_chain.currentSwapChainNbImg,
-                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    allocateBuffer(_vk_instance.devices.physicalDevice,
-                   _vk_instance.devices.device,
-                   _system_uniform,
-                   _system_uniform_memory,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-}
-
-void
 VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
                                          glm::mat4 const &view_proj_mat)
 {
     // Update UBOs
     copyOnCpuCoherentMemory(_vk_instance.devices.device,
-                            _system_uniform_memory,
+                            _system_uniform.memory,
                             img_index * sizeof(SystemUbo) +
                               offsetof(SystemUbo, view_proj),
                             sizeof(glm::mat4),

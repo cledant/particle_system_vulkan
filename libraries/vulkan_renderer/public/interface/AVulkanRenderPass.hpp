@@ -25,10 +25,7 @@ class AVulkanRenderPass
     void clear();
 
     std::vector<VkFramebuffer> framebuffers;
-    VkFormat depthFormat{};
-    VkImage depthImage{};
-    VkDeviceMemory depthImgMemory{};
-    VkImageView depthImgView{};
+    VulkanTexture depthTex{};
     VkRenderPass renderPass{};
 
   protected:
@@ -65,10 +62,7 @@ AVulkanRenderPass<Child>::clear()
 {
     static_cast<Child &>(*this).implClear();
     framebuffers.clear();
-    depthFormat = VkFormat{};
-    depthImage = nullptr;
-    depthImgMemory = nullptr;
-    depthImgView = nullptr;
+    depthTex = VulkanTexture{};
     renderPass = nullptr;
     _devices = VulkanDevices{};
     _queues = VulkanQueues{};
@@ -80,15 +74,7 @@ void
 AVulkanRenderPass<Child>::clean()
 {
     static_cast<Child &>(*this).implClean();
-    if (depthImgView) {
-        vkDestroyImageView(_devices.device, depthImgView, nullptr);
-    }
-    if (depthImage) {
-        vkDestroyImage(_devices.device, depthImage, nullptr);
-    }
-    if (depthImgMemory) {
-        vkFreeMemory(_devices.device, depthImgMemory, nullptr);
-    }
+    depthTex.clear();
     for (auto &it : framebuffers) {
         vkDestroyFramebuffer(_devices.device, it, nullptr);
     }

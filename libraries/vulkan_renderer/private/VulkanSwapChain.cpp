@@ -30,7 +30,7 @@ void
 VulkanSwapChain::clean()
 {
     for (auto iv : swapChainImageViews) {
-        vkDestroyImageView(_devices.device, iv, nullptr);
+        iv.clearSwapchainTexture();
     }
     vkDestroySwapchainKHR(_devices.device, swapChain, nullptr);
 }
@@ -111,11 +111,7 @@ VulkanSwapChain::_create_image_view()
 {
     swapChainImageViews.resize(swapChainImages.size());
     for (size_t i = 0; i < swapChainImages.size(); ++i) {
-        swapChainImageViews[i] = createImageView(swapChainImages[i],
-                                                 swapChainImageFormat,
-                                                 1,
-                                                 _devices.device,
-                                                 VK_IMAGE_ASPECT_COLOR_BIT,
-                                                 false);
+        swapChainImageViews[i].createSwapchainTexture(
+          _devices, swapChainImages[i], swapChainImageFormat, swapChainExtent);
     }
 }

@@ -6,14 +6,14 @@
 
 #include <vulkan/vulkan.h>
 
-struct SwapChainSupportInfo
+struct SwapChainSupportInfo final
 {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> present_mode;
 };
 
-struct SwapChainSupport
+struct SwapChainSupport final
 {
     VkSurfaceCapabilitiesKHR capabilities{};
     std::optional<VkSurfaceFormatKHR> surface_format;

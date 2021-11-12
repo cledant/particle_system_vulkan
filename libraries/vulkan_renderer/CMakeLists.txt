@@ -23,7 +23,10 @@ add_library(vulkan_renderer STATIC
         private/utils/VulkanImage.cpp
         private/utils/VulkanMemory.cpp
         private/utils/VulkanCommandBuffer.cpp
-        private/common/VulkanBuffer.cpp)
+        private/utils/VulkanTextureUtils.cpp
+        private/common/VulkanBuffer.cpp
+        private/common/VulkanTextureStaging.cpp
+        private/common/VulkanTexture.cpp)
 target_include_directories(vulkan_renderer
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/public

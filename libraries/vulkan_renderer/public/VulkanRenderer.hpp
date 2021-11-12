@@ -84,8 +84,7 @@ class VulkanRenderer final
     VulkanParticleGenerationType _particle_generation_type{};
 
     // Renderer global uniform
-    VkBuffer _system_uniform{};
-    VkDeviceMemory _system_uniform_memory{};
+    VulkanBuffer _system_uniform{};
 
     // Drawing related
     std::vector<VkCommandBuffer> _render_command_buffers;
@@ -98,9 +97,6 @@ class VulkanRenderer final
 
     // Compute related fct
     inline void _create_compute_command_buffers();
-
-    // Renderer global uniform related fct
-    inline void _create_system_uniform_buffer();
 
     // Draw command emission related
     inline void _emit_render_and_ui_cmds(uint32_t img_index,

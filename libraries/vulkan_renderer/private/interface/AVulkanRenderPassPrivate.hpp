@@ -35,14 +35,14 @@ AVulkanRenderPass<Child>::defaultCreateRenderPass(
 
     // Depth
     VkAttachmentDescription depth_attachment{};
-    depthFormat =
+    depthTex.textureFormat =
       findSupportedFormat(_devices.physicalDevice,
                           { VK_FORMAT_D32_SFLOAT,
                             VK_FORMAT_D32_SFLOAT_S8_UINT,
                             VK_FORMAT_D24_UNORM_S8_UINT },
                           VK_IMAGE_TILING_OPTIMAL,
                           VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    depth_attachment.format = depthFormat;
+    depth_attachment.format = depthTex.textureFormat;
     depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
     depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -98,34 +98,12 @@ void
 AVulkanRenderPass<Child>::defaultCreateDepthResources(
   VulkanSwapChain const &swapChain)
 {
-    depthImage = createImage(_devices.device,
-                             swapChain.swapChainExtent.width,
-                             swapChain.swapChainExtent.height,
-                             1,
-                             depthFormat,
-                             VK_IMAGE_TILING_OPTIMAL,
-                             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                             false);
-    allocateImage(_devices.physicalDevice,
-                  _devices.device,
-                  depthImage,
-                  depthImgMemory,
-                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    depthImgView = createImageView(depthImage,
-                                   depthFormat,
-                                   1,
-                                   _devices.device,
-                                   VK_IMAGE_ASPECT_DEPTH_BIT,
-                                   false);
-    transitionImageLayout(_devices.device,
-                          _cmdPools.renderCommandPool,
-                          _queues.graphicQueue,
-                          depthImage,
-                          depthFormat,
-                          1,
-                          VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                          false);
+    depthTex.createDepthTexture(_devices,
+                                _cmdPools,
+                                _queues,
+                                swapChain.swapChainExtent.width,
+                                swapChain.swapChainExtent.height,
+                                depthTex.textureFormat);
 }
 
 template<class Child>
@@ -137,7 +115,8 @@ AVulkanRenderPass<Child>::defaultCreateFramebuffers(
 
     size_t i = 0;
     for (auto const &it : swapChain.swapChainImageViews) {
-        std::array<VkImageView, 2> sciv{ it, depthImgView };
+        std::array<VkImageView, 2> sciv{ it.textureImgView,
+                                         depthTex.textureImgView };
 
         framebuffers[i] = createFrameBuffer(
           _devices.device, renderPass, sciv, swapChain.swapChainExtent);

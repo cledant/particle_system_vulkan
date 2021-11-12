@@ -2,181 +2,73 @@
 
 #include <stdexcept>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include "VulkanMemory.hpp"
 #include "VulkanCommandBuffer.hpp"
 #include "VulkanPhysicalDevice.hpp"
 
-VkDeviceSize
-loadTextureInBuffer(VkPhysicalDevice physical_device,
-                    VkDevice device,
-                    std::string const &filepath,
-                    VkBuffer &tex_buffer,
-                    VkDeviceMemory &tex_buffer_memory,
-                    int &tex_w,
-                    int &tex_h)
-{
-    int img_chan;
-    auto pixels =
-      stbi_load(filepath.c_str(), &tex_w, &tex_h, &img_chan, STBI_rgb_alpha);
-    if (!pixels) {
-        throw std::runtime_error("VkImage: failed to load image: " + filepath);
-    }
-    VkDeviceSize img_size = tex_w * tex_h * 4;
-
-    createBuffer(
-      device, tex_buffer, img_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    allocateBuffer(physical_device,
-                   device,
-                   tex_buffer,
-                   tex_buffer_memory,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-    void *data;
-    vkMapMemory(device, tex_buffer_memory, 0, img_size, 0, &data);
-    memcpy(data, pixels, static_cast<size_t>(img_size));
-    vkUnmapMemory(device, tex_buffer_memory);
-    stbi_image_free(pixels);
-    return (img_size);
-}
-
-VkDeviceSize
-loadCubemapInBuffer(VkPhysicalDevice physical_device,
-                    VkDevice device,
-                    std::string const &cubemap_folder,
-                    std::string const &file_type,
-                    VkBuffer &tex_buffer,
-                    VkDeviceMemory &tex_buffer_memory,
-                    int &tex_w,
-                    int &tex_h)
-{
-    static std::array<std::string, 6> const faces_name = {
-        "front", "back", "top", "bottom", "right", "left",
-    };
-    std::array<uint8_t *, 6> faces_buffer{};
-
-    uint8_t i = 0;
-    for (auto const &it : faces_name) {
-        int img_chan;
-        auto fullpath = cubemap_folder;
-        fullpath += "/";
-        fullpath += it;
-        fullpath += ".";
-        fullpath += file_type;
-        faces_buffer[i] = stbi_load(
-          fullpath.c_str(), &tex_w, &tex_h, &img_chan, STBI_rgb_alpha);
-        if (!faces_buffer[i]) {
-            for (auto it_clean : faces_buffer) {
-                if (it_clean) {
-                    stbi_image_free(it_clean);
-                    it_clean = nullptr;
-                }
-            }
-            throw std::runtime_error("VkImage: failed to load cubemap: " +
-                                     fullpath);
-        }
-        ++i;
-    }
-
-    VkDeviceSize layer_size = tex_w * tex_h * 4;
-    VkDeviceSize img_size = layer_size * 6;
-
-    createBuffer(
-      device, tex_buffer, img_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    allocateBuffer(physical_device,
-                   device,
-                   tex_buffer,
-                   tex_buffer_memory,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-    void *data;
-    vkMapMemory(device, tex_buffer_memory, 0, img_size, 0, &data);
-    i = 0;
-    for (auto &it : faces_buffer) {
-        memcpy(static_cast<uint8_t *>(data) + (layer_size * i),
-               it,
-               static_cast<size_t>(layer_size));
-        stbi_image_free(it);
-        ++i;
-    }
-    vkUnmapMemory(device, tex_buffer_memory);
-    return (img_size);
-}
-
-VkImage
+void
 createImage(VkDevice device,
-            uint32_t width,
-            uint32_t height,
-            uint32_t mip_level,
-            VkFormat format,
+            VulkanTexture &texture,
             VkImageTiling tiling,
-            VkImageUsageFlags usage,
-            bool is_cubemap)
+            VkImageUsageFlags usage)
 {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = width;
-    imageInfo.extent.height = height;
+    imageInfo.extent.width = texture.width;
+    imageInfo.extent.height = texture.height;
     imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = mip_level;
-    imageInfo.arrayLayers = (is_cubemap) ? 6 : 1;
-    imageInfo.format = format;
+    imageInfo.mipLevels = texture.mipLevel;
+    imageInfo.arrayLayers = (texture.isCubemap) ? 6 : 1;
+    imageInfo.format = texture.textureFormat;
     imageInfo.tiling = tiling;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = usage;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    if (is_cubemap) {
+    if (texture.isCubemap) {
         imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
 
-    VkImage img{};
-    if (vkCreateImage(device, &imageInfo, nullptr, &img) != VK_SUCCESS) {
+    if (vkCreateImage(device, &imageInfo, nullptr, &texture.textureImg) !=
+        VK_SUCCESS) {
         throw std::runtime_error("VkImage: failed to create image");
     }
-    return (img);
 }
 
 void
-allocateImage(VkPhysicalDevice physical_device,
-              VkDevice device,
-              VkImage &image,
-              VkDeviceMemory &image_memory,
+allocateImage(VulkanDevices devices,
+              VulkanTexture &texture,
               VkMemoryPropertyFlags properties)
 {
     VkMemoryRequirements mem_req{};
-    vkGetImageMemoryRequirements(device, image, &mem_req);
+    vkGetImageMemoryRequirements(devices.device, texture.textureImg, &mem_req);
 
     VkMemoryAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize = mem_req.size;
-    alloc_info.memoryTypeIndex =
-      findMemoryType(physical_device, mem_req.memoryTypeBits, properties);
+    alloc_info.memoryTypeIndex = findMemoryType(
+      devices.physicalDevice, mem_req.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(device, &alloc_info, nullptr, &image_memory) !=
+    if (vkAllocateMemory(
+          devices.device, &alloc_info, nullptr, &texture.textureImgMemory) !=
         VK_SUCCESS) {
         throw std::runtime_error("VkImage: failed to allocate image memory");
     }
-    vkBindImageMemory(device, image, image_memory, 0);
+    vkBindImageMemory(
+      devices.device, texture.textureImg, texture.textureImgMemory, 0);
 }
 
 void
-transitionImageLayout(VkDevice device,
-                      VkCommandPool command_pool,
-                      VkQueue gfx_queue,
-                      VkImage image,
-                      VkFormat format,
-                      uint32_t mip_level,
+transitionImageLayout(VulkanDevices devices,
+                      VulkanCommandPools cmdPools,
+                      VulkanQueues queues,
+                      VulkanTexture &texture,
                       VkImageLayout old_layout,
-                      VkImageLayout new_layout,
-                      bool is_cubemap)
+                      VkImageLayout new_layout)
 {
-    auto cmd_buffer = beginSingleTimeCommands(device, command_pool);
+    auto cmd_buffer =
+      beginSingleTimeCommands(devices.device, cmdPools.renderCommandPool);
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -184,14 +76,14 @@ transitionImageLayout(VkDevice device,
     barrier.newLayout = new_layout;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = image;
+    barrier.image = texture.textureImg;
     barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = mip_level;
+    barrier.subresourceRange.levelCount = texture.mipLevel;
     barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = (is_cubemap) ? 6 : 1;
+    barrier.subresourceRange.layerCount = (texture.isCubemap) ? 6 : 1;
     if (new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        if (hasStencilComponent(format)) {
+        if (hasStencilComponent(texture.textureFormat)) {
             barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
         }
     } else {
@@ -237,20 +129,21 @@ transitionImageLayout(VkDevice device,
                          nullptr,
                          1,
                          &barrier);
-    endSingleTimeCommands(device, command_pool, cmd_buffer, gfx_queue);
+    endSingleTimeCommands(devices.device,
+                          cmdPools.renderCommandPool,
+                          cmd_buffer,
+                          queues.graphicQueue);
 }
 
 void
-copyBufferToImage(VkDevice device,
-                  VkCommandPool command_pool,
-                  VkQueue gfx_queue,
-                  VkBuffer buffer,
-                  VkImage image,
-                  uint32_t width,
-                  uint32_t height,
-                  bool is_cubemap)
+copyBufferToImage(VulkanDevices devices,
+                  VulkanCommandPools cmdPools,
+                  VulkanQueues queues,
+                  VulkanBuffer stagingBuffer,
+                  VulkanTexture texture)
 {
-    auto cmd_buffer = beginSingleTimeCommands(device, command_pool);
+    auto cmd_buffer =
+      beginSingleTimeCommands(devices.device, cmdPools.renderCommandPool);
 
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
@@ -259,49 +152,49 @@ copyBufferToImage(VkDevice device,
     region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     region.imageSubresource.mipLevel = 0;
     region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount = (is_cubemap) ? 6 : 1;
+    region.imageSubresource.layerCount = (texture.isCubemap) ? 6 : 1;
     region.imageOffset = { 0, 0, 0 };
-    region.imageExtent = { width, height, 1 };
+    region.imageExtent = { static_cast<uint32_t>(texture.width),
+                           static_cast<uint32_t>(texture.height),
+                           1 };
     vkCmdCopyBufferToImage(cmd_buffer,
-                           buffer,
-                           image,
+                           stagingBuffer.buffer,
+                           texture.textureImg,
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                            1,
                            &region);
-    endSingleTimeCommands(device, command_pool, cmd_buffer, gfx_queue);
+    endSingleTimeCommands(devices.device,
+                          cmdPools.renderCommandPool,
+                          cmd_buffer,
+                          queues.graphicQueue);
 }
 
-VkImageView
-createImageView(VkImage image,
-                VkFormat format,
-                uint32_t mip_level,
-                VkDevice device,
-                VkImageAspectFlags aspect_flags,
-                bool is_cubemap)
+void
+createImageView(VulkanDevices devices,
+                VulkanTexture &texture,
+                VkImageAspectFlags aspect_flags)
 {
-    VkImageView img_view{};
-
     VkImageViewCreateInfo create_info{};
     create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    create_info.image = image;
+    create_info.image = texture.textureImg;
     create_info.viewType =
-      (is_cubemap) ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
-    create_info.format = format;
+      (texture.isCubemap) ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
+    create_info.format = texture.textureFormat;
     create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
     create_info.subresourceRange.aspectMask = aspect_flags;
     create_info.subresourceRange.baseMipLevel = 0;
-    create_info.subresourceRange.levelCount = mip_level;
+    create_info.subresourceRange.levelCount = texture.mipLevel;
     create_info.subresourceRange.baseArrayLayer = 0;
-    create_info.subresourceRange.layerCount = (is_cubemap) ? 6 : 1;
+    create_info.subresourceRange.layerCount = (texture.isCubemap) ? 6 : 1;
 
-    if (vkCreateImageView(device, &create_info, nullptr, &img_view) !=
+    if (vkCreateImageView(
+          devices.device, &create_info, nullptr, &texture.textureImgView) !=
         VK_SUCCESS) {
         throw std::runtime_error("VkRenderer: failed to create image view");
     }
-    return (img_view);
 }
 
 VkFormat
@@ -330,119 +223,4 @@ hasStencilComponent(VkFormat format)
 {
     return (format == VK_FORMAT_D32_SFLOAT_S8_UINT ||
             format == VK_FORMAT_D24_UNORM_S8_UINT);
-}
-
-void
-generateMipmaps(VkPhysicalDevice physical_device,
-                VkDevice device,
-                VkCommandPool command_pool,
-                VkQueue gfx_queue,
-                VkImage image,
-                VkFormat image_format,
-                int32_t tex_width,
-                int32_t tex_height,
-                uint32_t mip_levels,
-                bool is_cubemap)
-{
-    if (!getLinearBlittingSupport(physical_device, image_format)) {
-        throw std::runtime_error("VulkanImage: Linear Blitting not supported "
-                                 "for requested image format");
-    }
-
-    uint32_t nb_face = (is_cubemap) ? 6 : 1;
-    for (uint32_t j = 0; j < nb_face; j++) {
-        VkImageMemoryBarrier barrier{};
-        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.image = image;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.baseArrayLayer = j;
-        barrier.subresourceRange.layerCount = 1;
-        barrier.subresourceRange.levelCount = 1;
-
-        int32_t mip_w = tex_width;
-        int32_t mip_h = tex_height;
-        VkCommandBuffer cmd_buffer =
-          beginSingleTimeCommands(device, command_pool);
-        for (uint32_t i = 1; i < mip_levels; i++) {
-            barrier.subresourceRange.baseMipLevel = i - 1;
-            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            vkCmdPipelineBarrier(cmd_buffer,
-                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                 0,
-                                 0,
-                                 nullptr,
-                                 0,
-                                 nullptr,
-                                 1,
-                                 &barrier);
-
-            VkImageBlit blit{};
-            blit.srcOffsets[0] = { 0, 0, 0 };
-            blit.srcOffsets[1] = { mip_w, mip_h, 1 };
-            blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            blit.srcSubresource.mipLevel = i - 1;
-            blit.srcSubresource.baseArrayLayer = j;
-            blit.srcSubresource.layerCount = 1;
-            blit.dstOffsets[0] = { 0, 0, 0 };
-            blit.dstOffsets[1] = { (mip_w > 1) ? mip_w / 2 : 1,
-                                   (mip_h > 1) ? mip_h / 2 : 1,
-                                   1 };
-            blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            blit.dstSubresource.mipLevel = i;
-            blit.dstSubresource.baseArrayLayer = j;
-            blit.dstSubresource.layerCount = 1;
-
-            vkCmdBlitImage(cmd_buffer,
-                           image,
-                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                           image,
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                           1,
-                           &blit,
-                           VK_FILTER_LINEAR);
-
-            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            vkCmdPipelineBarrier(cmd_buffer,
-                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                 0,
-                                 0,
-                                 nullptr,
-                                 0,
-                                 nullptr,
-                                 1,
-                                 &barrier);
-            if (mip_w > 1) {
-                mip_w /= 2;
-            }
-            if (mip_h > 1) {
-                mip_h /= 2;
-            }
-        }
-        barrier.subresourceRange.baseMipLevel = mip_levels - 1;
-        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        vkCmdPipelineBarrier(cmd_buffer,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                             0,
-                             0,
-                             nullptr,
-                             0,
-                             nullptr,
-                             1,
-                             &barrier);
-        endSingleTimeCommands(device, command_pool, cmd_buffer, gfx_queue);
-    }
 }

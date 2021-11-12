@@ -109,7 +109,7 @@ VulkanUiRenderPass::createFramebuffers(VkDevice device,
 
     size_t i = 0;
     for (auto const &it : swapChain.swapChainImageViews) {
-        std::array<VkImageView, 1> sciv = { it };
+        std::array<VkImageView, 1> sciv = { it.textureImgView };
 
         framebuffers[i] = createFrameBuffer(
           device, renderPass, sciv, swapChain.swapChainExtent);

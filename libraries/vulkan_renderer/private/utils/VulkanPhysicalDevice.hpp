@@ -8,7 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
-struct DeviceRequirement
+struct DeviceRequirement final
 {
     std::optional<uint32_t> graphic_queue_index;
     std::optional<uint32_t> present_queue_index;
