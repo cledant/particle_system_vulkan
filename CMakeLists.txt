@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.17)
 project(particle_system_vulkan)
 
+#App info
+set(APP_BINARY_NAME particle_system)
+set(APP_VERSION_MAJOR 0)
+set(APP_VERSION_MINOR 0)
+set(APP_VERSION_PATCH 1)
+
 #Detecting + setting global LTO
 include(CheckIPOSupported)
 check_ipo_supported(RESULT lto_supported OUTPUT lto_output)
@@ -92,7 +98,7 @@ add_subdirectory(libraries/io_manager)
 add_subdirectory(libraries/engine)
 add_subdirectory(libraries/vulkan_renderer)
 add_subdirectory(libraries/ui)
-add_subdirectory(libraries/app_version)
+add_subdirectory(libraries/app_info)
 add_subdirectory(libraries/model_instance)
 
 #Shaders
@@ -109,15 +115,15 @@ file(COPY ${SKYBOX_TEXTURE_SOURCE_FOLDER}
         ${SKYBOX_TEXTURE_RUNTIME_FOLDER})
 
 #Main binary
-add_executable(particle_system
+add_executable(${APP_BINARY_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/binary/private/particle_system.cpp)
-target_include_directories(particle_system
+target_include_directories(${APP_BINARY_NAME}
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/binary/private)
-target_link_libraries(particle_system iomanager engine vulkan)
-add_dependencies(particle_system iomanager engine skybox_shader particle_debug_shader ui)
-set_target_properties(particle_system PROPERTIES
+target_link_libraries(${APP_BINARY_NAME} iomanager engine vulkan)
+add_dependencies(${APP_BINARY_NAME} iomanager engine skybox_shader particle_debug_shader ui)
+set_target_properties(${APP_BINARY_NAME} PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO)
-target_compile_options(particle_system PRIVATE -Wall -Wextra -Werror)
+target_compile_options(${APP_BINARY_NAME} PRIVATE -Wall -Wextra -Werror)

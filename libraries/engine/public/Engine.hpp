@@ -19,7 +19,7 @@ class Engine final
     Engine(Engine &&src) = delete;
     Engine &operator=(Engine &&rhs) = delete;
 
-    void init(char const *appName);
+    void init();
     void run();
 
   private:

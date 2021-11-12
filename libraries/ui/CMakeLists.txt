@@ -14,13 +14,13 @@ add_dependencies(ui
         glfw
         imgui_glfw_vulkan
         vulkan_renderer
-        app_version)
+        app_info)
 target_link_libraries(ui PUBLIC
         vulkan
         glfw
         imgui_glfw_vulkan
         vulkan_renderer
-        app_version)
+        app_info)
 set_target_properties(ui PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED YES

@@ -4,17 +4,16 @@
 
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "AppVersion.hpp"
+#include "AppInfo.hpp"
 
 void
-Engine::init(char const *appName)
+Engine::init()
 {
-    assert(appName);
     char engine_name[128] = { 0 };
-    std::strcat(engine_name, appName);
+    std::strcat(engine_name, app_info::APP_NAME);
     std::strcat(engine_name, "_engine");
     IOManagerWindowCreationOption win_opts{
-        false, false, false, false, DEFAULT_WIN_SIZE, appName
+        false, false, false, false, DEFAULT_WIN_SIZE, app_info::APP_NAME
     };
 
     _event_handler.setCamera(&_camera);
@@ -25,15 +24,14 @@ Engine::init(char const *appName)
     _event_handler.setSkybox(&_skybox);
     _io_manager.createWindow(std::move(win_opts));
     _ui.init(_io_manager.getWindow());
-    _vk_renderer.createInstance(
-      appName,
+    _vk_renderer.createInstance(app_info::APP_NAME,
       engine_name,
-      VK_MAKE_VERSION(particle_sys::APP_VERSION_MAJOR,
-                      particle_sys::APP_VERSION_MINOR,
-                      particle_sys::APP_VERSION_PATCH),
-      VK_MAKE_VERSION(particle_sys::APP_VERSION_MAJOR,
-                      particle_sys::APP_VERSION_MINOR,
-                      particle_sys::APP_VERSION_PATCH),
+      VK_MAKE_VERSION(app_info::APP_VERSION_MAJOR,
+                                                app_info::APP_VERSION_MINOR,
+                                                app_info::APP_VERSION_PATCH),
+      VK_MAKE_VERSION(app_info::APP_VERSION_MAJOR,
+                                                app_info::APP_VERSION_MINOR,
+                                                app_info::APP_VERSION_PATCH),
       IOManager::getRequiredInstanceExtension());
     auto fb_size = _io_manager.getFramebufferSize();
     _vk_renderer.init(

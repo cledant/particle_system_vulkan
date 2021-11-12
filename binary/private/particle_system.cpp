@@ -3,12 +3,10 @@
 int
 main()
 {
-    static constexpr char const *APP_NAME = "particle_system";
-
     try {
         Engine engine;
 
-        engine.init(APP_NAME);
+        engine.init();
         engine.run();
     } catch (std::exception const &e) {
         std::cout << e.what() << std::endl;

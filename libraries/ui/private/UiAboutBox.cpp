@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 
-#include "AppVersion.hpp"
+#include "AppInfo.hpp"
 
 void
 UiAboutBox::draw()
@@ -23,13 +23,13 @@ UiAboutBox::draw()
 
     ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, WIN_POS_PIVOT);
     ImGui::Begin("About", &isOpen, WIN_FLAGS);
-    ImGui::Text("particle_system");
+    ImGui::Text("%s", app_info::APP_NAME);
     ImGui::Separator();
     ImGui::Text("Version: %d.%d.%d",
-                particle_sys::APP_VERSION_MAJOR,
-                particle_sys::APP_VERSION_MINOR,
-                particle_sys::APP_VERSION_PATCH);
+                app_info::APP_VERSION_MAJOR,
+                app_info::APP_VERSION_MINOR,
+                app_info::APP_VERSION_PATCH);
     ImGui::Separator();
-    ImGui::Text("Commit: %s", particle_sys::APP_COMMIT_HASH);
+    ImGui::Text("Commit: %s", app_info::APP_COMMIT_HASH);
     ImGui::End();
 }
