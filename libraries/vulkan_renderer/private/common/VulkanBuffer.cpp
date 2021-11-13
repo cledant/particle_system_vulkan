@@ -3,7 +3,7 @@
 #include "utils/VulkanMemory.hpp"
 
 void
-VulkanBuffer::allocate(VulkanDevices devices,
+VulkanBuffer::allocate(VulkanDevices const &devices,
                        VkDeviceSize size,
                        VkBufferUsageFlags usage,
                        VkMemoryPropertyFlags properties)

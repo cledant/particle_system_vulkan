@@ -37,7 +37,7 @@ createImage(VkDevice device,
 }
 
 void
-allocateImage(VulkanDevices devices,
+allocateImage(VulkanDevices const &devices,
               VulkanTexture &texture,
               VkMemoryPropertyFlags properties)
 {
@@ -60,10 +60,10 @@ allocateImage(VulkanDevices devices,
 }
 
 void
-transitionImageLayout(VulkanDevices devices,
-                      VulkanCommandPools cmdPools,
-                      VulkanQueues queues,
-                      VulkanTexture &texture,
+transitionImageLayout(VulkanDevices const &devices,
+                      VulkanCommandPools const &cmdPools,
+                      VulkanQueues const &queues,
+                      VulkanTexture const &texture,
                       VkImageLayout old_layout,
                       VkImageLayout new_layout)
 {
@@ -136,11 +136,11 @@ transitionImageLayout(VulkanDevices devices,
 }
 
 void
-copyBufferToImage(VulkanDevices devices,
-                  VulkanCommandPools cmdPools,
-                  VulkanQueues queues,
-                  VulkanBuffer stagingBuffer,
-                  VulkanTexture texture)
+copyBufferToImage(VulkanDevices const &devices,
+                  VulkanCommandPools const &cmdPools,
+                  VulkanQueues const &queues,
+                  VulkanBuffer const &stagingBuffer,
+                  VulkanTexture const &texture)
 {
     auto cmd_buffer =
       beginSingleTimeCommands(devices.device, cmdPools.renderCommandPool);
@@ -170,7 +170,7 @@ copyBufferToImage(VulkanDevices devices,
 }
 
 void
-createImageView(VulkanDevices devices,
+createImageView(VulkanDevices const &devices,
                 VulkanTexture &texture,
                 VkImageAspectFlags aspect_flags)
 {

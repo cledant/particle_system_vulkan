@@ -9,7 +9,7 @@
 #include "utils/VulkanTextureUtils.hpp"
 
 VkDeviceSize
-VulkanTextureStaging::stageTexture(VulkanDevices devices,
+VulkanTextureStaging::stageTexture(VulkanDevices const &devices,
                                    std::string const &filepath)
 {
     int img_chan;
@@ -37,7 +37,7 @@ VulkanTextureStaging::stageTexture(VulkanDevices devices,
 }
 
 VkDeviceSize
-VulkanTextureStaging::stageTexture(VulkanDevices devices,
+VulkanTextureStaging::stageTexture(VulkanDevices const &devices,
                                    std::string const &cubemapFolder,
                                    std::string const &filetype)
 {
@@ -95,17 +95,17 @@ VulkanTextureStaging::stageTexture(VulkanDevices devices,
 }
 
 VkDeviceSize
-VulkanTextureStaging::stageTexture(VulkanDevices devices,
+VulkanTextureStaging::stageTexture(VulkanDevices const &devices,
                                    uint8_t const *buff,
-                                   int32_t buffWidth,
-                                   int32_t buffHeight,
+                                   int32_t texW,
+                                   int32_t texH,
                                    int32_t nbChan,
                                    bool cubemap)
 {
-    width = buffWidth;
-    height = buffHeight;
+    width = texW;
+    height = texH;
     isCubemap = cubemap;
-    VkDeviceSize img_size = width * height * nbChan;
+    VkDeviceSize img_size = texW * texH * nbChan;
     if (cubemap) {
         img_size *= 6;
     }
@@ -120,7 +120,7 @@ VulkanTextureStaging::stageTexture(VulkanDevices devices,
     vkMapMemory(devices.device, stagingBuffer.memory, 0, img_size, 0, &data);
     memcpy(data, buff, static_cast<size_t>(img_size));
     vkUnmapMemory(devices.device, stagingBuffer.memory);
-    mipLevel = computeMipmapLevel(width, height);
+    mipLevel = computeMipmapLevel(texW, texH);
     return (img_size);
 }
 

@@ -4,10 +4,10 @@
 #include "utils/VulkanTextureUtils.hpp"
 
 void
-VulkanTexture::loadTextureOnGPU(VulkanDevices devices,
-                                VulkanCommandPools cmdPools,
-                                VulkanQueues queues,
-                                VulkanTextureStaging stagingTexture,
+VulkanTexture::loadTextureOnGPU(VulkanDevices const &devices,
+                                VulkanCommandPools const &cmdPools,
+                                VulkanQueues const &queues,
+                                VulkanTextureStaging const &stagingTexture,
                                 VkFormat format)
 {
     _devices = devices;
@@ -37,9 +37,9 @@ VulkanTexture::loadTextureOnGPU(VulkanDevices devices,
 }
 
 void
-VulkanTexture::createDepthTexture(VulkanDevices devices,
-                                  VulkanCommandPools cmdPools,
-                                  VulkanQueues queues,
+VulkanTexture::createDepthTexture(VulkanDevices const &devices,
+                                  VulkanCommandPools const &cmdPools,
+                                  VulkanQueues const &queues,
                                   int32_t texW,
                                   int32_t texH,
                                   VkFormat depthFormat)
@@ -64,7 +64,7 @@ VulkanTexture::createDepthTexture(VulkanDevices devices,
 }
 
 void
-VulkanTexture::createSwapchainTexture(VulkanDevices devices,
+VulkanTexture::createSwapchainTexture(VulkanDevices const &devices,
                                       VkImage swapchainImg,
                                       VkFormat swapchainFormat,
                                       VkExtent2D extent)

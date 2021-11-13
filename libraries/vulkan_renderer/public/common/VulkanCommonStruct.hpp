@@ -32,7 +32,7 @@ struct VulkanBuffer final
     VkBuffer buffer{};
     VkDeviceMemory memory{};
 
-    void allocate(VulkanDevices devices,
+    void allocate(VulkanDevices const &devices,
                   VkDeviceSize size,
                   VkBufferUsageFlags usage,
                   VkMemoryPropertyFlags properties);
@@ -50,15 +50,15 @@ struct VulkanTextureStaging final
     uint32_t mipLevel{};
     bool isCubemap{};
 
-    VkDeviceSize stageTexture(VulkanDevices devices,
+    VkDeviceSize stageTexture(VulkanDevices const &devices,
                               std::string const &filepath);
-    VkDeviceSize stageTexture(VulkanDevices devices,
+    VkDeviceSize stageTexture(VulkanDevices const &devices,
                               std::string const &cubemapFolder,
                               std::string const &filetype);
-    VkDeviceSize stageTexture(VulkanDevices devices,
+    VkDeviceSize stageTexture(VulkanDevices const &devices,
                               uint8_t const *buff,
-                              int32_t width,
-                              int32_t height,
+                              int32_t texW,
+                              int32_t texH,
                               int32_t nbChan,
                               bool cubemap);
     void clear();
@@ -76,18 +76,18 @@ struct VulkanTexture final
     VkFormat textureFormat{};
     bool isCubemap{};
 
-    void loadTextureOnGPU(VulkanDevices devices,
-                          VulkanCommandPools cmdPools,
-                          VulkanQueues queues,
-                          VulkanTextureStaging stagingTexture,
+    void loadTextureOnGPU(VulkanDevices const &devices,
+                          VulkanCommandPools const &cmdPools,
+                          VulkanQueues const &queues,
+                          VulkanTextureStaging const &stagingTexture,
                           VkFormat format);
-    void createDepthTexture(VulkanDevices devices,
-                            VulkanCommandPools cmdPools,
-                            VulkanQueues queues,
+    void createDepthTexture(VulkanDevices const &devices,
+                            VulkanCommandPools const &cmdPools,
+                            VulkanQueues const &queues,
                             int32_t texW,
                             int32_t texH,
                             VkFormat depthFormat);
-    void createSwapchainTexture(VulkanDevices devices,
+    void createSwapchainTexture(VulkanDevices const &devices,
                                 VkImage swapchainImg,
                                 VkFormat swapchainFormat,
                                 VkExtent2D extent);

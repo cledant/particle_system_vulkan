@@ -6,9 +6,9 @@
 #include "VulkanPhysicalDevice.hpp"
 
 void
-generateMipmaps(VulkanDevices devices,
-                VulkanCommandPools cmdPools,
-                VulkanQueues queues,
+generateMipmaps(VulkanDevices const &devices,
+                VulkanCommandPools const &cmdPools,
+                VulkanQueues const &queues,
                 VulkanTexture const &texture)
 {
     if (!getLinearBlittingSupport(devices.physicalDevice,
@@ -120,7 +120,7 @@ generateMipmaps(VulkanDevices devices,
 }
 
 void
-createTextureSampler(VulkanDevices devices, VulkanTexture &texture)
+createTextureSampler(VulkanDevices const &devices, VulkanTexture &texture)
 {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(devices.physicalDevice, &properties);

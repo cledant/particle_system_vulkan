@@ -11,21 +11,21 @@ void createImage(VkDevice device,
                  VulkanTexture &texture,
                  VkImageTiling tiling,
                  VkImageUsageFlags usage);
-void allocateImage(VulkanDevices devices,
+void allocateImage(VulkanDevices const &devices,
                    VulkanTexture &texture,
                    VkMemoryPropertyFlags properties);
-void transitionImageLayout(VulkanDevices devices,
-                           VulkanCommandPools cmdPools,
-                           VulkanQueues queues,
-                           VulkanTexture &texture,
+void transitionImageLayout(VulkanDevices const &devices,
+                           VulkanCommandPools const &cmdPools,
+                           VulkanQueues const &queues,
+                           VulkanTexture const &texture,
                            VkImageLayout old_layout,
                            VkImageLayout new_layout);
-void copyBufferToImage(VulkanDevices devices,
-                       VulkanCommandPools cmdPools,
-                       VulkanQueues queues,
-                       VulkanBuffer stagingBuffer,
-                       VulkanTexture texture);
-void createImageView(VulkanDevices devices,
+void copyBufferToImage(VulkanDevices const &devices,
+                       VulkanCommandPools const &cmdPools,
+                       VulkanQueues const &queues,
+                       VulkanBuffer const &stagingBuffer,
+                       VulkanTexture const &texture);
+void createImageView(VulkanDevices const &devices,
                      VulkanTexture &texture,
                      VkImageAspectFlags aspect_flags);
 VkFormat findSupportedFormat(VkPhysicalDevice physical_device,
