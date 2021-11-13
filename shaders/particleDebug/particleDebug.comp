@@ -7,7 +7,7 @@ struct Particle
     vec4 pos;
 };
 
-layout (local_size_x = 256) in;
+layout (local_size_x_id = 0) in;
 
 layout(binding = 0) buffer Pos
 {

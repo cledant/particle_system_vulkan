@@ -39,5 +39,6 @@ void getDeviceQueues(VkPhysicalDevice device,
                      DeviceRequirement &dr);
 VkDeviceSize getMinUniformBufferOffsetAlignment(VkPhysicalDevice device);
 bool getLinearBlittingSupport(VkPhysicalDevice device, VkFormat imgFormat);
+VkPhysicalDeviceProperties getPhysicalDeviceProperties(VkPhysicalDevice device);
 
 #endif // PARTICLE_SYS_VULKAN_VULKANPHYSICALDEVICE_HPP

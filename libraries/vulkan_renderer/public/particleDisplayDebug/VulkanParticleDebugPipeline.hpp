@@ -63,6 +63,8 @@ class VulkanParticleDebugPipeline final
     glm::vec3 _particles_color{};
 
     // Compute shader related
+    static constexpr uint32_t const DEFAULT_COMPUTE_WORK_GROUP_SIZE = 256;
+    uint32_t _compute_work_group_size{};
     VkDescriptorSetLayout _compute_descriptor_set_layout{};
     VkPipelineLayout _compute_pipeline_layout{};
     VkPipeline _compute_pipeline{};

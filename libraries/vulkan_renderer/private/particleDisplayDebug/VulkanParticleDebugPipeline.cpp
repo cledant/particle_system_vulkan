@@ -30,6 +30,10 @@ VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,
     _generate_particles();
     _particles_color = particles_color;
 
+    _compute_work_group_size =
+      std::min(DEFAULT_COMPUTE_WORK_GROUP_SIZE,
+               getPhysicalDeviceProperties(_devices.physicalDevice)
+                 .limits.maxComputeWorkGroupSize[0]);
     _create_particle_compute_debug_uniform_buffer();
     _create_compute_descriptor_layout();
     _create_compute_descriptor_sets(_pipeline_data);
@@ -185,9 +189,7 @@ VulkanParticleDebugPipeline::generateComputeCommands(VkCommandBuffer cmdBuffer)
                             0,
                             nullptr);
     vkCmdDispatch(cmdBuffer,
-                  (_pipeline_data.nbParticles % 256)
-                    ? (_pipeline_data.nbParticles / 256) + 1
-                    : _pipeline_data.nbParticles / 256,
+                  (_pipeline_data.nbParticles / _compute_work_group_size) + 1,
                   1,
                   1);
 }
@@ -693,12 +695,25 @@ VulkanParticleDebugPipeline::_create_compute_pipeline()
     comp_shader_info.module = comp_shader;
     comp_shader_info.pName = "main";
 
+    // Compute pipeline specialization info
+    std::array<VkSpecializationMapEntry, 1> speData{};
+    speData[0].constantID = 0;
+    speData[0].offset = 0;
+    speData[0].size = sizeof(uint32_t);
+
+    VkSpecializationInfo speInfo{};
+    speInfo.dataSize = sizeof(uint32_t);
+    speInfo.mapEntryCount = speData.size();
+    speInfo.pMapEntries = speData.data();
+    speInfo.pData = &_compute_work_group_size;
+
     // Compute pipeline creation
     VkComputePipelineCreateInfo comp_pipeline_info{};
     comp_pipeline_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
     comp_pipeline_info.layout = _compute_pipeline_layout;
     comp_pipeline_info.flags = 0;
     comp_pipeline_info.stage = comp_shader_info;
+    comp_pipeline_info.stage.pSpecializationInfo = &speInfo;
 
     if (vkCreateComputePipelines(_devices.device,
                                  VK_NULL_HANDLE,
