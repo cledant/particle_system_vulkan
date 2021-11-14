@@ -9,7 +9,7 @@
 #include "utils/VulkanSwapChainUtils.hpp"
 #include "utils/VulkanCommandBuffer.hpp"
 #include "utils/VulkanMemory.hpp"
-#include "VulkanUboStructs.hpp"
+#include "ubo/VulkanUboStructs.hpp"
 
 void
 VulkanRenderer::createInstance(std::string &&app_name,

@@ -7,7 +7,7 @@
 #include "utils/VulkanMemory.hpp"
 #include "utils/VulkanPhysicalDevice.hpp"
 #include "utils/VulkanCommandBuffer.hpp"
-#include "VulkanUboStructs.hpp"
+#include "ubo/VulkanUboStructs.hpp"
 
 void
 VulkanParticleDebugPipeline::init(VulkanInstance const &vkInstance,

@@ -54,7 +54,6 @@ class VulkanParticleDebugPipeline final
     // Vertex / Fragment shader related
     VkDescriptorSetLayout _descriptor_set_layout{};
     VkPipelineLayout _pipeline_layout{};
-    VkPipeline _graphic_pipeline{};
     VulkanParticleDebugPipelineData _pipeline_data;
     VulkanParticleDebugRenderPass _pipeline_render_pass;
     VkBuffer _particle_uniform{};
@@ -67,9 +66,13 @@ class VulkanParticleDebugPipeline final
     uint32_t _compute_work_group_size{};
     VkDescriptorSetLayout _compute_descriptor_set_layout{};
     VkPipelineLayout _compute_pipeline_layout{};
-    VkPipeline _compute_pipeline{};
     VkBuffer _particle_compute_uniform{};
     VkDeviceMemory _particle_compute_uniform_memory{};
+
+    // Global
+    //VkDescriptorPool _globalDescriptorPool{};
+    VkPipeline _graphic_pipeline{};
+    VkPipeline _compute_pipeline{};
 
     inline void _create_descriptor_layout();
     inline void _create_pipeline_layout();

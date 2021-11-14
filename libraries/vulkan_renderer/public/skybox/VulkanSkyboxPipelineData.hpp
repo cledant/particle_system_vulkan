@@ -9,6 +9,7 @@
 #include "glm/glm.hpp"
 
 #include "tex/VulkanTextureManager.hpp"
+#include "ubo/VulkanUboStructs.hpp"
 
 struct VulkanSkyboxPipelineData
 {
@@ -16,16 +17,13 @@ struct VulkanSkyboxPipelineData
     VkDeviceSize verticesSize{};
     VkDeviceSize indicesSize{};
     VkDeviceSize indicesOffset{};
-    VkDescriptorPool descriptorPool{};
-    std::vector<VkDescriptorSet> descriptorSets;
     VulkanTexture cubemapTexture;
-    VkDeviceSize indicesDrawNb;
+    VkDeviceSize indicesDrawNb{};
 
-    static std::array<VkVertexInputBindingDescription, 1>
-    getInputBindingDescription();
-    static std::array<VkVertexInputAttributeDescription, 1>
-    getInputAttributeDescription();
-
+    void init(VulkanDevices const &devices,
+              VulkanCommandPools const &cmdPools,
+              VulkanQueues const &queues,
+              VulkanTexture const &skyboxTex);
     void clear();
 };
 

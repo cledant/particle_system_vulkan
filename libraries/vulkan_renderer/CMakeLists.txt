@@ -11,6 +11,7 @@ add_library(vulkan_renderer STATIC
         private/skybox/VulkanSkyboxPipelineData.cpp
         private/skybox/VulkanSkyboxRenderPass.cpp
         private/skybox/SkyboxModel.cpp
+        private/skybox/VulkanSkyboxPipelineDescription.cpp
         private/particleDisplayDebug/VulkanParticleDebugPipeline.cpp
         private/particleDisplayDebug/VulkanParticleDebugPipelineData.cpp
         private/particleDisplayDebug/VulkanParticleDebugRenderPass.cpp
@@ -24,6 +25,8 @@ add_library(vulkan_renderer STATIC
         private/utils/VulkanMemory.cpp
         private/utils/VulkanCommandBuffer.cpp
         private/utils/VulkanTextureUtils.cpp
+        private/utils/VulkanDescriptorUtils.cpp
+        private/utils/VulkanPipelineUtils.cpp
         private/common/VulkanBuffer.cpp
         private/common/VulkanTextureStaging.cpp
         private/common/VulkanTexture.cpp)

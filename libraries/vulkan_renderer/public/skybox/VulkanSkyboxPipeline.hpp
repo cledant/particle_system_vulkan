@@ -14,6 +14,7 @@
 #include "tex/VulkanTextureManager.hpp"
 #include "VulkanSkyboxPipelineData.hpp"
 #include "VulkanSkyboxRenderPass.hpp"
+#include "VulkanSkyboxPipelineDescription.hpp"
 
 class VulkanSkyboxPipeline final
 {
@@ -31,8 +32,7 @@ class VulkanSkyboxPipeline final
               std::string const &skyboxFileType,
               VulkanTextureManager &texManager,
               VkBuffer systemUbo);
-    void resize(VulkanSwapChain const &swapChain,
-                VkBuffer systemUbo);
+    void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
     void clear();
 
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
@@ -48,27 +48,24 @@ class VulkanSkyboxPipeline final
     VulkanCommandPools _cmdPools;
     VulkanQueues _queues;
 
-    VkDescriptorSetLayout _descriptor_set_layout{};
-    VkPipelineLayout _pipeline_layout{};
-    VkPipeline _graphic_pipeline{};
-    VulkanSkyboxPipelineData _pipeline_data;
-    VulkanSkyboxRenderPass _pipeline_render_pass;
-
     // Skybox related
-    VulkanBuffer _uniform;
-    std::string _skybox_folder_path;
-    std::string _skybox_filetype;
-    glm::mat4 _skybox_model_mat{};
+    VulkanBuffer _skyboxUniform;
+    SkyboxUbo _skyboxUbo;
+    VulkanSkyboxPipelineDescription _pipelineDescription;
+    VulkanSkyboxPipelineData _pipelineData;
+    VulkanSkyboxRenderPass _pipelineRenderPass;
 
-    inline void _create_descriptor_layout();
-    inline void _create_pipeline_layout();
-    inline void _create_gfx_pipeline(VulkanSwapChain const &swapChain);
-    inline VulkanSkyboxPipelineData _create_pipeline_data_skybox(VulkanTexture const &skyboxTex);
-    inline void _create_descriptor_pool(VulkanSwapChain const &swapChain,
-                                        VulkanSkyboxPipelineData &pipelineData);
-    inline void _create_descriptor_sets(VulkanSwapChain const &swapChain,
-                                        VulkanSkyboxPipelineData &pipelineData,
-                                        VkBuffer systemUbo);
+    VkPipeline _gfxPipeline{};
+    std::vector<VkDescriptorSet> _descriptorSets;
+
+    std::string _skyboxFolderPath;
+    std::string _skyboxFiletype;
+
+    inline void createGfxPipeline(VulkanSwapChain const &swapChain);
+    inline void createDescriptorSets(VulkanSwapChain const &swapChain,
+                                     VulkanSkyboxPipelineData &pipelineData,
+                                     VkBuffer systemUbo,
+                                     uint32_t descriptorCount);
 };
 
 #endif // PARTICLE_SYS_VULKANSKYBOXPIPELINE_HPP
