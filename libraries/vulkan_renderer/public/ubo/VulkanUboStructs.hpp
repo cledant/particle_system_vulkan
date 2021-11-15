@@ -11,13 +11,13 @@ struct SkyboxUbo final
     alignas(16) glm::mat4 model = glm::mat4(1.0);
 };
 
-struct ParticleDebugUbo final
+struct ParticleUbo final
 {
     alignas(16) glm::vec3 center{};
     alignas(16) glm::vec3 color{};
 };
 
-struct ParticleComputeDebugUbo final
+struct ParticleComputeUbo final
 {
     alignas(16) int32_t nbParticles{};
 };

@@ -103,7 +103,7 @@ add_subdirectory(libraries/model_instance)
 
 #Shaders
 add_subdirectory(shaders/skybox)
-add_subdirectory(shaders/particleDebug)
+add_subdirectory(shaders/particle)
 
 #Skybox textures
 set(SKYBOX_TEXTURE_SOURCE_FOLDER

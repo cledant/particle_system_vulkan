@@ -1,9 +1,9 @@
-#include "particleDisplayDebug//VulkanParticleDebugRenderPass.hpp"
+#include "particle/VulkanParticleRenderPass.hpp"
 
 #include "interface/AVulkanRenderPassPrivate.hpp"
 
 void
-VulkanParticleDebugRenderPass::implInit(const VulkanInstance &vkInstance,
+VulkanParticleRenderPass::implInit(const VulkanInstance &vkInstance,
                                         const VulkanSwapChain &swapChain)
 {
     static_cast<void>(vkInstance);
@@ -13,7 +13,7 @@ VulkanParticleDebugRenderPass::implInit(const VulkanInstance &vkInstance,
 }
 
 void
-VulkanParticleDebugRenderPass::implResize(const VulkanSwapChain &swapChain)
+VulkanParticleRenderPass::implResize(const VulkanSwapChain &swapChain)
 {
     clean();
     defaultCreateRenderPass(swapChain);
@@ -22,12 +22,12 @@ VulkanParticleDebugRenderPass::implResize(const VulkanSwapChain &swapChain)
 }
 
 void
-VulkanParticleDebugRenderPass::implClean()
+VulkanParticleRenderPass::implClean()
 {}
 
 
 void
-VulkanParticleDebugRenderPass::implClear()
+VulkanParticleRenderPass::implClear()
 {
     clean();
 }

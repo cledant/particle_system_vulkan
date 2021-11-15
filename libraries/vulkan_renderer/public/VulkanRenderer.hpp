@@ -14,7 +14,7 @@
 #include "VulkanSync.hpp"
 #include "ui/VulkanUi.hpp"
 #include "skybox/VulkanSkyboxPipeline.hpp"
-#include "particleDisplayDebug/VulkanParticleDebugPipeline.hpp"
+#include "particle/VulkanParticlePipeline.hpp"
 
 enum class VulkanParticleGenerationType
 {
@@ -79,7 +79,7 @@ class VulkanRenderer final
     VulkanSync _sync;
     VulkanUi _ui;
     VulkanSkyboxPipeline _skybox;
-    VulkanParticleDebugPipeline _particle;
+    VulkanParticlePipeline _particle;
     bool _update_particle_positions{};
     VulkanParticleGenerationType _particle_generation_type{};
 

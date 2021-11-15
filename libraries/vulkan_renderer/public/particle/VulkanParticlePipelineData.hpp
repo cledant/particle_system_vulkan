@@ -1,5 +1,5 @@
-#ifndef PARTICLE_SYS_VULKANPARTICLEDEBUGPIPELINEDATA_HPP
-#define PARTICLE_SYS_VULKANPARTICLEDEBUGPIPELINEDATA_HPP
+#ifndef PARTICLE_SYS_VULKANPARTICLEPIPELINEDATA_HPP
+#define PARTICLE_SYS_VULKANPARTICLEPIPELINEDATA_HPP
 
 #include <array>
 #include <vector>
@@ -10,12 +10,12 @@
 
 #include "tex/VulkanTextureManager.hpp"
 
-struct VulkanParticleDebug
+struct VulkanParticle
 {
     alignas(16) glm::vec3 position;
 };
 
-struct VulkanParticleDebugPipelineData
+struct VulkanParticlePipelineData
 {
     VkBuffer buffer{};
     VkDeviceMemory memory{};
@@ -33,4 +33,4 @@ struct VulkanParticleDebugPipelineData
     void clear();
 };
 
-#endif // PARTICLE_SYS_VULKANPARTICLEDEBUGPIPELINEDATA_HPP
+#endif // PARTICLE_SYS_VULKANPARTICLEPIPELINEDATA_HPP

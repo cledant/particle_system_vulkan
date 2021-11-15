@@ -1,19 +1,19 @@
-#include "particleDisplayDebug/VulkanParticleDebugPipelineData.hpp"
+#include "particle/VulkanParticlePipelineData.hpp"
 
 std::array<VkVertexInputBindingDescription, 1>
-VulkanParticleDebugPipelineData::getInputBindingDescription()
+VulkanParticlePipelineData::getInputBindingDescription()
 {
     std::array<VkVertexInputBindingDescription, 1> binding_description{};
 
     binding_description[0].binding = 0;
-    binding_description[0].stride = sizeof(VulkanParticleDebug);
+    binding_description[0].stride = sizeof(VulkanParticle);
     binding_description[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     return (binding_description);
 }
 
 std::array<VkVertexInputAttributeDescription, 1>
-VulkanParticleDebugPipelineData::getInputAttributeDescription()
+VulkanParticlePipelineData::getInputAttributeDescription()
 {
     std::array<VkVertexInputAttributeDescription, 1> attribute_description{};
 
@@ -26,7 +26,7 @@ VulkanParticleDebugPipelineData::getInputAttributeDescription()
 }
 
 void
-VulkanParticleDebugPipelineData::clear()
+VulkanParticlePipelineData::clear()
 {
     buffer = nullptr;
     memory = nullptr;

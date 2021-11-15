@@ -12,9 +12,9 @@ add_library(vulkan_renderer STATIC
         private/skybox/VulkanSkyboxRenderPass.cpp
         private/skybox/SkyboxModel.cpp
         private/skybox/VulkanSkyboxPipelineDescription.cpp
-        private/particleDisplayDebug/VulkanParticleDebugPipeline.cpp
-        private/particleDisplayDebug/VulkanParticleDebugPipelineData.cpp
-        private/particleDisplayDebug/VulkanParticleDebugRenderPass.cpp
+        private/particle/VulkanParticlePipeline.cpp
+        private/particle/VulkanParticlePipelineData.cpp
+        private/particle/VulkanParticleRenderPass.cpp
         private/tex/VulkanTextureManager.cpp
         private/ui/VulkanUiRenderPass.cpp
         private/ui/VulkanUi.cpp

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 project(particle_sys_particle_debug_shader)
 
-set(SHADER_NAME particleDebug)
+set(SHADER_NAME particle)
 set(SHADER_SOURCE_FOLDER
         ${CMAKE_CURRENT_SOURCE_DIR})
 set(SHADER_RUNTIME_FOLDER
@@ -9,13 +9,13 @@ set(SHADER_RUNTIME_FOLDER
 
 #Filelist
 set(SHADERS
-        ${SHADER_SOURCE_FOLDER}/${SHADER_NAME}.frag
-        ${SHADER_SOURCE_FOLDER}/${SHADER_NAME}.comp
-        ${SHADER_SOURCE_FOLDER}/${SHADER_NAME}.vert)
+        ${SHADER_SOURCE_FOLDER}/particle.frag
+        ${SHADER_SOURCE_FOLDER}/particleMoveForward.comp
+        ${SHADER_SOURCE_FOLDER}/particle.vert)
 set(COMPILED_SHADERS
-        ${SHADER_RUNTIME_FOLDER}/${SHADER_NAME}.frag.spv
-        ${SHADER_RUNTIME_FOLDER}/${SHADER_NAME}.comp.spv
-        ${SHADER_RUNTIME_FOLDER}/${SHADER_NAME}.vert.spv)
+        ${SHADER_RUNTIME_FOLDER}/particle.frag.spv
+        ${SHADER_RUNTIME_FOLDER}/particleMoveForward.comp.spv
+        ${SHADER_RUNTIME_FOLDER}/particle.vert.spv)
 
 file(MAKE_DIRECTORY ${SHADER_RUNTIME_FOLDER})
 foreach (SHADER COMPILED_SHADER IN ZIP_LISTS SHADERS COMPILED_SHADERS)

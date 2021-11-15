@@ -9,12 +9,12 @@ layout(binding = 0) uniform SystemUBO {
     mat4 view_proj;
 } systemUbo;
 
-layout(binding = 1) uniform ParticleDebugUbo {
+layout(binding = 1) uniform ParticleUbo {
     vec3 center;
     vec3 color;
-} particleDebugUbo;
+} particleUbo;
 
 void main() {
-    gl_Position = systemUbo.view_proj * vec4(inVertexPosition + particleDebugUbo.center, 1.0);
-    outFragParticleColor = particleDebugUbo.color;
+    gl_Position = systemUbo.view_proj * vec4(inVertexPosition, 1.0);
+    outFragParticleColor = particleUbo.color;
 }

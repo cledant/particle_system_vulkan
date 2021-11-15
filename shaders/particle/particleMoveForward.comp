@@ -14,15 +14,15 @@ layout(binding = 0) buffer Pos
     Particle particles[];
 };
 
-layout(binding = 1) uniform ParticleTestComputeUbo {
+layout(binding = 1) uniform ParticleComputeUbo {
     int particleCount;
-} particleTestComputeUbo;
+} particleComputeUbo;
 
 
 void main()
 {
     uint index = gl_GlobalInvocationID.x;
-    if (index >= particleTestComputeUbo.particleCount) {
+    if (index >= particleComputeUbo.particleCount) {
         return;
     }
 

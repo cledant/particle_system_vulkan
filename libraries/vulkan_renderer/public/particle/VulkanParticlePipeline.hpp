@@ -1,5 +1,5 @@
-#ifndef PARTICLE_SYS_VULKANPARTICLEDEBUGPIPELINE_HPP
-#define PARTICLE_SYS_VULKANPARTICLEDEBUGPIPELINE_HPP
+#ifndef PARTICLE_SYS_VULKANPARTICLEPIPELINE_HPP
+#define PARTICLE_SYS_VULKANPARTICLEPIPELINE_HPP
 
 #include <vector>
 
@@ -10,20 +10,20 @@
 #include "VulkanInstance.hpp"
 #include "VulkanSwapChain.hpp"
 #include "tex/VulkanTextureManager.hpp"
-#include "VulkanParticleDebugPipelineData.hpp"
-#include "VulkanParticleDebugRenderPass.hpp"
+#include "VulkanParticlePipelineData.hpp"
+#include "VulkanParticleRenderPass.hpp"
+#include "VulkanParticlePipelineDescription.hpp"
 
-class VulkanParticleDebugPipeline final
+class VulkanParticlePipeline final
 {
   public:
-    VulkanParticleDebugPipeline() = default;
-    ~VulkanParticleDebugPipeline() = default;
-    VulkanParticleDebugPipeline(VulkanParticleDebugPipeline const &src) =
+    VulkanParticlePipeline() = default;
+    ~VulkanParticlePipeline() = default;
+    VulkanParticlePipeline(VulkanParticlePipeline const &src) =
       delete;
-    VulkanParticleDebugPipeline &operator=(
-      VulkanParticleDebugPipeline const &rhs) = delete;
-    VulkanParticleDebugPipeline(VulkanParticleDebugPipeline &&src) = delete;
-    VulkanParticleDebugPipeline &operator=(VulkanParticleDebugPipeline &&rhs) =
+    VulkanParticlePipeline &operator=(VulkanParticlePipeline const &rhs) = delete;
+    VulkanParticlePipeline(VulkanParticlePipeline &&src) = delete;
+    VulkanParticlePipeline &operator=(VulkanParticlePipeline &&rhs) =
       delete;
 
     void init(VulkanInstance const &vkInstance,
@@ -41,7 +41,7 @@ class VulkanParticleDebugPipeline final
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
     void setUniformOnGpu(uint32_t currentImg);
 
-    [[nodiscard]] VulkanParticleDebugRenderPass const &getRenderPass() const;
+    [[nodiscard]] VulkanParticleRenderPass const &getRenderPass() const;
     void generateCommands(VkCommandBuffer cmdBuffer, size_t descriptorSetIndex);
     void generateComputeCommands(VkCommandBuffer cmdBuffer);
 
@@ -54,8 +54,8 @@ class VulkanParticleDebugPipeline final
     // Vertex / Fragment shader related
     VkDescriptorSetLayout _descriptor_set_layout{};
     VkPipelineLayout _pipeline_layout{};
-    VulkanParticleDebugPipelineData _pipeline_data;
-    VulkanParticleDebugRenderPass _pipeline_render_pass;
+    VulkanParticlePipelineData _pipeline_data;
+    VulkanParticleRenderPass _pipeline_render_pass;
     VkBuffer _particle_uniform{};
     VkDeviceMemory _particle_uniform_memory{};
     glm::vec3 _particles_gravity_center{};
@@ -77,16 +77,16 @@ class VulkanParticleDebugPipeline final
     inline void _create_descriptor_layout();
     inline void _create_pipeline_layout();
     inline void _create_gfx_pipeline(VulkanSwapChain const &swapChain);
-    inline VulkanParticleDebugPipelineData _create_pipeline_particle_debug(
+    inline VulkanParticlePipelineData _create_pipeline_particle_debug(
       uint64_t nbParticles);
     inline void _reallocate_pipeline_particle_debug_buffers(
       uint64_t nbParticles);
     inline void _create_descriptor_pool(
       VulkanSwapChain const &swapChain,
-      VulkanParticleDebugPipelineData &pipelineData);
+      VulkanParticlePipelineData &pipelineData);
     inline void _create_descriptor_sets(
       VulkanSwapChain const &swapChain,
-      VulkanParticleDebugPipelineData &pipelineData,
+      VulkanParticlePipelineData &pipelineData,
       VkBuffer systemUbo);
     inline void _create_particle_debug_uniform_buffer(
       uint32_t currentSwapChainNbImg);
@@ -97,7 +97,7 @@ class VulkanParticleDebugPipeline final
     inline void _create_compute_pipeline_layout();
     inline void _create_compute_pipeline();
     inline void _create_compute_descriptor_sets(
-      VulkanParticleDebugPipelineData &pipelineData);
+      VulkanParticlePipelineData &pipelineData);
 };
 
-#endif // PARTICLE_SYS_VULKANPARTICLEDEBUGPIPELINE_HPP
+#endif // PARTICLE_SYS_VULKANPARTICLEPIPELINE_HPP
