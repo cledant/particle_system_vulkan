@@ -28,15 +28,16 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
       _cmdPools,
       _queues,
       texManager.loadAndGetCubemap(_skyboxFolderPath, _skyboxFiletype));
-    _pipelineDescription.init(_devices, swapChain.currentSwapChainNbImg);
+    _pipelineDescription.init(_devices);
     _skyboxUniform.allocate(_devices,
                             sizeof(SkyboxUbo) * swapChain.currentSwapChainNbImg,
                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    createDescriptorPool(swapChain.currentSwapChainNbImg);
     createGfxPipeline(swapChain);
     createDescriptorSets(
-      swapChain, _pipelineData, systemUbo, swapChain.currentSwapChainNbImg);
+      _pipelineData, systemUbo, swapChain.currentSwapChainNbImg);
 }
 
 void
@@ -44,23 +45,25 @@ VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
                              VkBuffer systemUbo)
 {
     _skyboxUniform.clear();
+    vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
     vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
     _pipelineRenderPass.resize(swapChain);
-    _pipelineDescription.resize(swapChain.currentSwapChainNbImg);
     _skyboxUniform.allocate(_devices,
                             sizeof(SkyboxUbo) * swapChain.currentSwapChainNbImg,
                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    createDescriptorPool(swapChain.currentSwapChainNbImg);
     createGfxPipeline(swapChain);
     createDescriptorSets(
-      swapChain, _pipelineData, systemUbo, swapChain.currentSwapChainNbImg);
+      _pipelineData, systemUbo, swapChain.currentSwapChainNbImg);
 }
 
 void
 VulkanSkyboxPipeline::clear()
 {
     _skyboxUniform.clear();
+    vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
     vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
     _pipelineRenderPass.clear();
     _pipelineDescription.clear();
@@ -69,6 +72,7 @@ VulkanSkyboxPipeline::clear()
     _queues = VulkanQueues{};
     _pipelineDescription.clear();
     _gfxPipeline = nullptr;
+    _descriptorPool = nullptr;
     _pipelineData.clear();
 }
 
@@ -290,18 +294,17 @@ VulkanSkyboxPipeline::createGfxPipeline(VulkanSwapChain const &swapChain)
 
 void
 VulkanSkyboxPipeline::createDescriptorSets(
-  VulkanSwapChain const &swapChain,
   VulkanSkyboxPipelineData &pipelineData,
   VkBuffer systemUbo,
   uint32_t descriptorCount)
 {
     allocateDescriptorSets(_devices,
-                           _pipelineDescription.descriptorPool,
+                           _descriptorPool,
                            _pipelineDescription.descriptorSetLayout,
                            descriptorCount,
                            _descriptorSets);
 
-    for (size_t i = 0; i < swapChain.currentSwapChainNbImg; ++i) {
+    for (size_t i = 0; i < descriptorCount; ++i) {
         std::array<VkWriteDescriptorSet, 3> descriptor_write{};
 
         // System UBO
@@ -356,4 +359,17 @@ VulkanSkyboxPipeline::createDescriptorSets(
                                0,
                                nullptr);
     }
+}
+
+void
+VulkanSkyboxPipeline::createDescriptorPool(uint32_t descriptorCount)
+{
+    std::array<VkDescriptorPoolSize, 3> const poolSize{
+        { { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount },
+          { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount },
+          { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount } }
+    };
+
+    _descriptorPool =
+      ::createDescriptorPool(_devices, poolSize, descriptorCount);
 }

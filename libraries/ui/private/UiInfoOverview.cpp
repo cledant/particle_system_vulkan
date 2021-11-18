@@ -73,7 +73,7 @@ UiInfoOverview::draw(bool &fps, bool &info) const
                   gravityCenterPos.x,
                   gravityCenterPos.y,
                   gravityCenterPos.z);
-                ImGui::Text("Nb Particles: %lu", nbParticles);
+                ImGui::Text("Nb Particles: %u", nbParticles);
                 ImGui::Text("Cursor position 2D: W = %.0f | H = %.0f",
                             cursorPositionWindow.x,
                             cursorPositionWindow.y);

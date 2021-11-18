@@ -1,10 +1,10 @@
-#include "skybox/VulkanSkyboxPipelineDescription.hpp"
+#include "particle/VulkanParticleGfxPipelineDescription.hpp"
 
 #include "utils/VulkanDescriptorUtils.hpp"
 #include "utils/VulkanPipelineUtils.hpp"
 
 void
-VulkanSkyboxPipelineDescription::implInit(VulkanDevices const &devices)
+VulkanParticleGfxPipelineDescription::implInit(VulkanDevices const &devices)
 {
     descriptorSetLayout =
       createDescriptorSetLayout(devices, descriptorBindings);
@@ -12,5 +12,5 @@ VulkanSkyboxPipelineDescription::implInit(VulkanDevices const &devices)
 }
 
 void
-VulkanSkyboxPipelineDescription::implClear()
+VulkanParticleGfxPipelineDescription::implClear()
 {}

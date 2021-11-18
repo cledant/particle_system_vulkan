@@ -48,24 +48,26 @@ class VulkanSkyboxPipeline final
     VulkanCommandPools _cmdPools;
     VulkanQueues _queues;
 
-    // Skybox related
+    // Vertex / Fragment shaders related
     VulkanBuffer _skyboxUniform;
     SkyboxUbo _skyboxUbo;
     VulkanSkyboxPipelineDescription _pipelineDescription;
+    VkPipeline _gfxPipeline{};
+
+    // Global
     VulkanSkyboxPipelineData _pipelineData;
     VulkanSkyboxRenderPass _pipelineRenderPass;
-
-    VkPipeline _gfxPipeline{};
     std::vector<VkDescriptorSet> _descriptorSets;
+    VkDescriptorPool _descriptorPool{};
 
     std::string _skyboxFolderPath;
     std::string _skyboxFiletype;
 
     inline void createGfxPipeline(VulkanSwapChain const &swapChain);
-    inline void createDescriptorSets(VulkanSwapChain const &swapChain,
-                                     VulkanSkyboxPipelineData &pipelineData,
+    inline void createDescriptorSets(VulkanSkyboxPipelineData &pipelineData,
                                      VkBuffer systemUbo,
                                      uint32_t descriptorCount);
+    void createDescriptorPool(uint32_t descriptorCount);
 };
 
 #endif // PARTICLE_SYS_VULKANSKYBOXPIPELINE_HPP

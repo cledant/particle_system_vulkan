@@ -11,7 +11,7 @@ struct UiInfoOverview final
     float currentFps{};
     glm::vec3 cameraPos{};
     glm::vec3 gravityCenterPos{};
-    uint64_t nbParticles{};
+    uint32_t nbParticles{};
     glm::vec2 cursorPositionWindow{};
     glm::vec3 cursorPosition3D{};
 

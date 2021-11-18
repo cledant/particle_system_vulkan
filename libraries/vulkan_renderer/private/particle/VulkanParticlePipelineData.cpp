@@ -1,38 +1,21 @@
 #include "particle/VulkanParticlePipelineData.hpp"
 
-std::array<VkVertexInputBindingDescription, 1>
-VulkanParticlePipelineData::getInputBindingDescription()
+void
+VulkanParticlePipelineData::init(VulkanDevices const &devices,
+                                 uint32_t nbOfParticles)
 {
-    std::array<VkVertexInputBindingDescription, 1> binding_description{};
-
-    binding_description[0].binding = 0;
-    binding_description[0].stride = sizeof(VulkanParticle);
-    binding_description[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-    return (binding_description);
-}
-
-std::array<VkVertexInputAttributeDescription, 1>
-VulkanParticlePipelineData::getInputAttributeDescription()
-{
-    std::array<VkVertexInputAttributeDescription, 1> attribute_description{};
-
-    attribute_description[0].binding = 0;
-    attribute_description[0].location = 0;
-    attribute_description[0].offset = 0;
-    attribute_description[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-
-    return (attribute_description);
+    nbParticles = nbOfParticles;
+    data.allocate(devices,
+                  nbParticles * sizeof(VulkanParticle),
+                  VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void
 VulkanParticlePipelineData::clear()
 {
-    buffer = nullptr;
-    memory = nullptr;
-    descriptorPool = nullptr;
+    data.clear();
     nbParticles = 0;
-    particleBufferSize = 0;
-    descriptorSets.clear();
-    computeDescriptorSet = nullptr;
 }

@@ -22,8 +22,7 @@ class VulkanSkyboxPipelineDescription
     VulkanSkyboxPipelineDescription &operator=(
       VulkanSkyboxPipelineDescription &&rhs) noexcept = default;
 
-    void implInit(VulkanDevices const &devices, uint32_t maxPool);
-    void implResize(uint32_t maxPool);
+    void implInit(VulkanDevices const &devices);
     void implClear();
 
     static constexpr std::array<VkVertexInputBindingDescription, 1> const
@@ -50,8 +49,6 @@ class VulkanSkyboxPipelineDescription
                               1,
                               VK_SHADER_STAGE_FRAGMENT_BIT,
                               nullptr } } };
-
-    void createDescriptorPool(uint32_t descriptorCount);
 };
 
 #endif // PARTICLE_SYSTEM_VULKAN_VULKANSKYBOXPIPELINEDESCRIPTION_HPP

@@ -11,7 +11,7 @@ struct SkyboxUbo final
     alignas(16) glm::mat4 model = glm::mat4(1.0);
 };
 
-struct ParticleUbo final
+struct ParticleGfxUbo final
 {
     alignas(16) glm::vec3 center{};
     alignas(16) glm::vec3 color{};
@@ -19,7 +19,7 @@ struct ParticleUbo final
 
 struct ParticleComputeUbo final
 {
-    alignas(16) int32_t nbParticles{};
+    alignas(16) uint32_t nbParticles{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_VULKANUBOSTRUCTS_HPP

@@ -15,7 +15,7 @@ layout(binding = 0) buffer Pos
 };
 
 layout(binding = 1) uniform ParticleComputeUbo {
-    int particleCount;
+    uint particleCount;
 } particleComputeUbo;
 
 

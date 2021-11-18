@@ -146,7 +146,7 @@ Ui::drawUi()
     auto trigger_nb_particle = _particle_input_win.drawInputWindow();
     if (trigger_nb_particle) {
         try {
-            _nb_particles = std::stoi(_particle_input_win.input);
+            _nb_particles = std::stoul(_particle_input_win.input);
             _ui_events.events[UET_SET_PARTICLES_NUMBER] = true;
             _info_overview.nbParticles = _nb_particles;
         } catch (std::exception const &e) {

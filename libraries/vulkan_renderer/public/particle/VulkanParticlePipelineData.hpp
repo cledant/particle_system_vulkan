@@ -8,7 +8,7 @@
 
 #include "glm/glm.hpp"
 
-#include "tex/VulkanTextureManager.hpp"
+#include "common/VulkanCommonStruct.hpp"
 
 struct VulkanParticle
 {
@@ -17,19 +17,10 @@ struct VulkanParticle
 
 struct VulkanParticlePipelineData
 {
-    VkBuffer buffer{};
-    VkDeviceMemory memory{};
-    VkDeviceSize nbParticles;
-    VkDeviceSize particleBufferSize{};
-    VkDescriptorPool descriptorPool{};
-    std::vector<VkDescriptorSet> descriptorSets;
-    VkDescriptorSet computeDescriptorSet;
+    VulkanBuffer data{};
+    uint32_t nbParticles{};
 
-    static std::array<VkVertexInputBindingDescription, 1>
-    getInputBindingDescription();
-    static std::array<VkVertexInputAttributeDescription, 1>
-    getInputAttributeDescription();
-
+    void init(VulkanDevices const &devices, uint32_t nbOfParticles);
     void clear();
 };
 

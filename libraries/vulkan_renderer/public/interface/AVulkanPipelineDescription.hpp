@@ -17,13 +17,11 @@ class AVulkanPipelineDescription
     AVulkanPipelineDescription &operator=(
       AVulkanPipelineDescription &&rhs) noexcept = default;
 
-    void init(VulkanDevices const &devices, uint32_t descriptorCount);
-    void resize(uint32_t descriptorCount);
+    void init(VulkanDevices const &devices);
     void clear();
 
     VkDescriptorSetLayout descriptorSetLayout{};
     VkPipelineLayout pipelineLayout{};
-    VkDescriptorPool descriptorPool{};
 
   protected:
     VulkanDevices _devices;
@@ -31,20 +29,10 @@ class AVulkanPipelineDescription
 
 template<class Child>
 void
-AVulkanPipelineDescription<Child>::init(VulkanDevices const &devices,
-                                        uint32_t descriptorCount)
+AVulkanPipelineDescription<Child>::init(VulkanDevices const &devices)
 {
     _devices = devices;
-    static_cast<Child &>(*this).implInit(devices, descriptorCount);
-}
-
-template<class Child>
-void
-AVulkanPipelineDescription<Child>::resize(uint32_t descriptorCount)
-{
-    vkDestroyDescriptorPool(_devices.device, descriptorPool, nullptr);
-    descriptorPool = nullptr;
-    static_cast<Child &>(*this).implResize(descriptorCount);
+    static_cast<Child &>(*this).implInit(devices);
 }
 
 template<class Child>
@@ -52,12 +40,10 @@ void
 AVulkanPipelineDescription<Child>::clear()
 {
     static_cast<Child &>(*this).implClear();
-    vkDestroyDescriptorPool(_devices.device, descriptorPool, nullptr);
     vkDestroyPipelineLayout(_devices.device, pipelineLayout, nullptr);
     vkDestroyDescriptorSetLayout(_devices.device, descriptorSetLayout, nullptr);
     descriptorSetLayout = nullptr;
     pipelineLayout = nullptr;
-    descriptorPool = nullptr;
 }
 
 #endif // PARTICLE_SYSTEM_VULKAN_AVULKANPIPELINEDESCRIPTION_HPP
