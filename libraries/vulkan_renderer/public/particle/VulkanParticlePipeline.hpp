@@ -52,6 +52,11 @@ class VulkanParticlePipeline final
     VulkanQueues _queues;
     VulkanCommandPools _cmdPools;
 
+    // Global
+    VkDescriptorPool _descriptorPool{};
+    VulkanParticlePipelineData _pipelineData;
+    VulkanParticleRenderPass _renderPass;
+
     // Vertex / Fragment shaders related
     VkPipeline _gfxPipeline{};
     VulkanParticleGfxPipelineDescription _gfxDescription;
@@ -64,11 +69,6 @@ class VulkanParticlePipeline final
     VulkanParticleComputePipelineDescription _computeDescription;
     std::vector<VkDescriptorSet> _computeDescriptorSet{};
     VkPipeline _compMoveForwardPipeline{};
-
-    // Global
-    VkDescriptorPool _descriptorPool{};
-    VulkanParticlePipelineData _pipelineData;
-    VulkanParticleRenderPass _renderPass;
 
     inline void createGfxPipeline(VulkanSwapChain const &swapChain);
     inline void createDescriptorPool(uint32_t descriptorCount);

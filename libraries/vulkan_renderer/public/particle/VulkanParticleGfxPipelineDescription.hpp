@@ -34,7 +34,7 @@ class VulkanParticleGfxPipelineDescription
       inputAttributeDescription{ { { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0 } } };
 
   protected:
-    static constexpr std::array<VkDescriptorSetLayoutBinding, 3> const
+    static constexpr std::array<VkDescriptorSetLayoutBinding, 2> const
       descriptorBindings{ { { 0,
                               VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                               1,

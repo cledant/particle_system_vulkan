@@ -30,7 +30,7 @@ class VulkanParticleComputePipelineDescription
     uint32_t workGroupSize{};
 
   protected:
-    static constexpr std::array<VkDescriptorSetLayoutBinding, 3> const
+    static constexpr std::array<VkDescriptorSetLayoutBinding, 2> const
       descriptorBindings{ { { 0,
                               VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
                               1,

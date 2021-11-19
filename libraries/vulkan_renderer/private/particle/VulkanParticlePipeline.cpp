@@ -62,51 +62,44 @@ VulkanParticlePipeline::resize(VulkanSwapChain const &swapChain,
 {
     (void)swapChain;
     (void)systemUbo;
-/*    vkDestroyBuffer(_devices.device, _particle_uniform, nullptr);
-    vkFreeMemory(_devices.device, _particle_uniform_memory, nullptr);
-    vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
-    vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
-    _renderPass.resize(swapChain);
+    /*    vkDestroyBuffer(_devices.device, _particle_uniform, nullptr);
+        vkFreeMemory(_devices.device, _particle_uniform_memory, nullptr);
+        vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
+        vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
+        _renderPass.resize(swapChain);
 
-    _create_particle_debug_uniform_buffer(swapChain.currentSwapChainNbImg);
-    _create_pipeline_layout();
-    createGfxPipeline(swapChain);
-    vkDestroyDescriptorPool(
-      _devices.device, _pipelineData.descriptorPool, nullptr);
-    createDescriptorPool(swapChain, _pipelineData);
-    createGfxDescriptorSets(swapChain, _pipelineData, systemUbo);
-    createComputeDescriptorSets(_pipelineData);*/
+        _create_particle_debug_uniform_buffer(swapChain.currentSwapChainNbImg);
+        _create_pipeline_layout();
+        createGfxPipeline(swapChain);
+        vkDestroyDescriptorPool(
+          _devices.device, _pipelineData.descriptorPool, nullptr);
+        createDescriptorPool(swapChain, _pipelineData);
+        createGfxDescriptorSets(swapChain, _pipelineData, systemUbo);
+        createComputeDescriptorSets(_pipelineData);*/
 }
 
 void
 VulkanParticlePipeline::clear()
 {
-/*    vkDestroyBuffer(_devices.device, _particle_compute_uniform, nullptr);
-    vkFreeMemory(_devices.device, _particle_compute_uniform_memory, nullptr);
-    vkDestroyBuffer(_devices.device, _particle_uniform, nullptr);
-    vkFreeMemory(_devices.device, _particle_uniform_memory, nullptr);
     vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
-    vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
-    _renderPass.clear();
-    vkDestroyDescriptorSetLayout(
-      _devices.device, _descriptor_set_layout, nullptr);
-    vkDestroyBuffer(_devices.device, _pipelineData.buffer, nullptr);
-    vkFreeMemory(_devices.device, _pipelineData.memory, nullptr);
-    vkDestroyDescriptorPool(
-      _devices.device, _pipelineData.descriptorPool, nullptr);
-
+    _gfxUniform.clear();
+    _gfxDescription.clear();
     vkDestroyPipeline(_devices.device, _compMoveForwardPipeline, nullptr);
-    vkDestroyPipelineLayout(_devices.device, _compute_pipeline_layout, nullptr);
-    vkDestroyDescriptorSetLayout(
-      _devices.device, _compute_descriptor_set_layout, nullptr);
+    _computeUniform.clear();
+    _computeDescription.clear();
+    _pipelineData.clear();
+    _renderPass.clear();
+    vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
 
     _devices = VulkanDevices{};
     _queues = VulkanQueues{};
     _cmdPools = VulkanCommandPools{};
-    _descriptor_set_layout = nullptr;
-    _pipeline_layout = nullptr;
+    _descriptorPool = nullptr;
     _gfxPipeline = nullptr;
-    _pipelineData.clear();*/
+    _gfxDescriptorSets.clear();
+    _gfxUbo = ParticleGfxUbo{};
+    _compMoveForwardPipeline = nullptr;
+    _computeDescriptorSet.clear();
 }
 
 void
@@ -114,8 +107,7 @@ VulkanParticlePipeline::setParticleNumber(uint32_t nbParticles,
                                           VulkanSwapChain const &swapChain,
                                           VkBuffer systemUbo)
 {
-    vkDestroyDescriptorPool(
-      _devices.device, _descriptorPool, nullptr);
+    vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
     _pipelineData.data.clear();
 
     _pipelineData.init(_devices, nbParticles);
@@ -385,17 +377,15 @@ VulkanParticlePipeline::createDescriptorPool(uint32_t descriptorCount)
 
 void
 VulkanParticlePipeline::createGfxDescriptorSets(VkBuffer systemUbo,
-                                             uint32_t descriptorCount)
+                                                uint32_t descriptorCount)
 {
-    uint32_t totalDescriptorCount = descriptorCount + 1;
-
     allocateDescriptorSets(_devices,
                            _descriptorPool,
                            _gfxDescription.descriptorSetLayout,
-                           totalDescriptorCount,
+                           descriptorCount,
                            _gfxDescriptorSets);
 
-    for (size_t i = 0; i < totalDescriptorCount; ++i) {
+    for (size_t i = 0; i < descriptorCount; ++i) {
         std::array<VkWriteDescriptorSet, 2> descriptor_write{};
 
         // System UBO
