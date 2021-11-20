@@ -60,22 +60,21 @@ void
 VulkanParticlePipeline::resize(VulkanSwapChain const &swapChain,
                                VkBuffer systemUbo)
 {
-    (void)swapChain;
-    (void)systemUbo;
-    /*    vkDestroyBuffer(_devices.device, _particle_uniform, nullptr);
-        vkFreeMemory(_devices.device, _particle_uniform_memory, nullptr);
-        vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
-        vkDestroyPipelineLayout(_devices.device, _pipeline_layout, nullptr);
-        _renderPass.resize(swapChain);
+    _gfxUniform.clear();
+    vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
+    vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
 
-        _create_particle_debug_uniform_buffer(swapChain.currentSwapChainNbImg);
-        _create_pipeline_layout();
-        createGfxPipeline(swapChain);
-        vkDestroyDescriptorPool(
-          _devices.device, _pipelineData.descriptorPool, nullptr);
-        createDescriptorPool(swapChain, _pipelineData);
-        createGfxDescriptorSets(swapChain, _pipelineData, systemUbo);
-        createComputeDescriptorSets(_pipelineData);*/
+    _renderPass.resize(swapChain);
+    _gfxUniform.allocate(_devices,
+                         sizeof(ParticleGfxUbo) *
+                           swapChain.currentSwapChainNbImg,
+                         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    createGfxPipeline(swapChain);
+    createDescriptorPool(swapChain.currentSwapChainNbImg);
+    createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
+    createComputeDescriptorSets();
 }
 
 void
