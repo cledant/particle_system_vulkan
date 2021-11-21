@@ -70,14 +70,14 @@ class VulkanRenderer final
     static constexpr glm::vec3 const DEFAULT_PARTICLES_GRAVITY_CENTER{};
 
   private:
-    std::string _app_name;
-    std::string _engine_name;
-    uint32_t _app_version{};
-    uint32_t _engine_version{};
+    std::string _appName;
+    std::string _engineName;
+    uint32_t _appVersion{};
+    uint32_t _engineVersion{};
 
-    VulkanInstance _vk_instance;
-    VulkanTextureManager _tex_manager;
-    VulkanSwapChain _swap_chain;
+    VulkanInstance _vkInstance;
+    VulkanTextureManager _texManager;
+    VulkanSwapChain _swapChain;
     VulkanSync _sync;
     VulkanUi _ui;
     VulkanSkyboxPipeline _skybox;
@@ -93,8 +93,8 @@ class VulkanRenderer final
     VulkanBuffer _system_uniform{};
 
     // Cmd Buffers
-    std::vector<VkCommandBuffer> _render_command_buffers;
-    std::vector<VkCommandBuffer> _compute_command_buffers;
+    std::vector<VkCommandBuffer> _renderCommandBuffers;
+    std::vector<VkCommandBuffer> _computeCommandBuffers;
 
     inline void recordRenderCmds();
     inline void recordComputeCmds(VulkanParticleComputeShaderType type,
