@@ -49,6 +49,7 @@ class VulkanParticlePipeline final
                            VkBuffer systemUbo);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+    void setDeltatT(float deltaT);
     void setGfxUboOnGpu(uint32_t currentImg);
     void setCompUboOnGpu();
 

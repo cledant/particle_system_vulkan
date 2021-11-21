@@ -17,8 +17,13 @@ layout(binding = 0) buffer Pos
 };
 
 layout(binding = 1) uniform ParticleComputeUbo {
+    vec3 genCenter;
+    vec2 range;
+    uvec2 seedX;
+    uvec2 seedY;
+    uvec2 seedZ;
     uint particleCount;
-    uint seed;
+    float deltaT;
 } particleComputeUbo;
 
 
@@ -30,5 +35,5 @@ void main()
     }
 
     vec3 readPos = particles[index].pos.xyz;
-    particles[index].pos.x = readPos.x + 0.01f;
+    particles[index].pos.x = readPos.x + (0.1f * particleComputeUbo.deltaT);
 }

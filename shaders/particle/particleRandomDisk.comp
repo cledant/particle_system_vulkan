@@ -17,12 +17,13 @@ layout(binding = 0) buffer Pos
 };
 
 layout(binding = 1) uniform ParticleComputeUbo {
-    uint particleCount;
     vec3 genCenter;
     vec2 range;
     uvec2 seedX;
     uvec2 seedY;
     uvec2 seedZ;
+    uint particleCount;
+    float deltaT;
 } ubo;
 
 uint random_number_generator(uint index, uvec2 randoms)

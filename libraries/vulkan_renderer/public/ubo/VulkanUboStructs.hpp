@@ -19,12 +19,13 @@ struct ParticleGfxUbo final
 
 struct ParticleComputeUbo final
 {
-    alignas(16) uint32_t nbParticles{};
     alignas(16) glm::vec3 genCenter{};
-    alignas(16) glm::vec2 range{};
-    alignas(16) glm::uvec2 seedX{};
-    alignas(16) glm::uvec2 seedY{};
-    alignas(16) glm::uvec2 seedZ{};
+    alignas(8) glm::vec2 range{};
+    alignas(8) glm::uvec2 seedX{};
+    alignas(8) glm::uvec2 seedY{};
+    alignas(8) glm::uvec2 seedZ{};
+    alignas(4) uint32_t nbParticles{};
+    alignas(4) float deltaT{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_VULKANUBOSTRUCTS_HPP

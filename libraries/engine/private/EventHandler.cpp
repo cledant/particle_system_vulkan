@@ -124,6 +124,9 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
     _skybox->position = _camera->getPosition();
     _renderer->setSkyboxInfo(_skybox->computeInstanceMatrix(glm::vec3(0.0f)));
 
+    // Compute
+    _renderer->setDeltaT(_timers.timer_diff[ET_CAMERA]);
+
     // Resized window case
     if (_io_manager->wasResized()) {
         // VK Renderer related

@@ -59,6 +59,7 @@ class VulkanRenderer final
     void setParticlesNumber(uint32_t nbParticles);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+    void setDeltaT(float deltaT);
 
     // Render related
     void draw(glm::mat4 const &view_proj_mat);
@@ -90,7 +91,7 @@ class VulkanRenderer final
     VulkanParticleComputeShaderType _randomCompShader = VPCST_RANDOM_CUBE;
 
     // Renderer global uniform
-    VulkanBuffer _system_uniform{};
+    VulkanBuffer _systemUniform{};
 
     // Cmd Buffers
     std::vector<VkCommandBuffer> _renderCommandBuffers;

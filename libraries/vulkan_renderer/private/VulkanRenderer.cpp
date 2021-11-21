@@ -47,7 +47,7 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
     _texManager.init(_vkInstance);
     _swapChain.init(_vkInstance, win_w, win_h);
     _sync.init(_vkInstance, _swapChain.swapChainImageViews.size());
-    _system_uniform.allocate(_vkInstance.devices,
+    _systemUniform.allocate(_vkInstance.devices,
                              sizeof(SystemUbo) *
                                _swapChain.currentSwapChainNbImg,
                              VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -59,12 +59,12 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                  "resources/textures/skybox",
                  "jpg",
                  _texManager,
-                 _system_uniform.buffer);
+                 _systemUniform.buffer);
     _particle.init(_vkInstance,
                    _swapChain,
                    DEFAULT_NB_PARTICLES,
                    DEFAULT_PARTICLES_COLOR,
-                   _system_uniform.buffer);
+                   _systemUniform.buffer);
     recordRenderCmds();
     _updateComputeCmds = true;
 }
@@ -79,16 +79,16 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
 
     _swapChain.resize(win_w, win_h);
     _sync.resize(_swapChain.currentSwapChainNbImg);
-    _system_uniform.clear();
-    _system_uniform.allocate(_vkInstance.devices,
+    _systemUniform.clear();
+    _systemUniform.allocate(_vkInstance.devices,
                              sizeof(SystemUbo) *
                                _swapChain.currentSwapChainNbImg,
                              VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     _ui.resize(_swapChain);
-    _skybox.resize(_swapChain, _system_uniform.buffer);
-    _particle.resize(_swapChain, _system_uniform.buffer);
+    _skybox.resize(_swapChain, _systemUniform.buffer);
+    _particle.resize(_swapChain, _systemUniform.buffer);
     recordRenderCmds();
     _updateComputeCmds = true;
 }
@@ -103,7 +103,7 @@ VulkanRenderer::clear()
     _sync.clear();
     _swapChain.clear();
     _texManager.clear();
-    _system_uniform.clear();
+    _systemUniform.clear();
     _vkInstance.clear();
 }
 
@@ -173,7 +173,7 @@ VulkanRenderer::setParticlesNumber(uint32_t nbParticles)
 {
     vkDeviceWaitIdle(_vkInstance.devices.device);
     _particle.setParticleNumber(
-      nbParticles, _swapChain, _system_uniform.buffer);
+      nbParticles, _swapChain, _systemUniform.buffer);
     recordRenderCmds();
     _doParticleMvt = false;
     _doParticleGeneration = true;
@@ -190,6 +190,12 @@ void
 VulkanRenderer::setParticleGravityCenter(glm::vec3 const &particleGravityCenter)
 {
     _particle.setParticleGravityCenter(particleGravityCenter);
+}
+
+void
+VulkanRenderer::setDeltaT(float deltaT)
+{
+    _particle.setDeltatT(deltaT);
 }
 
 // Render Related
@@ -319,7 +325,6 @@ void
 VulkanRenderer::selectComputeCase()
 {
     if (_updateComputeCmds) {
-        _particle.setCompUboOnGpu();
         if (_doParticleGeneration) {
             recordComputeCmds(_randomCompShader, true);
             _doParticleGeneration = false;
@@ -343,13 +348,14 @@ VulkanRenderer::emitDrawCmds(uint32_t img_index, glm::mat4 const &view_proj_mat)
 {
     // Update UBOs
     copyOnCpuCoherentMemory(_vkInstance.devices.device,
-                            _system_uniform.memory,
+                            _systemUniform.memory,
                             img_index * sizeof(SystemUbo) +
                               offsetof(SystemUbo, view_proj),
                             sizeof(glm::mat4),
                             &view_proj_mat);
     _skybox.setSkyboxModelMatOnGpu(img_index);
     _particle.setGfxUboOnGpu(img_index);
+    _particle.setCompUboOnGpu();
 
     // Send Compute rendering
     VkSemaphore wait_compute_sems[] = {

@@ -48,12 +48,6 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                              VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    ParticleComputeUbo ubo{ _pipelineData.nbParticles };
-    copyOnCpuCoherentMemory(_devices.device,
-                            _computeUniform.memory,
-                            0,
-                            sizeof(ParticleComputeUbo),
-                            &ubo);
     _computeDescription.init(_devices);
     createComputePipeline();
     createComputeDescriptorSets();
@@ -140,6 +134,12 @@ VulkanParticlePipeline::setParticleGravityCenter(
   glm::vec3 const &particleGravityCenter)
 {
     _gfxUbo.center = particleGravityCenter;
+}
+
+void
+VulkanParticlePipeline::setDeltatT(float deltaT)
+{
+    _compUbo.deltaT = deltaT;
 }
 
 void
