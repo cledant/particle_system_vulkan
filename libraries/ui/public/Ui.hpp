@@ -28,6 +28,7 @@ enum UiEventTypes
     UET_GENERATE_CUBE,
     UET_SET_PARTICLES_NUMBER,
     UET_SET_PARTICLES_COLOR,
+    UET_GENERATE_DISK,
     UET_TOTAL_NB,
 };
 
@@ -78,6 +79,7 @@ class Ui final
     // Edit
     bool _generate_sphere = false;
     bool _generate_cube = true;
+    bool _generate_disk = false;
     uint32_t _nb_particles{};
     UiSimpleInputWindow _particle_input_win{};
     UiRGBColorInputWindow _particle_color_input;

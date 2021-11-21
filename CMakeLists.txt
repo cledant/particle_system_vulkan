@@ -121,7 +121,7 @@ target_include_directories(${APP_BINARY_NAME}
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/binary/private)
 target_link_libraries(${APP_BINARY_NAME} iomanager engine vulkan)
-add_dependencies(${APP_BINARY_NAME} iomanager engine skybox_shader particle_debug_shader ui)
+add_dependencies(${APP_BINARY_NAME} iomanager engine skybox_shader particle_shader ui)
 set_target_properties(${APP_BINARY_NAME} PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED YES

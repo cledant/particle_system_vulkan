@@ -89,6 +89,7 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
           &EventHandler::_ui_generate_cube,
           &EventHandler::_ui_particle_number,
           &EventHandler::_ui_particle_color,
+          &EventHandler::_ui_generate_disk,
       };
 
     // Checking Timers
@@ -385,6 +386,12 @@ void
 EventHandler::_ui_particle_color()
 {
     _renderer->setParticlesColor(_ui->getParticlesColor());
+}
+
+void
+EventHandler::_ui_generate_disk()
+{
+    _renderer->setParticleGenerationType(VulkanParticleGenerationType::DISK);
 }
 
 void

@@ -180,10 +180,17 @@ Ui::_draw_edit_panel()
         if ((_ui_events.events[UET_GENERATE_SPHERE] =
                ImGui::MenuItem("Sphere", "", &_generate_sphere))) {
             _generate_cube = false;
+            _generate_disk = false;
         }
         if ((_ui_events.events[UET_GENERATE_CUBE] =
                ImGui::MenuItem("Cube", "", &_generate_cube))) {
             _generate_sphere = false;
+            _generate_disk = false;
+        }
+        if ((_ui_events.events[UET_GENERATE_DISK] =
+               ImGui::MenuItem("Disk", "", &_generate_disk))) {
+            _generate_sphere = false;
+            _generate_cube = false;
         }
         ImGui::EndMenu();
     }

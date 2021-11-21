@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(particle_sys_particle_debug_shader)
+project(particle_sys_particle_shader)
 
 set(SHADER_NAME particle)
 set(SHADER_SOURCE_FOLDER
@@ -13,12 +13,14 @@ set(SHADERS
         ${SHADER_SOURCE_FOLDER}/particleMoveForward.comp
         ${SHADER_SOURCE_FOLDER}/particleRandomCube.comp
         ${SHADER_SOURCE_FOLDER}/particleRandomSphere.comp
+        ${SHADER_SOURCE_FOLDER}/particleRandomDisk.comp
         ${SHADER_SOURCE_FOLDER}/particle.vert)
 set(COMPILED_SHADERS
         ${SHADER_RUNTIME_FOLDER}/particle.frag.spv
         ${SHADER_RUNTIME_FOLDER}/particleMoveForward.comp.spv
         ${SHADER_RUNTIME_FOLDER}/particleRandomCube.comp.spv
         ${SHADER_RUNTIME_FOLDER}/particleRandomSphere.comp.spv
+        ${SHADER_RUNTIME_FOLDER}/particleRandomDisk.comp.spv
         ${SHADER_RUNTIME_FOLDER}/particle.vert.spv)
 
 file(MAKE_DIRECTORY ${SHADER_RUNTIME_FOLDER})
@@ -37,4 +39,4 @@ foreach (SHADER COMPILED_SHADER IN ZIP_LISTS SHADERS COMPILED_SHADERS)
     )
 endforeach ()
 
-add_custom_target(particle_debug_shader DEPENDS ${COMPILED_SHADERS})
+add_custom_target(particle_shader DEPENDS ${COMPILED_SHADERS})

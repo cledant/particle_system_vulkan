@@ -157,6 +157,9 @@ VulkanRenderer::setParticleGenerationType(VulkanParticleGenerationType type)
         case VulkanParticleGenerationType::SPHERE:
             _randomCompShader = VPCST_RANDOM_SPHERE;
             break;
+        case VulkanParticleGenerationType::DISK:
+            _randomCompShader = VPCST_RANDOM_DISK;
+            break;
         default:
             _randomCompShader = VPCST_RANDOM_CUBE;
     }

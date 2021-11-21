@@ -100,6 +100,7 @@ class EventHandler final
     inline void _ui_generate_cube();
     inline void _ui_particle_number();
     inline void _ui_particle_color();
+    inline void _ui_generate_disk();
 
     // Camera Related
     inline void _update_camera(glm::vec2 const &mouse_pos);

@@ -20,6 +20,7 @@ enum class VulkanParticleGenerationType
 {
     CUBE,
     SPHERE,
+    DISK,
 };
 
 class VulkanRenderer final
