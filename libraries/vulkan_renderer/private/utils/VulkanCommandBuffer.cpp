@@ -59,3 +59,24 @@ createCommandPool(VkDevice device,
     }
     return (cmd_pool);
 }
+
+void
+allocateCommandBuffers(VkDevice device,
+                       VkCommandPool cmdPool,
+                       std::vector<VkCommandBuffer> &cmdBuffers,
+                       uint32_t nbCmdBuffers)
+{
+    cmdBuffers.resize(nbCmdBuffers);
+
+    VkCommandBufferAllocateInfo cb_allocate_info{};
+    cb_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cb_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    cb_allocate_info.commandPool = cmdPool;
+    cb_allocate_info.commandBufferCount = cmdBuffers.size();
+
+    if (vkAllocateCommandBuffers(
+          device, &cb_allocate_info, cmdBuffers.data()) != VK_SUCCESS) {
+        throw std::runtime_error(
+          "Vulkan: Failed to allocate render command buffers");
+    }
+}

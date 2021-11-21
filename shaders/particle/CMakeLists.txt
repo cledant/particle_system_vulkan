@@ -11,10 +11,14 @@ set(SHADER_RUNTIME_FOLDER
 set(SHADERS
         ${SHADER_SOURCE_FOLDER}/particle.frag
         ${SHADER_SOURCE_FOLDER}/particleMoveForward.comp
+        ${SHADER_SOURCE_FOLDER}/particleRandomCube.comp
+        ${SHADER_SOURCE_FOLDER}/particleRandomSphere.comp
         ${SHADER_SOURCE_FOLDER}/particle.vert)
 set(COMPILED_SHADERS
         ${SHADER_RUNTIME_FOLDER}/particle.frag.spv
         ${SHADER_RUNTIME_FOLDER}/particleMoveForward.comp.spv
+        ${SHADER_RUNTIME_FOLDER}/particleRandomCube.comp.spv
+        ${SHADER_RUNTIME_FOLDER}/particleRandomSphere.comp.spv
         ${SHADER_RUNTIME_FOLDER}/particle.vert.spv)
 
 file(MAKE_DIRECTORY ${SHADER_RUNTIME_FOLDER})

@@ -37,7 +37,10 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     createGfxPipeline(swapChain);
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
-    generateParticlesOnCpu();
+    _compUbo.nbParticles = nbParticles;
+    _compUbo.range = glm::vec2(-5.0f, 5.0f);
+    _compUbo.genCenter = glm::vec3(0.0f);
+    generateRandomSeed();
 
     // Compute shaders related
     _computeUniform.allocate(_devices,
@@ -83,7 +86,9 @@ VulkanParticlePipeline::clear()
     vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
     _gfxUniform.clear();
     _gfxDescription.clear();
-    vkDestroyPipeline(_devices.device, _compMoveForwardPipeline, nullptr);
+    for (auto const &it_shader : _compShaders) {
+        vkDestroyPipeline(_devices.device, it_shader, nullptr);
+    }
     _computeUniform.clear();
     _computeDescription.clear();
     _pipelineData.clear();
@@ -97,7 +102,7 @@ VulkanParticlePipeline::clear()
     _gfxPipeline = nullptr;
     _gfxDescriptorSets.clear();
     _gfxUbo = ParticleGfxUbo{};
-    _compMoveForwardPipeline = nullptr;
+    _compShaders = std::array<VkPipeline, VPCST_NB>{};
     _computeDescriptorSet.clear();
 }
 
@@ -110,16 +115,18 @@ VulkanParticlePipeline::setParticleNumber(uint32_t nbParticles,
     _pipelineData.data.clear();
 
     _pipelineData.init(_devices, nbParticles);
-    generateParticlesOnCpu();
+    _compUbo.nbParticles = nbParticles;
+    _compUbo.range = glm::vec2(-5.0f, 5.0f);
+    _compUbo.genCenter = glm::vec3(0.0f);
+    generateRandomSeed();
     createDescriptorPool(swapChain.currentSwapChainNbImg);
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
     createComputeDescriptorSets();
-    ParticleComputeUbo ubo{ _pipelineData.nbParticles };
     copyOnCpuCoherentMemory(_devices.device,
                             _computeUniform.memory,
                             0,
                             sizeof(ParticleComputeUbo),
-                            &ubo);
+                            &_compUbo);
 }
 
 void
@@ -136,13 +143,23 @@ VulkanParticlePipeline::setParticleGravityCenter(
 }
 
 void
-VulkanParticlePipeline::setUniformOnGpu(uint32_t currentImg)
+VulkanParticlePipeline::setGfxUboOnGpu(uint32_t currentImg)
 {
     copyOnCpuCoherentMemory(_devices.device,
                             _gfxUniform.memory,
                             currentImg * sizeof(ParticleGfxUbo),
                             sizeof(ParticleGfxUbo),
                             &_gfxUbo);
+}
+
+void
+VulkanParticlePipeline::setCompUboOnGpu()
+{
+    copyOnCpuCoherentMemory(_devices.device,
+                            _computeUniform.memory,
+                            0,
+                            sizeof(ParticleComputeUbo),
+                            &_compUbo);
 }
 
 VulkanParticleRenderPass const &
@@ -174,10 +191,12 @@ VulkanParticlePipeline::generateCommands(VkCommandBuffer cmdBuffer,
 }
 
 void
-VulkanParticlePipeline::generateComputeCommands(VkCommandBuffer cmdBuffer)
+VulkanParticlePipeline::generateComputeCommands(
+  VkCommandBuffer cmdBuffer,
+  VulkanParticleComputeShaderType type)
 {
     vkCmdBindPipeline(
-      cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _compMoveForwardPipeline);
+      cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _compShaders[type]);
     vkCmdBindDescriptorSets(cmdBuffer,
                             VK_PIPELINE_BIND_POINT_COMPUTE,
                             _computeDescription.pipelineLayout,
@@ -426,74 +445,66 @@ VulkanParticlePipeline::createGfxDescriptorSets(VkBuffer systemUbo,
 }
 
 void
-VulkanParticlePipeline::generateParticlesOnCpu() const
+VulkanParticlePipeline::generateRandomSeed()
 {
     std::vector<VulkanParticle> particles(_pipelineData.nbParticles);
 
     std::random_device rd;
     std::mt19937_64 gen(rd());
-    std::uniform_real_distribution<float> dist(-5.0f, 5.0f);
+    std::uniform_int_distribution<uint32_t> dist;
 
-    for (uint64_t i = 0; i < _pipelineData.nbParticles; ++i) {
-        particles[i].position = glm::vec3(dist(gen), dist(gen), dist(gen));
-    }
-
-    VkDeviceSize buff_size = sizeof(glm::vec3) * _pipelineData.nbParticles;
-    copyCpuBufferToGpu(_devices.device,
-                       _devices.physicalDevice,
-                       _cmdPools.renderCommandPool,
-                       _queues.graphicQueue,
-                       _pipelineData.data.buffer,
-                       &particles[0],
-                       { 0, 0, buff_size });
+    _compUbo.seedX = glm::uvec2(dist(gen), dist(gen));
+    _compUbo.seedY = glm::uvec2(dist(gen), dist(gen));
+    _compUbo.seedZ = glm::uvec2(dist(gen), dist(gen));
 }
 
 void
 VulkanParticlePipeline::createComputePipeline()
 {
-    // Shaders
-    auto comp_shader =
-      loadShader(_devices.device,
-                 "resources/shaders/particle/particleMoveForward.comp.spv");
+    size_t i = 0;
+    for (auto const &it : COMPUTE_SHADER_PATH) {
+        auto comp_shader = loadShader(_devices.device, it);
 
-    VkPipelineShaderStageCreateInfo comp_shader_info{};
-    comp_shader_info.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    comp_shader_info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-    comp_shader_info.module = comp_shader;
-    comp_shader_info.pName = "main";
+        VkPipelineShaderStageCreateInfo comp_shader_info{};
+        comp_shader_info.sType =
+          VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        comp_shader_info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        comp_shader_info.module = comp_shader;
+        comp_shader_info.pName = "main";
 
-    // Compute pipeline specialization info
-    std::array<VkSpecializationMapEntry, 1> speData{};
-    speData[0].constantID = 0;
-    speData[0].offset = 0;
-    speData[0].size = sizeof(uint32_t);
+        // Compute pipeline specialization info
+        std::array<VkSpecializationMapEntry, 1> speData{};
+        speData[0].constantID = 0;
+        speData[0].offset = 0;
+        speData[0].size = sizeof(uint32_t);
 
-    VkSpecializationInfo speInfo{};
-    speInfo.dataSize = sizeof(uint32_t);
-    speInfo.mapEntryCount = speData.size();
-    speInfo.pMapEntries = speData.data();
-    speInfo.pData = &_computeDescription.workGroupSize;
+        VkSpecializationInfo speInfo{};
+        speInfo.dataSize = sizeof(uint32_t);
+        speInfo.mapEntryCount = speData.size();
+        speInfo.pMapEntries = speData.data();
+        speInfo.pData = &_computeDescription.workGroupSize;
 
-    // Compute pipeline creation
-    VkComputePipelineCreateInfo comp_pipeline_info{};
-    comp_pipeline_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-    comp_pipeline_info.layout = _computeDescription.pipelineLayout;
-    comp_pipeline_info.flags = 0;
-    comp_pipeline_info.stage = comp_shader_info;
-    comp_pipeline_info.stage.pSpecializationInfo = &speInfo;
+        // Compute pipeline creation
+        VkComputePipelineCreateInfo comp_pipeline_info{};
+        comp_pipeline_info.sType =
+          VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+        comp_pipeline_info.layout = _computeDescription.pipelineLayout;
+        comp_pipeline_info.flags = 0;
+        comp_pipeline_info.stage = comp_shader_info;
+        comp_pipeline_info.stage.pSpecializationInfo = &speInfo;
 
-    if (vkCreateComputePipelines(_devices.device,
-                                 VK_NULL_HANDLE,
-                                 1,
-                                 &comp_pipeline_info,
-                                 nullptr,
-                                 &_compMoveForwardPipeline) != VK_SUCCESS) {
-        throw std::runtime_error(
-          "VulkanParticlePipeline: Failed to create compute pipeline");
+        if (vkCreateComputePipelines(_devices.device,
+                                     VK_NULL_HANDLE,
+                                     1,
+                                     &comp_pipeline_info,
+                                     nullptr,
+                                     &_compShaders[i]) != VK_SUCCESS) {
+            throw std::runtime_error(
+              "VulkanParticlePipeline: Failed to create compute pipeline");
+        }
+        vkDestroyShaderModule(_devices.device, comp_shader, nullptr);
+        ++i;
     }
-
-    vkDestroyShaderModule(_devices.device, comp_shader, nullptr);
 }
 
 void

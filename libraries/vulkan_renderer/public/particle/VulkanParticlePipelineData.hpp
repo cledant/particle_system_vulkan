@@ -12,7 +12,9 @@
 
 struct VulkanParticle
 {
-    alignas(16) glm::vec3 position;
+    alignas(16) glm::vec3 pos;
+    alignas(16) glm::vec3 vel;
+    alignas(16) glm::vec3 acc;
 };
 
 struct VulkanParticlePipelineData

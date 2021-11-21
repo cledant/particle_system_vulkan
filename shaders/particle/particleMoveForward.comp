@@ -5,6 +5,8 @@
 struct Particle
 {
     vec4 pos;
+    vec4 speed;
+    vec4 acc;
 };
 
 layout (local_size_x_id = 0) in;
@@ -16,6 +18,7 @@ layout(binding = 0) buffer Pos
 
 layout(binding = 1) uniform ParticleComputeUbo {
     uint particleCount;
+    uint seed;
 } particleComputeUbo;
 
 

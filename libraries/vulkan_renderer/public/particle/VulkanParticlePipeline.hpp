@@ -16,6 +16,14 @@
 #include "VulkanParticleGfxPipelineDescription.hpp"
 #include "VulkanParticleComputePipelineDescription.hpp"
 
+enum VulkanParticleComputeShaderType
+{
+    VPCST_RANDOM_CUBE = 0,
+    VPCST_RANDOM_SPHERE,
+    VPCST_MOVE_FOWWARD,
+    VPCST_NB,
+};
+
 class VulkanParticlePipeline final
 {
   public:
@@ -40,11 +48,13 @@ class VulkanParticlePipeline final
                            VkBuffer systemUbo);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
-    void setUniformOnGpu(uint32_t currentImg);
+    void setGfxUboOnGpu(uint32_t currentImg);
+    void setCompUboOnGpu();
 
     [[nodiscard]] VulkanParticleRenderPass const &getRenderPass() const;
     void generateCommands(VkCommandBuffer cmdBuffer, size_t descriptorSetIndex);
-    void generateComputeCommands(VkCommandBuffer cmdBuffer);
+    void generateComputeCommands(VkCommandBuffer cmdBuffer,
+                                 VulkanParticleComputeShaderType type);
 
   private:
     // Vulkan related
@@ -68,13 +78,21 @@ class VulkanParticlePipeline final
     VulkanBuffer _computeUniform;
     VulkanParticleComputePipelineDescription _computeDescription;
     std::vector<VkDescriptorSet> _computeDescriptorSet{};
-    VkPipeline _compMoveForwardPipeline{};
+    std::array<VkPipeline, VPCST_NB> _compShaders{};
+    ParticleComputeUbo _compUbo{};
+
+    static constexpr std::array<char const *, VPCST_NB> const
+      COMPUTE_SHADER_PATH = {
+          "resources/shaders/particle/particleRandomCube.comp.spv",
+          "resources/shaders/particle/particleRandomSphere.comp.spv",
+          "resources/shaders/particle/particleMoveForward.comp.spv"
+      };
 
     inline void createGfxPipeline(VulkanSwapChain const &swapChain);
     inline void createDescriptorPool(uint32_t descriptorCount);
     inline void createGfxDescriptorSets(VkBuffer systemUbo,
                                         uint32_t descriptorCount);
-    inline void generateParticlesOnCpu() const;
+    inline void generateRandomSeed();
     inline void createComputePipeline();
     inline void createComputeDescriptorSets();
 };

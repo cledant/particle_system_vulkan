@@ -6,7 +6,6 @@
 #include <cstring>
 
 #include "VulkanDebug.hpp"
-#include "utils/VulkanSwapChainUtils.hpp"
 #include "utils/VulkanCommandBuffer.hpp"
 #include "utils/VulkanMemory.hpp"
 #include "ubo/VulkanUboStructs.hpp"
@@ -66,8 +65,8 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                    DEFAULT_NB_PARTICLES,
                    DEFAULT_PARTICLES_COLOR,
                    _system_uniform.buffer);
-    _create_render_command_buffers();
-    _create_compute_command_buffers();
+    recordRenderCmds();
+    _updateComputeCmds = true;
 }
 
 void
@@ -90,8 +89,8 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
     _ui.resize(_swap_chain);
     _skybox.resize(_swap_chain, _system_uniform.buffer);
     _particle.resize(_swap_chain, _system_uniform.buffer);
-    _create_render_command_buffers();
-    _create_compute_command_buffers();
+    recordRenderCmds();
+    _updateComputeCmds = true;
 }
 
 void
@@ -142,26 +141,40 @@ VulkanRenderer::setSkyboxInfo(glm::mat4 const &skyboxInfo)
 
 // Particles related
 void
-VulkanRenderer::toggleUpdateParticlesPosition()
+VulkanRenderer::toggleParticlesMvt()
 {
-    _update_particle_positions = !_update_particle_positions;
+    _doParticleMvt = !_doParticleMvt;
+    _updateComputeCmds = true;
 }
 
 void
 VulkanRenderer::setParticleGenerationType(VulkanParticleGenerationType type)
 {
-    _particle_generation_type = type;
+    switch (type) {
+        case VulkanParticleGenerationType::CUBE:
+            _randomCompShader = VPCST_RANDOM_CUBE;
+            break;
+        case VulkanParticleGenerationType::SPHERE:
+            _randomCompShader = VPCST_RANDOM_SPHERE;
+            break;
+        default:
+            _randomCompShader = VPCST_RANDOM_CUBE;
+    }
+    _doParticleMvt = false;
+    _doParticleGeneration = true;
+    _updateComputeCmds = true;
 }
 
 void
-VulkanRenderer::setParticlesNumber(uint64_t nbParticles)
+VulkanRenderer::setParticlesNumber(uint32_t nbParticles)
 {
-    _update_particle_positions = false;
     vkDeviceWaitIdle(_vk_instance.devices.device);
     _particle.setParticleNumber(
       nbParticles, _swap_chain, _system_uniform.buffer);
-    _create_render_command_buffers();
-    _create_compute_command_buffers();
+    recordRenderCmds();
+    _doParticleMvt = false;
+    _doParticleGeneration = true;
+    _updateComputeCmds = true;
 }
 
 void
@@ -208,7 +221,8 @@ VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
     _sync.imgsInflightFence[img_index] =
       _sync.inflightFence[_sync.currentFrame];
 
-    _emit_render_and_ui_cmds(img_index, view_proj_mat);
+    selectComputeCase();
+    emitDrawCmds(img_index, view_proj_mat);
 
     VkSwapchainKHR swap_chains[] = { _swap_chain.swapChain };
     VkSemaphore present_wait_sems[] = {
@@ -228,23 +242,12 @@ VulkanRenderer::draw(glm::mat4 const &view_proj_mat)
 }
 
 void
-VulkanRenderer::_create_render_command_buffers()
+VulkanRenderer::recordRenderCmds()
 {
-    _render_command_buffers.resize(_swap_chain.swapChainImageViews.size());
-
-    VkCommandBufferAllocateInfo cb_allocate_info{};
-    cb_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    cb_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cb_allocate_info.commandPool = _vk_instance.cmdPools.renderCommandPool;
-    cb_allocate_info.commandBufferCount = _render_command_buffers.size();
-
-    if (vkAllocateCommandBuffers(_vk_instance.devices.device,
-                                 &cb_allocate_info,
-                                 _render_command_buffers.data()) !=
-        VK_SUCCESS) {
-        throw std::runtime_error(
-          "VulkanRenderer: Failed to allocate render command buffers");
-    }
+    allocateCommandBuffers(_vk_instance.devices.device,
+                           _vk_instance.cmdPools.renderCommandPool,
+                           _render_command_buffers,
+                           _swap_chain.swapChainImageViews.size());
 
     size_t i = 0;
     auto const &skybox_render_pass = _skybox.getVulkanSkyboxRenderPass();
@@ -284,41 +287,56 @@ VulkanRenderer::_create_render_command_buffers()
 }
 
 void
-VulkanRenderer::_create_compute_command_buffers()
+VulkanRenderer::recordComputeCmds(VulkanParticleComputeShaderType type,
+                                  bool registerCmd)
 {
-    _compute_command_buffers.resize(_swap_chain.swapChainImageViews.size());
-
-    VkCommandBufferAllocateInfo cb_allocate_info{};
-    cb_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    cb_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cb_allocate_info.commandPool = _vk_instance.cmdPools.computeCommandPool;
-    cb_allocate_info.commandBufferCount = _compute_command_buffers.size();
-
-    if (vkAllocateCommandBuffers(_vk_instance.devices.device,
-                                 &cb_allocate_info,
-                                 _compute_command_buffers.data()) !=
-        VK_SUCCESS) {
-        throw std::runtime_error(
-          "VulkanRenderer: Failed to allocate compute command buffers");
-    }
+    allocateCommandBuffers(_vk_instance.devices.device,
+                           _vk_instance.cmdPools.computeCommandPool,
+                           _compute_command_buffers,
+                           _swap_chain.swapChainImageViews.size());
 
     VkCommandBufferBeginInfo cb_begin_info{};
     cb_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     cb_begin_info.flags = 0;
     cb_begin_info.pInheritanceInfo = nullptr;
+
     for (auto &it : _compute_command_buffers) {
         if (vkBeginCommandBuffer(it, &cb_begin_info) != VK_SUCCESS) {
             throw std::runtime_error("VulkanRenderer: Failed to begin "
                                      "recording compute command buffer");
         }
-        _particle.generateComputeCommands(it);
+        if (registerCmd) {
+            _particle.generateComputeCommands(it, type);
+        }
         vkEndCommandBuffer(it);
     }
 }
 
 void
-VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
-                                         glm::mat4 const &view_proj_mat)
+VulkanRenderer::selectComputeCase()
+{
+    if (_updateComputeCmds) {
+        _particle.setCompUboOnGpu();
+        if (_doParticleGeneration) {
+            recordComputeCmds(_randomCompShader, true);
+            _doParticleGeneration = false;
+            return;
+        }
+        if (_doParticleMvt) {
+            recordComputeCmds(VPCST_MOVE_FOWWARD, true);
+            _updateComputeCmds = false;
+            return;
+        }
+        if (!_doParticleMvt) {
+            recordComputeCmds(VPCST_MOVE_FOWWARD, false);
+            _updateComputeCmds = false;
+            return;
+        }
+    }
+}
+
+void
+VulkanRenderer::emitDrawCmds(uint32_t img_index, glm::mat4 const &view_proj_mat)
 {
     // Update UBOs
     copyOnCpuCoherentMemory(_vk_instance.devices.device,
@@ -328,7 +346,7 @@ VulkanRenderer::_emit_render_and_ui_cmds(uint32_t img_index,
                             sizeof(glm::mat4),
                             &view_proj_mat);
     _skybox.setSkyboxModelMatOnGpu(img_index);
-    _particle.setUniformOnGpu(img_index);
+    _particle.setGfxUboOnGpu(img_index);
 
     // Send Compute rendering
     VkSemaphore wait_compute_sems[] = {

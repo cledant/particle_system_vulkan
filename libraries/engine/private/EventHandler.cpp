@@ -352,7 +352,7 @@ EventHandler::_ui_fullscreen()
 void
 EventHandler::_ui_pause_start_particles()
 {
-    _renderer->toggleUpdateParticlesPosition();
+    _renderer->toggleParticlesMvt();
 }
 
 void

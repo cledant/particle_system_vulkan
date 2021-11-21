@@ -53,19 +53,20 @@ class VulkanRenderer final
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
 
     // Particles related
-    void toggleUpdateParticlesPosition();
+    void toggleParticlesMvt();
     void setParticleGenerationType(VulkanParticleGenerationType type);
-    void setParticlesNumber(uint64_t nbParticles);
+    void setParticlesNumber(uint32_t nbParticles);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+
+    // Render related
+    void draw(glm::mat4 const &view_proj_mat);
+
     static constexpr uint64_t const DEFAULT_NB_PARTICLES = 1000000;
     static constexpr glm::vec3 const DEFAULT_PARTICLES_COLOR{ 0.0f,
                                                               0.5f,
                                                               0.3f };
     static constexpr glm::vec3 const DEFAULT_PARTICLES_GRAVITY_CENTER{};
-
-    // Render related
-    void draw(glm::mat4 const &view_proj_mat);
 
   private:
     std::string _app_name;
@@ -80,27 +81,26 @@ class VulkanRenderer final
     VulkanUi _ui;
     VulkanSkyboxPipeline _skybox;
     VulkanParticlePipeline _particle;
-    bool _update_particle_positions{};
-    VulkanParticleGenerationType _particle_generation_type{};
+
+    // Compute shader control
+    bool _doParticleGeneration = true;
+    bool _doParticleMvt = false;
+    bool _updateComputeCmds = true;
+    VulkanParticleComputeShaderType _randomCompShader = VPCST_RANDOM_CUBE;
 
     // Renderer global uniform
     VulkanBuffer _system_uniform{};
 
-    // Drawing related
+    // Cmd Buffers
     std::vector<VkCommandBuffer> _render_command_buffers;
-
-    // Compute related
     std::vector<VkCommandBuffer> _compute_command_buffers;
 
-    // Draw related fct
-    inline void _create_render_command_buffers();
-
-    // Compute related fct
-    inline void _create_compute_command_buffers();
-
-    // Draw command emission related
-    inline void _emit_render_and_ui_cmds(uint32_t img_index,
-                                         glm::mat4 const &view_proj_mat);
+    inline void recordRenderCmds();
+    inline void recordComputeCmds(VulkanParticleComputeShaderType type,
+                                  bool registerCmd);
+    inline void selectComputeCase();
+    inline void emitDrawCmds(uint32_t img_index,
+                             glm::mat4 const &view_proj_mat);
 };
 
 #endif // PARTICLE_SYS_VULKAN_VULKANRENDERER_HPP
