@@ -2,65 +2,18 @@
 #define PARTICLE_SYSTEM_SKYBOXMODEL_HPP
 
 #include <array>
-#include <vector>
-#include <unordered_map>
 
 #include "glm/glm.hpp"
 
-class SkyboxModel final
-{
-  public:
-    SkyboxModel();
-    ~SkyboxModel() = default;
-    SkyboxModel(SkyboxModel const &src) = delete;
-    SkyboxModel &operator=(SkyboxModel const &rhs) = delete;
-    SkyboxModel(SkyboxModel &&src) = delete;
-    SkyboxModel &operator=(SkyboxModel &&rhs) = delete;
+static constexpr std::array const SKYBOX_VERTICES = {
+    glm::vec3(-1, 1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1),
+    glm::vec3(1, 1, -1),  glm::vec3(-1, -1, 1),  glm::vec3(-1, 1, 1),
+    glm::vec3(1, -1, 1),  glm::vec3(1, 1, 1)
+};
 
-    [[nodiscard]] std::vector<glm::vec3> const &getVertexList() const;
-    [[nodiscard]] std::vector<uint32_t> const &getIndicesList() const;
-
-  private:
-    static constexpr std::array<glm::vec3, 36> const _skybox_vertices = {
-        glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
-        glm::vec3(1.0f, -1.0f, -1.0f),
-
-        glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, -1.0f),
-        glm::vec3(-1.0f, 1.0f, -1.0f),
-
-        glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
-        glm::vec3(-1.0f, 1.0f, -1.0f),
-
-        glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f),
-        glm::vec3(-1.0f, -1.0f, 1.0f),
-
-        glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-
-        glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, 1.0f, -1.0f),
-        glm::vec3(1.0f, -1.0f, -1.0f),
-
-        glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-
-        glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, -1.0f, 1.0f),
-        glm::vec3(-1.0f, -1.0f, 1.0f),
-
-        glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, -1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-
-        glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(-1.0f, 1.0f, 1.0f),
-        glm::vec3(-1.0f, 1.0f, -1.0f),
-
-        glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, -1.0f, 1.0f),
-        glm::vec3(1.0f, -1.0f, -1.0f),
-
-        glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(-1.0f, -1.0f, 1.0f),
-        glm::vec3(1.0f, -1.0f, 1.0f)
-    };
-
-    std::vector<glm::vec3> _vertex_list;
-    std::vector<uint32_t> _indices_list;
+static constexpr std::array const SKYBOX_INDICES = {
+    0, 1, 2, 2, 3, 0, 4, 1, 0, 0, 5, 4, 2, 6, 7, 7, 3, 2,
+    4, 5, 7, 7, 6, 4, 0, 3, 7, 7, 5, 0, 1, 4, 2, 2, 4, 6
 };
 
 #endif // PARTICLE_SYSTEM_SKYBOXMODEL_HPP

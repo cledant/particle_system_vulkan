@@ -9,15 +9,13 @@ VulkanSkyboxPipelineData::init(VulkanDevices const &devices,
                                VulkanQueues const &queues,
                                VulkanTexture const &skyboxTex)
 {
-    SkyboxModel model;
-
     // Texture related
     cubemapTexture = skyboxTex;
 
     // Computing sizes and offsets
-    indicesDrawNb = model.getIndicesList().size();
-    verticesSize = sizeof(glm::vec3) * model.getVertexList().size();
-    indicesSize = sizeof(uint32_t) * model.getIndicesList().size();
+    indicesDrawNb = SKYBOX_INDICES.size();
+    verticesSize = sizeof(glm::vec3) * SKYBOX_VERTICES.size();
+    indicesSize = sizeof(uint32_t) * SKYBOX_INDICES.size();
     indicesOffset = verticesSize;
     VkDeviceSize total_size = verticesSize + indicesSize;
 
@@ -34,12 +32,12 @@ VulkanSkyboxPipelineData::init(VulkanDevices const &devices,
                             staging_buff.memory,
                             0,
                             verticesSize,
-                            model.getVertexList().data());
+                            SKYBOX_VERTICES.data());
     copyOnCpuCoherentMemory(devices.device,
                             staging_buff.memory,
                             indicesOffset,
                             indicesSize,
-                            model.getIndicesList().data());
+                            SKYBOX_INDICES.data());
 
     // Creating GPU buffer + copying transfer buffer
     data.allocate(devices,
