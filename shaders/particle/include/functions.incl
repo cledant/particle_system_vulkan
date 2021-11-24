@@ -1,0 +1,19 @@
+uint random_number_generator(uint index, uvec2 randoms)
+{
+    uint seed = (randoms.x + index * 168468498) ^ (randoms.y << 8);
+    seed = (seed << 9) * seed;
+    uint t = seed ^ (seed << 11);
+    t = (t >> 5) ^ (t * 9135723);
+    uint result = randoms.y ^ (randoms.y >> 19) ^ (t ^ (t >> 8));
+    result = (result << 7) * 415645;
+
+    return (result);
+}
+
+float linearRandom(uint index, float min, float max, uvec2 seed)
+{
+    uint nb = random_number_generator(index, seed);
+    float ran = (nb / 4294967295.0f);
+
+    return (ran * (max - min) + min);
+}

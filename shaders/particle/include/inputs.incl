@@ -1,0 +1,24 @@
+// GPU Buffer layout
+struct Particle
+{
+    vec4 pos;
+    vec4 vel;
+    vec4 acc;
+};
+
+layout (local_size_x_id = 0) in;
+
+layout(binding = 0) buffer Pos
+{
+    Particle particles[];
+};
+
+layout(binding = 1) uniform ParticleComputeUbo {
+    vec3 genCenter;
+    vec2 range;
+    uvec2 seedX;
+    uvec2 seedY;
+    uvec2 seedZ;
+    uint particleCount;
+    float deltaT;
+} ubo;
