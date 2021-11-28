@@ -1,0 +1,32 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+#include "include/inputs.incl"
+
+#define MAX_SPEED 5000.0f
+#define GRAVITY_CTE 0.000000000674f
+#define GRAVITY_MULT 1.0f
+#define PARTICLE_MASS 1.0f
+#define GRAVITY_MASS pow(10.0f, 24)
+
+vec3 computeAcceleration(vec3 particlePos, vec3 gravityPos, float partMass, float gravityMass)
+{
+    float dist = abs(distance(particlePos, gravityPos) + 6400000.0f);
+    vec3 vecDist = normalize(gravityPos - particlePos);
+    return (((GRAVITY_CTE * partMass * gravityMass) / pow(dist, 2)) * vecDist);
+}
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= ubo.particleCount) {
+        return;
+    }
+
+    particles[i].acc = GRAVITY_MULT * computeAcceleration(particles[i].pos, ubo.genCenter, PARTICLE_MASS, GRAVITY_MASS);
+    particles[i].pos += ubo.deltaT * (particles[i].vel + (ubo.deltaT * particles[i].acc));
+    vec3 newAcc = GRAVITY_MULT * computeAcceleration(particles[i].pos, ubo.genCenter, PARTICLE_MASS, GRAVITY_MASS);
+    particles[i].vel += ubo.deltaT * ((particles[i].acc + newAcc) * 0.5f);
+    particles[i].vel = min(particles[i].vel, MAX_SPEED);
+    particles[i].vel = max(particles[i].vel, -MAX_SPEED);
+}

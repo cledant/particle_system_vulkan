@@ -133,6 +133,7 @@ void
 VulkanParticlePipeline::setParticleGravityCenter(
   glm::vec3 const &particleGravityCenter)
 {
+    _compUbo.genCenter = particleGravityCenter;
     _gfxUbo.center = particleGravityCenter;
 }
 

@@ -21,7 +21,7 @@ enum VulkanParticleComputeShaderType
     VPCST_RANDOM_CUBE = 0,
     VPCST_RANDOM_SPHERE,
     VPCST_RANDOM_DISK,
-    VPCST_MOVE_FOWWARD,
+    VPCST_GRAVITY,
     VPCST_NB,
 };
 
@@ -88,7 +88,7 @@ class VulkanParticlePipeline final
           "resources/shaders/particle/particleRandomCube.comp.spv",
           "resources/shaders/particle/particleRandomSphere.comp.spv",
           "resources/shaders/particle/particleRandomDisk.comp.spv",
-          "resources/shaders/particle/particleMoveForward.comp.spv"
+          "resources/shaders/particle/particleGravity.comp.spv"
       };
 
     inline void createGfxPipeline(VulkanSwapChain const &swapChain);

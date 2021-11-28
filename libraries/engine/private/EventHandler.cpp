@@ -260,40 +260,40 @@ EventHandler::_right_mouse()
 void
 EventHandler::_show_fps()
 {
-    if (_timers.accept_event[ET_SYSTEM]) {
+    if (_timers.accept_event[ET_CONFIG]) {
         _ui->toggleShowFps();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
+        _timers.accept_event[ET_CONFIG] = 0;
+        _timers.updated[ET_CONFIG] = 1;
     }
 }
 
 void
 EventHandler::_position_info()
 {
-    if (_timers.accept_event[ET_SYSTEM]) {
+    if (_timers.accept_event[ET_CONFIG]) {
         _ui->toggleInfoPosition();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
+        _timers.accept_event[ET_CONFIG] = 0;
+        _timers.updated[ET_CONFIG] = 1;
     }
 }
 
 void
 EventHandler::_display_ui()
 {
-    if (_timers.accept_event[ET_SYSTEM]) {
+    if (_timers.accept_event[ET_CONFIG]) {
         _ui->toggleDisplayUi();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
+        _timers.accept_event[ET_CONFIG] = 0;
+        _timers.updated[ET_CONFIG] = 1;
     }
 }
 
 void
 EventHandler::_about()
 {
-    if (_timers.accept_event[ET_SYSTEM]) {
+    if (_timers.accept_event[ET_CONFIG]) {
         _ui->toggleAbout();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
+        _timers.accept_event[ET_CONFIG] = 0;
+        _timers.updated[ET_CONFIG] = 1;
     }
 }
 
@@ -311,20 +311,20 @@ EventHandler::_invert_camera_y_axis()
 void
 EventHandler::_particle_position_update()
 {
-    if (_timers.accept_event[ET_SYSTEM]) {
+    if (_timers.accept_event[ET_KEYBOARD_CONTROLS]) {
         _ui_pause_start_particles();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
+        _timers.accept_event[ET_KEYBOARD_CONTROLS] = 0;
+        _timers.updated[ET_KEYBOARD_CONTROLS] = 1;
     }
 }
 
 void
 EventHandler::_reset_particles()
 {
-    if (_timers.accept_event[ET_SYSTEM]) {
+    if (_timers.accept_event[ET_KEYBOARD_CONTROLS]) {
         _ui_reset_simulation();
-        _timers.accept_event[ET_SYSTEM] = 0;
-        _timers.updated[ET_SYSTEM] = 1;
+        _timers.accept_event[ET_KEYBOARD_CONTROLS] = 0;
+        _timers.updated[ET_KEYBOARD_CONTROLS] = 1;
     }
 }
 

@@ -331,12 +331,12 @@ VulkanRenderer::selectComputeCase()
             return;
         }
         if (_doParticleMvt) {
-            recordComputeCmds(VPCST_MOVE_FOWWARD, true);
+            recordComputeCmds(VPCST_GRAVITY, true);
             _updateComputeCmds = false;
             return;
         }
         if (!_doParticleMvt) {
-            recordComputeCmds(VPCST_MOVE_FOWWARD, false);
+            recordComputeCmds(VPCST_GRAVITY, false);
             _updateComputeCmds = false;
             return;
         }

@@ -1,9 +1,9 @@
 // GPU Buffer layout
 struct Particle
 {
-    vec4 pos;
-    vec4 vel;
-    vec4 acc;
+    vec3 pos;
+    vec3 vel;
+    vec3 acc;
 };
 
 layout (local_size_x_id = 0) in;

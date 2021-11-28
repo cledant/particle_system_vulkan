@@ -10,14 +10,14 @@ set(SHADER_RUNTIME_FOLDER
 #Filelist
 set(SHADERS
         ${SHADER_SOURCE_FOLDER}/particle.frag
-        ${SHADER_SOURCE_FOLDER}/particleMoveForward.comp
+        ${SHADER_SOURCE_FOLDER}/particleGravity.comp
         ${SHADER_SOURCE_FOLDER}/particleRandomCube.comp
         ${SHADER_SOURCE_FOLDER}/particleRandomSphere.comp
         ${SHADER_SOURCE_FOLDER}/particleRandomDisk.comp
         ${SHADER_SOURCE_FOLDER}/particle.vert)
 set(COMPILED_SHADERS
         ${SHADER_RUNTIME_FOLDER}/particle.frag.spv
-        ${SHADER_RUNTIME_FOLDER}/particleMoveForward.comp.spv
+        ${SHADER_RUNTIME_FOLDER}/particleGravity.comp.spv
         ${SHADER_RUNTIME_FOLDER}/particleRandomCube.comp.spv
         ${SHADER_RUNTIME_FOLDER}/particleRandomSphere.comp.spv
         ${SHADER_RUNTIME_FOLDER}/particleRandomDisk.comp.spv

@@ -37,8 +37,8 @@ class EventHandler final
     // Timer related
     static constexpr double const SYSTEM_TIMER_SECONDS = 1.0;
     static constexpr double const CONFIG_TIMER_SECONDS = 0.5;
-    static constexpr double const ACTION_TIMER_SECONDS = 0.5;
-    static constexpr double const FAST_ACTION_TIMER_SECONDS = 0.5;
+    static constexpr double const ACTION_TIMER_SECONDS = 0.15;
+    static constexpr double const FAST_ACTION_TIMER_SECONDS = 0.01;
     static constexpr double const TARGET_PLAYER_TICK_DURATION =
       1 / TARGET_PLAYER_TICK;
 
@@ -50,6 +50,7 @@ class EventHandler final
         ET_MIDDLE_MOUSE,
         ET_RIGHT_MOUSE,
         ET_CAMERA,
+        ET_KEYBOARD_CONTROLS,
         ET_NB_EVENT_TIMER_TYPES
     };
 
@@ -64,7 +65,8 @@ class EventHandler final
         std::array<double, ET_NB_EVENT_TIMER_TYPES> timer_values = {
             SYSTEM_TIMER_SECONDS,      CONFIG_TIMER_SECONDS,
             FAST_ACTION_TIMER_SECONDS, FAST_ACTION_TIMER_SECONDS,
-            FAST_ACTION_TIMER_SECONDS, TARGET_PLAYER_TICK_DURATION
+            FAST_ACTION_TIMER_SECONDS, TARGET_PLAYER_TICK_DURATION,
+            ACTION_TIMER_SECONDS
         };
     };
 
