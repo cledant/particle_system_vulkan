@@ -5,6 +5,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "AppInfo.hpp"
+#include "DefaultParams.hpp"
 
 void
 Engine::init()
@@ -39,7 +40,7 @@ Engine::init()
       fb_size.x,
       fb_size.y);
     _ui.setNbParticles(VulkanRenderer::DEFAULT_NB_PARTICLES);
-    _skybox.scale = glm::vec3(1000.0f);
+    _skybox.scale = glm::vec3(500.0f);
     _perspective_data.near_far = DEFAULT_NEAR_FAR;
     _perspective_data.fov = DEFAULT_FOV;
     _perspective_data.ratio = _io_manager.getWindowRatio();

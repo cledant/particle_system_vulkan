@@ -5,6 +5,8 @@
 
 #include <functional>
 
+#include "DefaultParams.hpp"
+
 void
 EventHandler::setCamera(Camera *camera)
 {
@@ -365,6 +367,11 @@ EventHandler::_ui_reset_simulation()
     _renderer->setParticleGravityCenter(
       VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
     _renderer->setParticlesNumber(_ui->getNbParticles());
+    _camera->setPosition(START_POS);
+    _camera->setYawPitch(START_YAW, START_PITCH);
+    _camera->updateMatrices();
+    _ui->setGravityCenterPos(VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
+    _ui->setCameraPos(START_POS);
 }
 
 void
@@ -383,6 +390,11 @@ void
 EventHandler::_ui_particle_number()
 {
     _renderer->setParticlesNumber(_ui->getNbParticles());
+    _camera->setPosition(START_POS);
+    _camera->setYawPitch(START_YAW, START_PITCH);
+    _camera->updateMatrices();
+    _ui->setGravityCenterPos(VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
+    _ui->setCameraPos(START_POS);
 }
 
 void
@@ -425,7 +437,7 @@ EventHandler::_update_camera(glm::vec2 const &mouse_pos)
 void
 EventHandler::_compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d)
 {
-    static constexpr glm::vec3 const PROJ_SCALE{ 20.0f };
+    static constexpr glm::vec3 const PROJ_SCALE{ 50.0f };
 
     glm::vec2 win_size{ _io_manager->getWindowSize() };
     glm::vec2 win_center{ win_size / 2.0f };

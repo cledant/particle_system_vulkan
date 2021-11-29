@@ -195,7 +195,7 @@ VulkanRenderer::setParticleGravityCenter(glm::vec3 const &particleGravityCenter)
 void
 VulkanRenderer::setDeltaT(float deltaT)
 {
-    _particle.setDeltatT(deltaT);
+    _particle.setDeltaT(deltaT);
 }
 
 // Render Related

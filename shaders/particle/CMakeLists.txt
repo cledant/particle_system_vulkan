@@ -8,6 +8,9 @@ set(SHADER_RUNTIME_FOLDER
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/shaders/${SHADER_NAME})
 
 #Filelist
+set(SHADER_STRUCT_INCLUDES
+        ${SHADER_SOURCE_FOLDER}/include/functions.incl
+        ${SHADER_SOURCE_FOLDER}/include/inputs.incl)
 set(SHADERS
         ${SHADER_SOURCE_FOLDER}/particle.frag
         ${SHADER_SOURCE_FOLDER}/particleGravity.comp
@@ -27,7 +30,7 @@ file(MAKE_DIRECTORY ${SHADER_RUNTIME_FOLDER})
 foreach (SHADER COMPILED_SHADER IN ZIP_LISTS SHADERS COMPILED_SHADERS)
     add_custom_command(
             OUTPUT ${COMPILED_SHADER}
-            DEPENDS ${SHADER}
+            DEPENDS ${SHADER} ${SHADER_STRUCT_INCLUDES}
             COMMAND
             "${GLSLC_PROGRAM}"
             -o ${COMPILED_SHADER} -mfmt=bin -O

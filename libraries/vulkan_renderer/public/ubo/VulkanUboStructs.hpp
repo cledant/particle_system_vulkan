@@ -20,12 +20,14 @@ struct ParticleGfxUbo final
 struct ParticleComputeUbo final
 {
     alignas(16) glm::vec3 genCenter{};
-    alignas(8) glm::vec2 range{};
+    alignas(8) glm::vec2 range{ -10.0f, 10.0f };
     alignas(8) glm::uvec2 seedX{};
     alignas(8) glm::uvec2 seedY{};
     alignas(8) glm::uvec2 seedZ{};
     alignas(4) uint32_t nbParticles{};
     alignas(4) float deltaT{};
+    alignas(4) float particleMass = 5.0f;
+    alignas(4) float maxSpeed = 100.0f;
 };
 
 #endif // PARTICLE_SYS_VULKAN_VULKANUBOSTRUCTS_HPP

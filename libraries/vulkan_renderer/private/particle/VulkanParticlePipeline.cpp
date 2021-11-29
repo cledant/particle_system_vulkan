@@ -38,8 +38,6 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
     createGfxPipeline(swapChain);
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
     _compUbo.nbParticles = nbParticles;
-    _compUbo.range = glm::vec2(-5.0f, 5.0f);
-    _compUbo.genCenter = glm::vec3(0.0f);
     generateRandomSeed();
 
     // Compute shaders related
@@ -110,7 +108,7 @@ VulkanParticlePipeline::setParticleNumber(uint32_t nbParticles,
 
     _pipelineData.init(_devices, nbParticles);
     _compUbo.nbParticles = nbParticles;
-    _compUbo.range = glm::vec2(-5.0f, 5.0f);
+    _compUbo.range = glm::vec2(-10.0f, 10.0f);
     _compUbo.genCenter = glm::vec3(0.0f);
     generateRandomSeed();
     createDescriptorPool(swapChain.currentSwapChainNbImg);
@@ -138,7 +136,7 @@ VulkanParticlePipeline::setParticleGravityCenter(
 }
 
 void
-VulkanParticlePipeline::setDeltatT(float deltaT)
+VulkanParticlePipeline::setDeltaT(float deltaT)
 {
     _compUbo.deltaT = deltaT;
 }

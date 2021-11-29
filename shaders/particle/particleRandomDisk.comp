@@ -19,7 +19,6 @@ void main()
     particles[id].pos.x = (radius * cos(angle)) * size + ubo.genCenter.x;
     particles[id].pos.y = ubo.genCenter.z;
     particles[id].pos.z = (radius * sin(angle)) * size + ubo.genCenter.y;
-    particles[id].pos.w = 1.0f;
-    particles[id].vel = vec4(0.0f);
-    particles[id].acc = vec4(0.0f);
+    particles[id].vel = vec3(0.0f);
+    particles[id].acc = vec3(0.0f);
 }

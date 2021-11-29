@@ -14,7 +14,6 @@ void main()
     particles[id].pos.x = linearRandom(id, ubo.range.x, ubo.range.y, ubo.seedX) + ubo.genCenter.x;
     particles[id].pos.y = linearRandom(id, ubo.range.x, ubo.range.y, ubo.seedY) + ubo.genCenter.y;
     particles[id].pos.z = linearRandom(id, ubo.range.x, ubo.range.y, ubo.seedZ) + ubo.genCenter.z;
-    particles[id].pos.w = 1.0f;
-    particles[id].vel = vec4(0.0f);
-    particles[id].acc = vec4(0.0f);
+    particles[id].vel = vec3(0.0f);
+    particles[id].acc = vec3(0.0f);
 }
