@@ -11,9 +11,15 @@ Ui::init(GLFWwindow *win)
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForVulkan(win, true);
     _avg_fps_time_ref = std::chrono::steady_clock::now();
+    // Init input nb particle
     _particle_input_win.windowName = "Set number of particles";
     _particle_input_win.windowText = "Particles";
     _particle_input_win.winW = 300;
+    // Init input max speed particle
+    _max_speed_particles_input_win.windowName = "Set particles max speed";
+    _max_speed_particles_input_win.windowText = "m/s";
+    _max_speed_particles_input_win.winW = 300;
+    // Init input particle color
     _particle_color_input.windowName = "Particles color selection";
 }
 
@@ -30,10 +36,16 @@ Ui::getUiEvent() const
     return (_ui_events);
 }
 
-uint64_t
+uint32_t
 Ui::getNbParticles() const
 {
     return (_nb_particles);
+}
+
+uint32_t
+Ui::getParticleMaxSpeed() const
+{
+    return (_max_speed_particles);
 }
 
 glm::vec3
@@ -119,10 +131,17 @@ Ui::setGravityCenterPos(glm::vec3 const &gravityCenterPos)
 }
 
 void
-Ui::setNbParticles(uint64_t nbParticles)
+Ui::setNbParticles(uint32_t nbParticles)
 {
     _info_overview.nbParticles = nbParticles;
     _nb_particles = nbParticles;
+}
+
+void
+Ui::setParticleMaxSpeed(uint32_t maxSpeed)
+{
+    _max_speed_particles = maxSpeed;
+    _info_overview.maxSpeedParticle = maxSpeed;
 }
 
 void
@@ -155,6 +174,20 @@ Ui::drawUi()
             _particle_input_win.errorText = "Invalid number";
         }
     }
+    auto trigger_max_speed_particle =
+      _max_speed_particles_input_win.drawInputWindow();
+    if (trigger_max_speed_particle) {
+        try {
+            _max_speed_particles =
+              std::stoul(_max_speed_particles_input_win.input);
+            _ui_events.events[UET_SET_PARTICLE_MAX_SPEED] = true;
+            _info_overview.maxSpeedParticle = _max_speed_particles;
+        } catch (std::exception const &e) {
+            _max_speed_particles_input_win.isInputOpen = false;
+            _max_speed_particles_input_win.isErrorOpen = true;
+            _max_speed_particles_input_win.errorText = "Invalid number";
+        }
+    }
     _particle_input_win.drawInputErrorWindow();
     ImGui::Render();
 }
@@ -168,6 +201,11 @@ Ui::_draw_edit_panel()
     ImGui::Separator();
     if (ImGui::MenuItem("Set Particles color")) {
         _particle_color_input.isInputOpen = !_particle_color_input.isInputOpen;
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Set Particles max speed")) {
+        _max_speed_particles_input_win.isInputOpen =
+          !_max_speed_particles_input_win.isInputOpen;
     }
     ImGui::Separator();
     _ui_events.events[UET_PAUSE_START_PARTICLES] =

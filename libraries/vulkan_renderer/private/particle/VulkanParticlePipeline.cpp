@@ -14,6 +14,7 @@ void
 VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                              VulkanSwapChain const &swapChain,
                              uint32_t nbParticles,
+                             uint32_t maxSpeedParticle,
                              glm::vec3 const &particles_color,
                              VkBuffer systemUbo)
 {
@@ -38,6 +39,7 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
     createGfxPipeline(swapChain);
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
     _compUbo.nbParticles = nbParticles;
+    _compUbo.maxSpeed = maxSpeedParticle;
     generateRandomSeed();
 
     // Compute shaders related
@@ -119,6 +121,12 @@ VulkanParticlePipeline::setParticleNumber(uint32_t nbParticles,
                             0,
                             sizeof(ParticleComputeUbo),
                             &_compUbo);
+}
+
+void
+VulkanParticlePipeline::setParticleMaxSpeed(uint32_t maxSpeed)
+{
+    _compUbo.maxSpeed = maxSpeed;
 }
 
 void

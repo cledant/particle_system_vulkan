@@ -92,6 +92,7 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
           &EventHandler::_ui_particle_number,
           &EventHandler::_ui_particle_color,
           &EventHandler::_ui_generate_disk,
+          &EventHandler::_ui_particle_max_speed,
       };
 
     // Checking Timers
@@ -407,6 +408,12 @@ void
 EventHandler::_ui_generate_disk()
 {
     _renderer->setParticleGenerationType(VulkanParticleGenerationType::DISK);
+}
+
+void
+EventHandler::_ui_particle_max_speed()
+{
+    _renderer->setParticlesMaxSpeed(_ui->getParticleMaxSpeed());
 }
 
 void

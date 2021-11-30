@@ -12,6 +12,7 @@ struct UiInfoOverview final
     glm::vec3 cameraPos{};
     glm::vec3 gravityCenterPos{};
     uint32_t nbParticles{};
+    uint32_t maxSpeedParticle{};
     glm::vec2 cursorPositionWindow{};
     glm::vec3 cursorPosition3D{};
 

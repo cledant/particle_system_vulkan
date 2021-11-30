@@ -39,6 +39,7 @@ class VulkanParticlePipeline final
     void init(VulkanInstance const &vkInstance,
               VulkanSwapChain const &swapChain,
               uint32_t nbParticles,
+              uint32_t maxSpeedParticle,
               glm::vec3 const &particles_color,
               VkBuffer systemUbo);
     void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
@@ -47,6 +48,7 @@ class VulkanParticlePipeline final
     void setParticleNumber(uint32_t nbParticles,
                            VulkanSwapChain const &swapChain,
                            VkBuffer systemUbo);
+    void setParticleMaxSpeed(uint32_t maxSpeed);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
     void setDeltaT(float deltaT);

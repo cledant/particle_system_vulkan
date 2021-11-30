@@ -29,6 +29,7 @@ enum UiEventTypes
     UET_SET_PARTICLES_NUMBER,
     UET_SET_PARTICLES_COLOR,
     UET_GENERATE_DISK,
+    UET_SET_PARTICLE_MAX_SPEED,
     UET_TOTAL_NB,
 };
 
@@ -51,7 +52,8 @@ class Ui final
     void clear();
 
     [[nodiscard]] UiEvent getUiEvent() const;
-    [[nodiscard]] uint64_t getNbParticles() const;
+    [[nodiscard]] uint32_t getNbParticles() const;
+    [[nodiscard]] uint32_t getParticleMaxSpeed() const;
     [[nodiscard]] glm::vec3 getParticlesColor() const;
     [[nodiscard]] bool isUiHovered() const;
 
@@ -69,7 +71,8 @@ class Ui final
     void setCursorPositionWindow(glm::vec2 const &cursorPos);
     void setCursorPosition3D(glm::vec3 const &cursorPos);
     void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
-    void setNbParticles(uint64_t nbParticles);
+    void setNbParticles(uint32_t nbParticles);
+    void setParticleMaxSpeed(uint32_t maxSpeed);
 
     void drawUi();
 
@@ -81,7 +84,9 @@ class Ui final
     bool _generate_cube = true;
     bool _generate_disk = false;
     uint32_t _nb_particles{};
+    uint32_t _max_speed_particles{};
     UiSimpleInputWindow _particle_input_win{};
+    UiSimpleInputWindow _max_speed_particles_input_win{};
     UiRGBColorInputWindow _particle_color_input;
     void _draw_edit_panel();
 
