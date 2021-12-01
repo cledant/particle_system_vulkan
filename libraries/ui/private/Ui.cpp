@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+#include "fmt/format.h"
+
 void
 Ui::init(GLFWwindow *win)
 {
@@ -162,33 +164,52 @@ Ui::drawUi()
     _about_box.draw();
     _ui_events.events[UET_SET_PARTICLES_COLOR] =
       _particle_color_input.drawInputWindow();
+
     auto trigger_nb_particle = _particle_input_win.drawInputWindow();
     if (trigger_nb_particle) {
         try {
-            _nb_particles = std::stoul(_particle_input_win.input);
-            _ui_events.events[UET_SET_PARTICLES_NUMBER] = true;
-            _info_overview.nbParticles = _nb_particles;
+            auto parsed_nb_particle = std::stoul(_particle_input_win.input);
+            if (parsed_nb_particle <= UINT32_MAX) {
+                _ui_events.events[UET_SET_PARTICLES_NUMBER] = true;
+                _nb_particles = parsed_nb_particle;
+                _info_overview.nbParticles = _nb_particles;
+            } else {
+                _particle_input_win.isInputOpen = false;
+                _particle_input_win.isErrorOpen = true;
+                _particle_input_win.errorText = fmt::format(
+                  "Number should be between {} and {}", 0, UINT32_MAX);
+            }
         } catch (std::exception const &e) {
             _particle_input_win.isInputOpen = false;
             _particle_input_win.isErrorOpen = true;
             _particle_input_win.errorText = "Invalid number";
         }
     }
+    _particle_input_win.drawInputErrorWindow();
+
     auto trigger_max_speed_particle =
       _max_speed_particles_input_win.drawInputWindow();
     if (trigger_max_speed_particle) {
         try {
-            _max_speed_particles =
+            auto parsed_max_speed =
               std::stoul(_max_speed_particles_input_win.input);
-            _ui_events.events[UET_SET_PARTICLE_MAX_SPEED] = true;
-            _info_overview.maxSpeedParticle = _max_speed_particles;
+            if (parsed_max_speed <= UINT32_MAX) {
+                _max_speed_particles = parsed_max_speed;
+                _ui_events.events[UET_SET_PARTICLE_MAX_SPEED] = true;
+                _info_overview.maxSpeedParticle = _max_speed_particles;
+            } else {
+                _max_speed_particles_input_win.isInputOpen = false;
+                _max_speed_particles_input_win.isErrorOpen = true;
+                _max_speed_particles_input_win.errorText = fmt::format(
+                  "Number should be between {} and {}", 0, UINT32_MAX);
+            }
         } catch (std::exception const &e) {
             _max_speed_particles_input_win.isInputOpen = false;
             _max_speed_particles_input_win.isErrorOpen = true;
             _max_speed_particles_input_win.errorText = "Invalid number";
         }
     }
-    _particle_input_win.drawInputErrorWindow();
+    _max_speed_particles_input_win.drawInputErrorWindow();
     ImGui::Render();
 }
 
