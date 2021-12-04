@@ -73,7 +73,7 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
           &EventHandler::_show_fps,
           &EventHandler::_position_info,
           &EventHandler::_display_ui,
-          &EventHandler::_about,
+          &EventHandler::_help,
           &EventHandler::_invert_camera_y_axis,
           &EventHandler::_particle_position_update,
           &EventHandler::_reset_particles,
@@ -291,10 +291,10 @@ EventHandler::_display_ui()
 }
 
 void
-EventHandler::_about()
+EventHandler::_help()
 {
     if (_timers.accept_event[ET_CONFIG]) {
-        _ui->toggleAbout();
+        _ui->toggleHelp();
         _timers.accept_event[ET_CONFIG] = 0;
         _timers.updated[ET_CONFIG] = 1;
     }

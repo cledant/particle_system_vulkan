@@ -16,7 +16,7 @@ UiSimpleInputWindow::drawInputWindow()
     if (!isInputOpen) {
         return (false);
     }
-    isErrorOpen = false;
+    errorWin.isOpen = false;
 
     ImGuiViewport const *viewport = ImGui::GetMainViewport();
     auto viewport_center = viewport->GetCenter();
@@ -51,27 +51,4 @@ UiSimpleInputWindow::drawInputWindow()
     }
     ImGui::End();
     return (trigger);
-}
-
-void
-UiSimpleInputWindow::drawInputErrorWindow()
-{
-    static constexpr ImGuiWindowFlags const WIN_FLAGS =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoMove;
-    static ImVec2 const WIN_POS_PIVOT = { 0.5f, 0.5f };
-
-    if (!isErrorOpen) {
-        return;
-    }
-
-    ImGuiViewport const *viewport = ImGui::GetMainViewport();
-    auto viewport_center = viewport->GetCenter();
-    ImVec2 window_pos{ viewport_center.x, viewport_center.y };
-
-    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, WIN_POS_PIVOT);
-    ImGui::Begin("Error", &isErrorOpen, WIN_FLAGS);
-    ImGui::Text("%s", errorText.c_str());
-    ImGui::End();
 }

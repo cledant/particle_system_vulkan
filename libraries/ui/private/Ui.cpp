@@ -4,6 +4,8 @@
 
 #include "fmt/format.h"
 
+#include "UiTexts.hpp"
+
 void
 Ui::init(GLFWwindow *win)
 {
@@ -14,15 +16,24 @@ Ui::init(GLFWwindow *win)
     ImGui_ImplGlfw_InitForVulkan(win, true);
     _avg_fps_time_ref = std::chrono::steady_clock::now();
     // Init input nb particle
-    _particle_input_win.windowName = "Set number of particles";
-    _particle_input_win.windowText = "Particles";
+    _particle_input_win.windowName = UiTexts::INPUT_PARTICLES_NB_WIN_NAME;
+    _particle_input_win.windowText = UiTexts::INPUT_PARTICLES_NB_WIN_TEXT;
+    _particle_input_win.errorWin.windowName =
+      UiTexts::INPUT_PARTICLES_ERROR_WIN_NAME;
     _particle_input_win.winW = 300;
     // Init input max speed particle
-    _max_speed_particles_input_win.windowName = "Set particles max speed";
-    _max_speed_particles_input_win.windowText = "m/s";
+    _max_speed_particles_input_win.windowName =
+      UiTexts::INPUT_PARTICLES_SPEED_WIN_NAME;
+    _max_speed_particles_input_win.windowText =
+      UiTexts::INPUT_PARTICLES_SPEED_WIN_TEXT;
+    _max_speed_particles_input_win.errorWin.windowName =
+      UiTexts::INPUT_PARTICLES_ERROR_WIN_NAME;
     _max_speed_particles_input_win.winW = 300;
     // Init input particle color
-    _particle_color_input.windowName = "Particles color selection";
+    _particle_color_input.windowName = UiTexts::INPUT_PARTICLES_COLOR_WIN_NAME;
+    // Init help
+    _help_box.windowName = UiTexts::INPUT_PARTICLES_HELP_WIN_NAME;
+    _help_box.windowText = UiTexts::INPUT_PARTICLES_HELP_WIN_TEXT;
 }
 
 void
@@ -75,6 +86,12 @@ void
 Ui::toggleShowFps()
 {
     _show_info_fps = !_show_info_fps;
+}
+
+void
+Ui::toggleHelp()
+{
+    _help_box.isOpen = !_help_box.isOpen;
 }
 
 void
@@ -162,54 +179,12 @@ Ui::drawUi()
     _draw_menu_bar();
     _info_overview.draw(_show_info_fps, _show_info_position);
     _about_box.draw();
+    _help_box.draw();
     _ui_events.events[UET_SET_PARTICLES_COLOR] =
       _particle_color_input.drawInputWindow();
+    _draw_particles_nb_input();
+    _draw_particles_speed_input();
 
-    auto trigger_nb_particle = _particle_input_win.drawInputWindow();
-    if (trigger_nb_particle) {
-        try {
-            auto parsed_nb_particle = std::stoul(_particle_input_win.input);
-            if (parsed_nb_particle <= UINT32_MAX) {
-                _ui_events.events[UET_SET_PARTICLES_NUMBER] = true;
-                _nb_particles = parsed_nb_particle;
-                _info_overview.nbParticles = _nb_particles;
-            } else {
-                _particle_input_win.isInputOpen = false;
-                _particle_input_win.isErrorOpen = true;
-                _particle_input_win.errorText = fmt::format(
-                  "Number should be between {} and {}", 0, UINT32_MAX);
-            }
-        } catch (std::exception const &e) {
-            _particle_input_win.isInputOpen = false;
-            _particle_input_win.isErrorOpen = true;
-            _particle_input_win.errorText = "Invalid number";
-        }
-    }
-    _particle_input_win.drawInputErrorWindow();
-
-    auto trigger_max_speed_particle =
-      _max_speed_particles_input_win.drawInputWindow();
-    if (trigger_max_speed_particle) {
-        try {
-            auto parsed_max_speed =
-              std::stoul(_max_speed_particles_input_win.input);
-            if (parsed_max_speed <= UINT32_MAX) {
-                _max_speed_particles = parsed_max_speed;
-                _ui_events.events[UET_SET_PARTICLE_MAX_SPEED] = true;
-                _info_overview.maxSpeedParticle = _max_speed_particles;
-            } else {
-                _max_speed_particles_input_win.isInputOpen = false;
-                _max_speed_particles_input_win.isErrorOpen = true;
-                _max_speed_particles_input_win.errorText = fmt::format(
-                  "Number should be between {} and {}", 0, UINT32_MAX);
-            }
-        } catch (std::exception const &e) {
-            _max_speed_particles_input_win.isInputOpen = false;
-            _max_speed_particles_input_win.isErrorOpen = true;
-            _max_speed_particles_input_win.errorText = "Invalid number";
-        }
-    }
-    _max_speed_particles_input_win.drawInputErrorWindow();
     ImGui::Render();
 }
 
@@ -257,6 +232,62 @@ Ui::_draw_edit_panel()
 }
 
 void
+Ui::_draw_particles_nb_input()
+{
+    auto trigger_nb_particle = _particle_input_win.drawInputWindow();
+    if (trigger_nb_particle) {
+        try {
+            auto parsed_nb_particle = std::stoul(_particle_input_win.input);
+            if (parsed_nb_particle <= UINT32_MAX) {
+                _ui_events.events[UET_SET_PARTICLES_NUMBER] = true;
+                _nb_particles = parsed_nb_particle;
+                _info_overview.nbParticles = _nb_particles;
+            } else {
+                _particle_input_win.isInputOpen = false;
+                _particle_input_win.errorWin.isOpen = true;
+                _particle_input_win.errorWin.windowText = fmt::format(
+                  "Nb particles should be between {} and {}", 0, UINT32_MAX);
+            }
+        } catch (std::exception const &e) {
+            _particle_input_win.isInputOpen = false;
+            _particle_input_win.errorWin.isOpen = true;
+            _particle_input_win.errorWin.windowText = "Invalid number";
+        }
+    }
+    _particle_input_win.errorWin.draw();
+}
+
+void
+Ui::_draw_particles_speed_input()
+{
+    auto trigger_max_speed_particle =
+      _max_speed_particles_input_win.drawInputWindow();
+    if (trigger_max_speed_particle) {
+        try {
+            auto parsed_max_speed =
+              std::stoul(_max_speed_particles_input_win.input);
+            if (parsed_max_speed <= UINT32_MAX) {
+                _max_speed_particles = parsed_max_speed;
+                _ui_events.events[UET_SET_PARTICLE_MAX_SPEED] = true;
+                _info_overview.maxSpeedParticle = _max_speed_particles;
+            } else {
+                _max_speed_particles_input_win.isInputOpen = false;
+                _max_speed_particles_input_win.errorWin.isOpen = true;
+                _max_speed_particles_input_win.errorWin.windowText =
+                  fmt::format(
+                    "Speed should be between {} and {}", 0, UINT32_MAX);
+            }
+        } catch (std::exception const &e) {
+            _max_speed_particles_input_win.isInputOpen = false;
+            _max_speed_particles_input_win.errorWin.isOpen = true;
+            _max_speed_particles_input_win.errorWin.windowText =
+              "Invalid number";
+        }
+    }
+    _max_speed_particles_input_win.errorWin.draw();
+}
+
+void
 Ui::_draw_menu_bar()
 {
     _ui_events = {};
@@ -288,7 +319,11 @@ Ui::_draw_menu_bar()
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("About", "F1")) {
+            if (ImGui::MenuItem("Help", "F1")) {
+                _help_box.isOpen = !_help_box.isOpen;
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("About")) {
                 _about_box.isOpen = !_about_box.isOpen;
             }
             ImGui::EndMenu();

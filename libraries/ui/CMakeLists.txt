@@ -6,10 +6,13 @@ add_library(ui STATIC
         private/UiInfoOverview.cpp
         private/UiSimpleInputWindow.cpp
         private/UiRGBColorInputWindow.cpp
-        private/UiAboutBox.cpp)
+        private/UiAboutBox.cpp
+        private/UiTextBox.cpp)
 target_include_directories(ui
         PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/public)
+        ${CMAKE_CURRENT_SOURCE_DIR}/public
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/private)
 add_dependencies(ui
         glfw
         imgui_glfw_vulkan

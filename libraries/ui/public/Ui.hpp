@@ -15,6 +15,7 @@
 #include "UiSimpleInputWindow.hpp"
 #include "UiRGBColorInputWindow.hpp"
 #include "UiAboutBox.hpp"
+#include "UiTextBox.hpp"
 
 enum UiEventTypes
 {
@@ -60,6 +61,7 @@ class Ui final
     // Trigger from keyboard
     void toggleInfoPosition();
     void toggleShowFps();
+    void toggleHelp();
     void toggleAbout();
     void toggleDisplayUi();
     void toggleFullscreen();
@@ -89,6 +91,8 @@ class Ui final
     UiSimpleInputWindow _max_speed_particles_input_win{};
     UiRGBColorInputWindow _particle_color_input;
     void _draw_edit_panel();
+    void _draw_particles_nb_input();
+    void _draw_particles_speed_input();
 
     // Controls
     bool _toggle_camera_mvt = false;
@@ -102,6 +106,7 @@ class Ui final
 
     // Help
     UiAboutBox _about_box;
+    UiTextBox _help_box;
 
     // Menu Bar
     void _draw_menu_bar();
