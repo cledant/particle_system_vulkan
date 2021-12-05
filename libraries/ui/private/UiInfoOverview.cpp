@@ -10,9 +10,9 @@ UiInfoOverview::draw(bool &fps, bool &info) const
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
       ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
       ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
-    static ImVec2 const WIN_SIZE_INFO = ImVec2(470, 115);
+    static ImVec2 const WIN_SIZE_INFO = ImVec2(470, 130);
     static ImVec2 const WIN_SIZE_FPS = ImVec2(165, 50);
-    static ImVec2 const WIN_SIZE_BOTH = ImVec2(470, 150);
+    static ImVec2 const WIN_SIZE_BOTH = ImVec2(470, 170);
     static ImVec2 const WIN_POS_PIVOT = { 1.0f, 0.0f };
     static constexpr float const WIN_ALPHA = 0.35f;
     static ImVec4 const RED = { 255, 0, 0, 255 };
@@ -75,6 +75,7 @@ UiInfoOverview::draw(bool &fps, bool &info) const
                   gravityCenterPos.z);
                 ImGui::Text("Nb Particles: %u", nbParticles);
                 ImGui::Text("Particle max speed: %u", maxSpeedParticle);
+                ImGui::Text("Gravity : %.6f", particleMass);
                 ImGui::Text("Cursor position 2D: W = %.0f | H = %.0f",
                             cursorPositionWindow.x,
                             cursorPositionWindow.y);

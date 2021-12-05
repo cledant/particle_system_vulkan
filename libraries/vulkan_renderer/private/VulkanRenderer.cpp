@@ -65,6 +65,7 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                    DEFAULT_NB_PARTICLES,
                    DEFAULT_PARTICLE_MAX_SPEED,
                    DEFAULT_PARTICLES_COLOR,
+                   DEFAULT_PARTICLE_MASS,
                    _systemUniform.buffer);
     recordRenderCmds();
     _updateComputeCmds = true;
@@ -190,6 +191,12 @@ void
 VulkanRenderer::setParticlesColor(glm::vec3 const &particlesColor)
 {
     _particle.setParticlesColor(particlesColor);
+}
+
+void
+VulkanRenderer::setParticleMass(float mass)
+{
+    _particle.setParticleMass(mass);
 }
 
 void

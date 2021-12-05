@@ -110,6 +110,7 @@ class EventHandler final
 
     // Interaction related
     inline void _compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d);
+    [[nodiscard]] inline float _compute_particle_mass() const;
 
     Camera *_camera{};
     IOManager *_io_manager{};
@@ -131,6 +132,7 @@ class EventHandler final
     glm::vec2 _mouse_pos_window{};
     glm::vec3 _mouse_pos_3d{};
     glm::vec3 _gravity_center{};
+    int32_t _particle_mass_multiplier{};
 };
 
 #endif // PARTICLE_SYS_VULKAN_EVENTHANDLER_HPP

@@ -40,7 +40,8 @@ class VulkanParticlePipeline final
               VulkanSwapChain const &swapChain,
               uint32_t nbParticles,
               uint32_t maxSpeedParticle,
-              glm::vec3 const &particles_color,
+              glm::vec3 const &particlesColor,
+              float particleMass,
               VkBuffer systemUbo);
     void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
     void clear();
@@ -51,6 +52,7 @@ class VulkanParticlePipeline final
     void setParticleMaxSpeed(uint32_t maxSpeed);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+    void setParticleMass(float mass);
     void setDeltaT(float deltaT);
     void setGfxUboOnGpu(uint32_t currentImg);
     void setCompUboOnGpu();
@@ -84,6 +86,7 @@ class VulkanParticlePipeline final
     std::vector<VkDescriptorSet> _computeDescriptorSet{};
     std::array<VkPipeline, VPCST_NB> _compShaders{};
     ParticleComputeUbo _compUbo{};
+    int32_t _particleMassMultiplier{};
 
     static constexpr std::array<char const *, VPCST_NB> const
       COMPUTE_SHADER_PATH = {
@@ -92,6 +95,7 @@ class VulkanParticlePipeline final
           "resources/shaders/particle/particleRandomDisk.comp.spv",
           "resources/shaders/particle/particleGravity.comp.spv"
       };
+    static constexpr float const DEFAULT_PARTICLE_MASS = 5.0f;
 
     inline void createGfxPipeline(VulkanSwapChain const &swapChain);
     inline void createDescriptorPool(uint32_t descriptorCount);

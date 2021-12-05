@@ -164,6 +164,12 @@ Ui::setParticleMaxSpeed(uint32_t maxSpeed)
 }
 
 void
+Ui::setParticleMass(float mass)
+{
+    _info_overview.particleMass = mass;
+}
+
+void
 Ui::drawUi()
 {
     _compute_fps();

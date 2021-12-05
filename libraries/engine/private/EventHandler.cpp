@@ -152,6 +152,23 @@ EventHandler::processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent)
         _renderer->setParticleGravityCenter(_gravity_center);
     }
 
+    // Change player block
+    if (_timers.accept_event[ET_MIDDLE_MOUSE]) {
+        if (ioEvents.mouse_scroll > 0.001f) {
+            ++_particle_mass_multiplier;
+        } else if (ioEvents.mouse_scroll < -0.001f) {
+            --_particle_mass_multiplier;
+            _particle_mass_multiplier =
+              std::max(-10, _particle_mass_multiplier);
+        }
+        auto particleMass = _compute_particle_mass();
+        _renderer->setParticleMass(particleMass);
+        _ui->setParticleMass(particleMass);
+        _io_manager->resetMouseScroll();
+        _timers.accept_event[ET_MIDDLE_MOUSE] = 0;
+        _timers.updated[ET_MIDDLE_MOUSE] = 1;
+    }
+
     // Ui info
     _ui->setCameraPos(_camera->getPosition());
     _ui->setGravityCenterPos(_gravity_center);
@@ -368,11 +385,14 @@ EventHandler::_ui_reset_simulation()
     _renderer->setParticleGravityCenter(
       VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
     _renderer->setParticlesNumber(_ui->getNbParticles());
+    _renderer->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
     _camera->setPosition(START_POS);
     _camera->setYawPitch(START_YAW, START_PITCH);
     _camera->updateMatrices();
     _ui->setGravityCenterPos(VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
     _ui->setCameraPos(START_POS);
+    _ui->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
+    _particle_mass_multiplier = 0;
 }
 
 void
@@ -458,4 +478,21 @@ EventHandler::_compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d)
     glm::vec3 dy = _camera->getUp() * -m.y * PROJ_SCALE;
     _mouse_pos_3d =
       (_camera->getPosition() + dx + dy) + _camera->getFront() * PROJ_SCALE;
+}
+
+float
+EventHandler::_compute_particle_mass() const
+{
+    float gravity{};
+
+    if (_particle_mass_multiplier >= 0) {
+        gravity = VulkanRenderer::DEFAULT_PARTICLE_MASS +
+                  2.5f * _particle_mass_multiplier;
+    } else if (_particle_mass_multiplier == -1) {
+        gravity = 1.0f;
+    } else {
+        gravity =
+          std::max(0.000001, std::pow(10.0f, _particle_mass_multiplier + 1));
+    }
+    return (gravity);
 }

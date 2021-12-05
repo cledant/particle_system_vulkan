@@ -60,6 +60,7 @@ class VulkanRenderer final
     void setParticlesMaxSpeed(uint32_t maxSpeed);
     void setParticlesColor(glm::vec3 const &particlesColor);
     void setParticleGravityCenter(glm::vec3 const &particleGravityCenter);
+    void setParticleMass(float mass);
     void setDeltaT(float deltaT);
 
     // Render related
@@ -67,6 +68,7 @@ class VulkanRenderer final
 
     static constexpr uint64_t const DEFAULT_NB_PARTICLES = 1000000;
     static constexpr uint64_t const DEFAULT_PARTICLE_MAX_SPEED = 100;
+    static constexpr float const DEFAULT_PARTICLE_MASS = 5.0f;
     static constexpr glm::vec3 const DEFAULT_PARTICLES_COLOR{ 0.0f,
                                                               0.5f,
                                                               0.3f };

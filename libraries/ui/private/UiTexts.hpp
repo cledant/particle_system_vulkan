@@ -17,8 +17,8 @@ constexpr char const *INPUT_PARTICLES_HELP_WIN_NAME = "Help";
 constexpr char const *INPUT_PARTICLES_HELP_WIN_TEXT =
   "Controls:\n"
   "\tLeft click: set gravity center\n"
-  "\tScroll down: increase gravity\n"
-  "\tScroll up: decrease gravity\n"
+  "\tScroll up: increase gravity\n"
+  "\tScroll down: decrease gravity\n"
   "\tWASD: move when camera mvt is active (F4)";
 
 constexpr char const *INPUT_PARTICLES_ERROR_WIN_NAME = "Error";

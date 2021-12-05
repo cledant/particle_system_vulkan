@@ -15,6 +15,7 @@ struct UiInfoOverview final
     uint32_t maxSpeedParticle{};
     glm::vec2 cursorPositionWindow{};
     glm::vec3 cursorPosition3D{};
+    float particleMass{};
 
     void draw(bool &fps, bool &info) const;
 };

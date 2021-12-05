@@ -15,7 +15,8 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                              VulkanSwapChain const &swapChain,
                              uint32_t nbParticles,
                              uint32_t maxSpeedParticle,
-                             glm::vec3 const &particles_color,
+                             glm::vec3 const &particlesColor,
+                             float particleMass,
                              VkBuffer systemUbo)
 {
     _devices = vkInstance.devices;
@@ -23,7 +24,7 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
     _queues = vkInstance.queues;
 
     // Global
-    _gfxUbo.color = particles_color;
+    _gfxUbo.color = particlesColor;
     _pipelineData.init(_devices, nbParticles);
     _renderPass.init(vkInstance, swapChain);
     createDescriptorPool(swapChain.currentSwapChainNbImg);
@@ -40,6 +41,7 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
     _compUbo.nbParticles = nbParticles;
     _compUbo.maxSpeed = maxSpeedParticle;
+    _compUbo.particleMass = particleMass;
     generateRandomSeed();
 
     // Compute shaders related
@@ -141,6 +143,12 @@ VulkanParticlePipeline::setParticleGravityCenter(
 {
     _compUbo.genCenter = particleGravityCenter;
     _gfxUbo.center = particleGravityCenter;
+}
+
+void
+VulkanParticlePipeline::setParticleMass(float mass)
+{
+    _compUbo.particleMass = mass;
 }
 
 void

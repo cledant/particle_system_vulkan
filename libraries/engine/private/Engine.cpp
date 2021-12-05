@@ -26,14 +26,14 @@ Engine::init()
     _io_manager.createWindow(std::move(win_opts));
     _ui.init(_io_manager.getWindow());
     _vk_renderer.createInstance(app_info::APP_NAME,
-      engine_name,
-      VK_MAKE_VERSION(app_info::APP_VERSION_MAJOR,
+                                engine_name,
+                                VK_MAKE_VERSION(app_info::APP_VERSION_MAJOR,
                                                 app_info::APP_VERSION_MINOR,
                                                 app_info::APP_VERSION_PATCH),
-      VK_MAKE_VERSION(app_info::APP_VERSION_MAJOR,
+                                VK_MAKE_VERSION(app_info::APP_VERSION_MAJOR,
                                                 app_info::APP_VERSION_MINOR,
                                                 app_info::APP_VERSION_PATCH),
-      IOManager::getRequiredInstanceExtension());
+                                IOManager::getRequiredInstanceExtension());
     auto fb_size = _io_manager.getFramebufferSize();
     _vk_renderer.init(
       _io_manager.createVulkanSurface(_vk_renderer.getVkInstance()),
@@ -41,6 +41,7 @@ Engine::init()
       fb_size.y);
     _ui.setNbParticles(VulkanRenderer::DEFAULT_NB_PARTICLES);
     _ui.setParticleMaxSpeed(VulkanRenderer::DEFAULT_PARTICLE_MAX_SPEED);
+    _ui.setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
     _skybox.scale = glm::vec3(500.0f);
     _perspective_data.near_far = DEFAULT_NEAR_FAR;
     _perspective_data.fov = DEFAULT_FOV;

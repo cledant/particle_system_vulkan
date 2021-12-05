@@ -75,6 +75,7 @@ class Ui final
     void setGravityCenterPos(glm::vec3 const &gravityCenterPos);
     void setNbParticles(uint32_t nbParticles);
     void setParticleMaxSpeed(uint32_t maxSpeed);
+    void setParticleMass(float mass);
 
     void drawUi();
 
