@@ -11,7 +11,7 @@ constexpr char const *INPUT_PARTICLES_SPEED_WIN_NAME =
 constexpr char const *INPUT_PARTICLES_SPEED_WIN_TEXT = "m/s";
 
 constexpr char const *INPUT_PARTICLES_COLOR_WIN_NAME =
-  "Particles color selection";
+  "Particles base color selection";
 
 constexpr char const *INPUT_PARTICLES_HELP_WIN_NAME = "Help";
 constexpr char const *INPUT_PARTICLES_HELP_WIN_TEXT =

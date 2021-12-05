@@ -201,7 +201,7 @@ Ui::_draw_edit_panel()
         _particle_input_win.isInputOpen = !_particle_input_win.isInputOpen;
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Set Particles color")) {
+    if (ImGui::MenuItem("Set Particles base color")) {
         _particle_color_input.isInputOpen = !_particle_color_input.isInputOpen;
     }
     ImGui::Separator();
