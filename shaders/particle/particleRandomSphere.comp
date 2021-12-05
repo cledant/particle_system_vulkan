@@ -11,14 +11,14 @@ void main()
         return;
     }
 
-    float z = linearRandom(id, -1.0f, 1.0f, ubo.seedZ);
+    float z = abs(linearRandom(id, -1.0f, 1.0f, ubo.seedZ));
     float angle = linearRandom(id, 0.0f, 6.29f, ubo.seedX);
     float radius = sqrt((1.0f - z) * z);
     float size = ubo.range.y * 2;
 
     particles[id].pos.x = (radius * cos(angle)) * size + ubo.genCenter.x;
     particles[id].pos.y = (radius * sin(angle)) * size + ubo.genCenter.y;
-    particles[id].pos.z = z * size + ubo.genCenter.z - (size / 2);
+    particles[id].pos.z = z * size + ubo.genCenter.z - (size / 2.0f);
     particles[id].vel = vec3(0.0f);
     particles[id].acc = vec3(0.0f);
 }
