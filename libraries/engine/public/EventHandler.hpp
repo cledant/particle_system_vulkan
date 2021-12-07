@@ -109,7 +109,7 @@ class EventHandler final
     inline void _update_camera(glm::vec2 const &mouse_pos);
 
     // Interaction related
-    inline void _compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d);
+    inline void _compute_mouse_3d_coordinate(glm::vec2 const &mouse_pos_2d);
     [[nodiscard]] inline float _compute_particle_mass() const;
 
     Camera *_camera{};

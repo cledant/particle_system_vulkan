@@ -462,22 +462,24 @@ EventHandler::_update_camera(glm::vec2 const &mouse_pos)
 }
 
 void
-EventHandler::_compute_mouse_3d_coordinate(glm::vec2 mouse_pos_2d)
+EventHandler::_compute_mouse_3d_coordinate(glm::vec2 const &mouse_pos_2d)
 {
-    static constexpr glm::vec3 const PROJ_SCALE{ 50.0f };
-
     glm::vec2 win_size{ _io_manager->getWindowSize() };
-    glm::vec2 win_center{ win_size / 2.0f };
     _mouse_pos_window =
-      (_io_manager->isMouseExclusive()) ? win_center : mouse_pos_2d;
+      (_io_manager->isMouseExclusive()) ? (win_size / 2.0f) : mouse_pos_2d;
+    glm::vec2 mouseLoc = ((_mouse_pos_window / win_size) * 2.0f) - 1.0f;
 
-    glm::vec2 ratio{ win_size.x / win_size.y, win_size.y / win_size.x };
-    auto pitch = 1.0f / win_size;
-    glm::vec2 m{ (_mouse_pos_window - win_center) * pitch * ratio };
-    glm::vec3 dx = _camera->getRight() * m.x * PROJ_SCALE;
-    glm::vec3 dy = _camera->getUp() * -m.y * PROJ_SCALE;
-    _mouse_pos_3d =
-      (_camera->getPosition() + dx + dy) + _camera->getFront() * PROJ_SCALE;
+    auto perspectiveDefaultFarProj =
+      glm::perspective(glm::radians(_perspective->fov),
+                       _perspective->ratio,
+                       _perspective->near_far.x,
+                       DEFAULT_FAR_FOR_PROJ_MOUSE_POS);
+    auto invProjView =
+      glm::inverse(perspectiveDefaultFarProj * _camera->getViewMatrix());
+    glm::vec4 vecFar{ mouseLoc.x, -mouseLoc.y, 1.0f, 1.0f };
+    auto posFar = invProjView * vecFar;
+    posFar /= posFar.w;
+    _mouse_pos_3d = posFar;
 }
 
 float
