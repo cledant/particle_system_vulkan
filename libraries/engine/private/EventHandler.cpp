@@ -399,23 +399,28 @@ void
 EventHandler::_ui_generate_sphere()
 {
     _renderer->setParticleGenerationType(VulkanParticleGenerationType::SPHERE);
+    _ui_reset_simulation();
 }
 
 void
 EventHandler::_ui_generate_cube()
 {
     _renderer->setParticleGenerationType(VulkanParticleGenerationType::CUBE);
+    _ui_reset_simulation();
 }
 
 void
 EventHandler::_ui_particle_number()
 {
     _renderer->setParticlesNumber(_ui->getNbParticles());
+    _renderer->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
     _camera->setPosition(START_POS);
     _camera->setYawPitch(START_YAW, START_PITCH);
     _camera->updateMatrices();
     _ui->setGravityCenterPos(VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
     _ui->setCameraPos(START_POS);
+    _ui->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
+    _particle_mass_multiplier = 0;
 }
 
 void
@@ -428,6 +433,7 @@ void
 EventHandler::_ui_generate_disk()
 {
     _renderer->setParticleGenerationType(VulkanParticleGenerationType::DISK);
+    _ui_reset_simulation();
 }
 
 void
