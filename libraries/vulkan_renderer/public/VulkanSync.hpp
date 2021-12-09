@@ -31,6 +31,8 @@ class VulkanSync final
     std::vector<VkSemaphore> uiFinishedSem;
     std::vector<VkFence> inflightFence;
     std::vector<VkFence> imgsInflightFence;
+    std::vector<VkFence> computeFence;
+    std::vector<VkFence> renderFence;
 
   private:
     VulkanDevices _devices;

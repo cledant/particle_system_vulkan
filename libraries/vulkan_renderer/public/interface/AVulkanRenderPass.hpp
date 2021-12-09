@@ -33,7 +33,10 @@ class AVulkanRenderPass
     VulkanQueues _queues;
     VulkanCommandPools _cmdPools;
 
-    inline void defaultCreateRenderPass(VulkanSwapChain const &swapChain);
+    inline void defaultCreateRenderPass(VulkanSwapChain const &swapChain,
+                                        VkAttachmentLoadOp loadOp,
+                                        VkImageLayout initialLayout,
+                                        VkImageLayout finalLayout);
     inline void defaultCreateDepthResources(VulkanSwapChain const &swapChain);
     inline void defaultCreateFramebuffers(VulkanSwapChain const &swapChain);
 };

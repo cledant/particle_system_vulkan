@@ -283,7 +283,7 @@ VulkanRenderer::recordRenderCmds()
                                      "recording render command buffer");
         }
 
-        // Begin render pass values
+        // Begin skybox renderpass
         std::array<VkClearValue, 2> clear_vals{};
         clear_vals[0].color = { { 0.2f, 0.2f, 0.2f, 1.0f } };
         clear_vals[1].depthStencil = { 1.0f, 0 };
@@ -296,13 +296,12 @@ VulkanRenderer::recordRenderCmds()
         rp_begin_info.clearValueCount = clear_vals.size();
         rp_begin_info.pClearValues = clear_vals.data();
         vkCmdBeginRenderPass(it, &rp_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-        // Emit skybox related commands
         _skybox.generateCommands(it, i);
         _particle.generateCommands(it, i);
         vkCmdEndRenderPass(it);
         if (vkEndCommandBuffer(it) != VK_SUCCESS) {
             throw std::runtime_error(
-              "VulkanRenderer: Failed to record model command Buffer");
+              "VulkanRenderer: Failed to record render command Buffer");
         }
         ++i;
     }
@@ -389,15 +388,22 @@ VulkanRenderer::emitDrawCmds(uint32_t img_index, glm::mat4 const &view_proj_mat)
     compute_submit_info.signalSemaphoreCount = 1;
     compute_submit_info.pCommandBuffers = &_computeCommandBuffers[img_index];
     compute_submit_info.commandBufferCount = 1;
+    vkResetFences(
+      _vkInstance.devices.device, 1, &_sync.computeFence[_sync.currentFrame]);
     if (vkQueueSubmit(_vkInstance.queues.computeQueue,
                       1,
                       &compute_submit_info,
-                      VK_NULL_HANDLE) != VK_SUCCESS) {
+                      _sync.computeFence[_sync.currentFrame]) != VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderer: Failed to submit compute draw command buffer");
     }
 
     // Send Model rendering
+    vkWaitForFences(_vkInstance.devices.device,
+                    1,
+                    &_sync.computeFence[img_index],
+                    VK_TRUE,
+                    UINT64_MAX);
     VkSemaphore wait_model_sems[] = {
         _sync.computeFinishedSem[_sync.currentFrame],
     };
@@ -416,14 +422,22 @@ VulkanRenderer::emitDrawCmds(uint32_t img_index, glm::mat4 const &view_proj_mat)
     submit_info.signalSemaphoreCount = 1;
     submit_info.pCommandBuffers = &_renderCommandBuffers[img_index];
     submit_info.commandBufferCount = 1;
-    if (vkQueueSubmit(
-          _vkInstance.queues.graphicQueue, 1, &submit_info, VK_NULL_HANDLE) !=
-        VK_SUCCESS) {
+    vkResetFences(
+      _vkInstance.devices.device, 1, &_sync.renderFence[_sync.currentFrame]);
+    if (vkQueueSubmit(_vkInstance.queues.graphicQueue,
+                      1,
+                      &submit_info,
+                      _sync.renderFence[_sync.currentFrame]) != VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderer: Failed to submit render draw command buffer");
     }
 
     // Send Ui rendering
+    vkWaitForFences(_vkInstance.devices.device,
+                    1,
+                    &_sync.renderFence[img_index],
+                    VK_TRUE,
+                    UINT64_MAX);
     VkSemaphore wait_ui_sems[] = {
         _sync.renderFinishedSem[_sync.currentFrame],
     };

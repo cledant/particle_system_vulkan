@@ -16,18 +16,21 @@
 template<class Child>
 void
 AVulkanRenderPass<Child>::defaultCreateRenderPass(
-  VulkanSwapChain const &swapChain)
+  VulkanSwapChain const &swapChain,
+  VkAttachmentLoadOp loadOp,
+  VkImageLayout initialLayout,
+  VkImageLayout finalLayout)
 {
     // Color
     VkAttachmentDescription color_attachment{};
     color_attachment.format = swapChain.swapChainImageFormat;
     color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attachment.loadOp = loadOp;
     color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attachment.initialLayout = initialLayout;
+    color_attachment.finalLayout = finalLayout;
 
     VkAttachmentReference color_attachment_ref{};
     color_attachment_ref.attachment = 0;

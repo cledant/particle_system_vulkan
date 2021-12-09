@@ -12,6 +12,8 @@ VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
     uiFinishedSem.resize(MAX_FRAME_INFLIGHT);
     inflightFence.resize(MAX_FRAME_INFLIGHT);
     imgsInflightFence.resize(nbFramebufferImgs, VK_NULL_HANDLE);
+    computeFence.resize(MAX_FRAME_INFLIGHT);
+    renderFence.resize(MAX_FRAME_INFLIGHT);
 
     VkSemaphoreCreateInfo sem_info{};
     sem_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -35,6 +37,11 @@ VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
               VK_SUCCESS ||
             vkCreateFence(
               _devices.device, &fence_info, nullptr, &inflightFence[i]) !=
+              VK_SUCCESS ||
+            vkCreateFence(
+              _devices.device, &fence_info, nullptr, &computeFence[i]) !=
+              VK_SUCCESS ||
+            vkCreateFence(_devices.device, &fence_info, nullptr, &renderFence[i]) !=
               VK_SUCCESS) {
             throw std::runtime_error("VulkanSync: failed to create semaphores");
         }
@@ -56,6 +63,8 @@ VulkanSync::clear()
         vkDestroySemaphore(_devices.device, computeFinishedSem[i], nullptr);
         vkDestroySemaphore(_devices.device, uiFinishedSem[i], nullptr);
         vkDestroyFence(_devices.device, inflightFence[i], nullptr);
+        vkDestroyFence(_devices.device, computeFence[i], nullptr);
+        vkDestroyFence(_devices.device, renderFence[i], nullptr);
     }
     _devices = VulkanDevices{};
 }

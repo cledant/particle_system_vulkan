@@ -86,7 +86,6 @@ class VulkanParticlePipeline final
     std::vector<VkDescriptorSet> _computeDescriptorSet{};
     std::array<VkPipeline, VPCST_NB> _compShaders{};
     ParticleComputeUbo _compUbo{};
-    int32_t _particleMassMultiplier{};
 
     static constexpr std::array<char const *, VPCST_NB> const
       COMPUTE_SHADER_PATH = {
