@@ -177,17 +177,17 @@ getDeviceQueues(VkPhysicalDevice device,
     }
 
     // Check for dedicated compute queue
-    /*    index = 0;
-        if (dr.compute_queue_index == dr.graphic_queue_index) {
-            for (auto const &it : families) {
-                if (it.queueFlags & VK_QUEUE_COMPUTE_BIT && it.queueCount > 0 &&
-                    index != dr.compute_queue_index) {
-                    dr.compute_queue_index = index;
-                    break;
-                }
-                ++index;
+    index = 0;
+    if (dr.compute_queue_index == dr.graphic_queue_index) {
+        for (auto const &it : families) {
+            if (it.queueFlags & VK_QUEUE_COMPUTE_BIT && it.queueCount > 0 &&
+                index != dr.compute_queue_index) {
+                dr.compute_queue_index = index;
+                break;
             }
-        }*/
+            ++index;
+        }
+    }
 }
 
 VkDeviceSize

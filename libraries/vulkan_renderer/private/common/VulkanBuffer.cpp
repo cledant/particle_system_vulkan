@@ -4,14 +4,15 @@
 
 void
 VulkanBuffer::allocate(VulkanDevices const &devices,
-                       VkDeviceSize size,
+                       VkDeviceSize bufferSize,
                        VkBufferUsageFlags usage,
                        VkMemoryPropertyFlags properties)
 {
     _devices = devices;
-    createBuffer(devices.device, buffer, size, usage);
+    createBuffer(devices.device, buffer, bufferSize, usage);
     allocateBuffer(
       devices.physicalDevice, devices.device, buffer, memory, properties);
+    size = bufferSize;
 }
 
 void
@@ -22,4 +23,5 @@ VulkanBuffer::clear()
     _devices = VulkanDevices{};
     buffer = nullptr;
     memory = nullptr;
+    size = 0;
 }

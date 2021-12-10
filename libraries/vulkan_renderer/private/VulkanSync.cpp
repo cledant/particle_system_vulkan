@@ -7,11 +7,11 @@ VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
 {
     _devices = vkInstance.devices;
     imageAvailableSem.resize(MAX_FRAME_INFLIGHT);
+    computeFinishedSem.resize(MAX_FRAME_INFLIGHT);
+    worldFinishedSem.resize(MAX_FRAME_INFLIGHT);
     allRenderFinishedSem.resize(MAX_FRAME_INFLIGHT);
     inflightFence.resize(MAX_FRAME_INFLIGHT);
     imgsInflightFence.resize(nbFramebufferImgs, VK_NULL_HANDLE);
-    computeFence.resize(MAX_FRAME_INFLIGHT);
-    renderFence.resize(MAX_FRAME_INFLIGHT);
 
     VkSemaphoreCreateInfo sem_info{};
     sem_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -25,16 +25,16 @@ VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
               _devices.device, &sem_info, nullptr, &imageAvailableSem[i]) !=
               VK_SUCCESS ||
             vkCreateSemaphore(
+              _devices.device, &sem_info, nullptr, &computeFinishedSem[i]) !=
+              VK_SUCCESS ||
+            vkCreateSemaphore(
+              _devices.device, &sem_info, nullptr, &worldFinishedSem[i]) !=
+              VK_SUCCESS ||
+            vkCreateSemaphore(
               _devices.device, &sem_info, nullptr, &allRenderFinishedSem[i]) !=
               VK_SUCCESS ||
             vkCreateFence(
               _devices.device, &fence_info, nullptr, &inflightFence[i]) !=
-              VK_SUCCESS ||
-            vkCreateFence(
-              _devices.device, &fence_info, nullptr, &computeFence[i]) !=
-              VK_SUCCESS ||
-            vkCreateFence(
-              _devices.device, &fence_info, nullptr, &renderFence[i]) !=
               VK_SUCCESS) {
             throw std::runtime_error("VulkanSync: failed to create semaphores");
         }
@@ -52,10 +52,10 @@ VulkanSync::clear()
 {
     for (size_t i = 0; i < MAX_FRAME_INFLIGHT; ++i) {
         vkDestroySemaphore(_devices.device, imageAvailableSem[i], nullptr);
+        vkDestroySemaphore(_devices.device, computeFinishedSem[i], nullptr);
+        vkDestroySemaphore(_devices.device, worldFinishedSem[i], nullptr);
         vkDestroySemaphore(_devices.device, allRenderFinishedSem[i], nullptr);
         vkDestroyFence(_devices.device, inflightFence[i], nullptr);
-        vkDestroyFence(_devices.device, computeFence[i], nullptr);
-        vkDestroyFence(_devices.device, renderFence[i], nullptr);
     }
     _devices = VulkanDevices{};
 }

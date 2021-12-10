@@ -282,6 +282,7 @@ VulkanRenderer::recordRenderCmds()
             throw std::runtime_error("VulkanRenderer: Failed to begin "
                                      "recording render command buffer");
         }
+        _particle.acquireComputeBufferBarrier(it);
 
         // Begin skybox renderpass
         std::array<VkClearValue, 2> clear_vals{};
@@ -299,6 +300,8 @@ VulkanRenderer::recordRenderCmds()
         _skybox.generateCommands(it, i);
         _particle.generateCommands(it, i);
         vkCmdEndRenderPass(it);
+
+        _particle.releaseComputeBufferBarrier(it);
         if (vkEndCommandBuffer(it) != VK_SUCCESS) {
             throw std::runtime_error(
               "VulkanRenderer: Failed to record render command Buffer");
@@ -326,9 +329,11 @@ VulkanRenderer::recordComputeCmds(VulkanParticleComputeShaderType type,
             throw std::runtime_error("VulkanRenderer: Failed to begin "
                                      "recording compute command buffer");
         }
+        _particle.acquireComputeBufferBarrier(it);
         if (registerCmd) {
             _particle.generateComputeCommands(it, type);
         }
+        _particle.releaseComputeBufferBarrier(it);
         vkEndCommandBuffer(it);
     }
 }
@@ -370,70 +375,68 @@ VulkanRenderer::emitDrawCmds(uint32_t img_index, glm::mat4 const &view_proj_mat)
     _particle.setCompUboOnGpu();
 
     // Send Compute rendering
-    VkSemaphore wait_compute_sems[] = {
-        _sync.imageAvailableSem[_sync.currentFrame],
-    };
-    VkPipelineStageFlags compute_wait_stages[] = {
-        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+    VkSemaphore finish_compute_sig_sems[] = {
+        _sync.computeFinishedSem[_sync.currentFrame],
     };
     VkSubmitInfo compute_submit_info{};
     compute_submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    compute_submit_info.pWaitSemaphores = wait_compute_sems;
-    compute_submit_info.pWaitDstStageMask = compute_wait_stages;
-    compute_submit_info.waitSemaphoreCount = 1;
-    compute_submit_info.pSignalSemaphores = nullptr;
-    compute_submit_info.signalSemaphoreCount = 0;
+    compute_submit_info.pWaitSemaphores = nullptr;
+    compute_submit_info.pWaitDstStageMask = nullptr;
+    compute_submit_info.waitSemaphoreCount = 0;
+    compute_submit_info.pSignalSemaphores = finish_compute_sig_sems;
+    compute_submit_info.signalSemaphoreCount = 1;
     compute_submit_info.pCommandBuffers = &_computeCommandBuffers[img_index];
     compute_submit_info.commandBufferCount = 1;
-    vkResetFences(
-      _vkInstance.devices.device, 1, &_sync.computeFence[_sync.currentFrame]);
-    if (vkQueueSubmit(_vkInstance.queues.computeQueue,
-                      1,
-                      &compute_submit_info,
-                      _sync.computeFence[_sync.currentFrame]) != VK_SUCCESS) {
+    if (vkQueueSubmit(
+          _vkInstance.queues.computeQueue, 1, &compute_submit_info, nullptr) !=
+        VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderer: Failed to submit compute draw command buffer");
     }
 
     // Send world rendering
-    vkWaitForFences(_vkInstance.devices.device,
-                    1,
-                    &_sync.computeFence[img_index],
-                    VK_TRUE,
-                    UINT64_MAX);
+    VkSemaphore wait_world_sems[] = {
+        _sync.computeFinishedSem[_sync.currentFrame],
+    };
+    VkPipelineStageFlags world_wait_stages[] = {
+        VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+    };
+    VkSemaphore finish_model_sig_sems[] = {
+        _sync.worldFinishedSem[_sync.currentFrame],
+    };
     VkSubmitInfo submit_info{};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.pWaitSemaphores = nullptr;
-    submit_info.pWaitDstStageMask = nullptr;
-    submit_info.waitSemaphoreCount = 0;
-    submit_info.pSignalSemaphores = nullptr;
-    submit_info.signalSemaphoreCount = 0;
+    submit_info.pWaitSemaphores = wait_world_sems;
+    submit_info.pWaitDstStageMask = world_wait_stages;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pSignalSemaphores = finish_model_sig_sems;
+    submit_info.signalSemaphoreCount = 1;
     submit_info.pCommandBuffers = &_renderCommandBuffers[img_index];
     submit_info.commandBufferCount = 1;
-    vkResetFences(
-      _vkInstance.devices.device, 1, &_sync.renderFence[_sync.currentFrame]);
-    if (vkQueueSubmit(_vkInstance.queues.graphicQueue,
-                      1,
-                      &submit_info,
-                      _sync.renderFence[_sync.currentFrame]) != VK_SUCCESS) {
+    if (vkQueueSubmit(
+          _vkInstance.queues.graphicQueue, 1, &submit_info, nullptr) !=
+        VK_SUCCESS) {
         throw std::runtime_error(
           "VulkanRenderer: Failed to submit render draw command buffer");
     }
 
     // Send Ui rendering
-    vkWaitForFences(_vkInstance.devices.device,
-                    1,
-                    &_sync.renderFence[img_index],
-                    VK_TRUE,
-                    UINT64_MAX);
+    VkSemaphore wait_ui_sems[] = {
+        _sync.worldFinishedSem[_sync.currentFrame],
+        _sync.imageAvailableSem[_sync.currentFrame],
+    };
+    VkPipelineStageFlags world_ui_stages[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    };
     VkSemaphore finish_ui_sig_sems[] = {
         _sync.allRenderFinishedSem[_sync.currentFrame],
     };
     VkSubmitInfo ui_submit_info{};
     ui_submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    ui_submit_info.pWaitSemaphores = nullptr;
-    ui_submit_info.pWaitDstStageMask = nullptr;
-    ui_submit_info.waitSemaphoreCount = 0;
+    ui_submit_info.pWaitSemaphores = wait_ui_sems;
+    ui_submit_info.pWaitDstStageMask = world_ui_stages;
+    ui_submit_info.waitSemaphoreCount = 2;
     ui_submit_info.pSignalSemaphores = finish_ui_sig_sems;
     ui_submit_info.signalSemaphoreCount = 1;
     auto ui_cmd_buffer =

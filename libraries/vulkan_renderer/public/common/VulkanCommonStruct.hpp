@@ -31,9 +31,10 @@ struct VulkanBuffer final
 {
     VkBuffer buffer{};
     VkDeviceMemory memory{};
+    VkDeviceSize size{};
 
     void allocate(VulkanDevices const &devices,
-                  VkDeviceSize size,
+                  VkDeviceSize bufferSize,
                   VkBufferUsageFlags usage,
                   VkMemoryPropertyFlags properties);
     void clear();

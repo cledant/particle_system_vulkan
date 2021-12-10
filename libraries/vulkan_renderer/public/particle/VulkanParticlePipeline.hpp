@@ -61,6 +61,8 @@ class VulkanParticlePipeline final
     void generateCommands(VkCommandBuffer cmdBuffer, size_t descriptorSetIndex);
     void generateComputeCommands(VkCommandBuffer cmdBuffer,
                                  VulkanParticleComputeShaderType type);
+    void acquireComputeBufferBarrier(VkCommandBuffer &cmdBuffer) const;
+    void releaseComputeBufferBarrier(VkCommandBuffer &cmdBuffer) const;
 
   private:
     // Vulkan related
