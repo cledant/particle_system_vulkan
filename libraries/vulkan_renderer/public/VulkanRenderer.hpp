@@ -15,6 +15,7 @@
 #include "ui/VulkanUi.hpp"
 #include "skybox/VulkanSkyboxPipeline.hpp"
 #include "particle/VulkanParticlePipeline.hpp"
+#include "renderPass/VulkanSceneRenderPass.hpp"
 
 enum class VulkanParticleGenerationType
 {
@@ -85,6 +86,7 @@ class VulkanRenderer final
     VulkanSwapChain _swapChain;
     VulkanSync _sync;
     VulkanUi _ui;
+    VulkanSceneRenderPass _sceneRenderPass;
     VulkanSkyboxPipeline _skybox;
     VulkanParticlePipeline _particle;
 

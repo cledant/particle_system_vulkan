@@ -10,11 +10,10 @@
 
 #include "VulkanInstance.hpp"
 #include "VulkanSwapChain.hpp"
-#include "VulkanSkyboxRenderPass.hpp"
 #include "tex/VulkanTextureManager.hpp"
 #include "VulkanSkyboxPipelineData.hpp"
-#include "VulkanSkyboxRenderPass.hpp"
 #include "VulkanSkyboxPipelineDescription.hpp"
+#include "renderPass/VulkanSceneRenderPass.hpp"
 
 class VulkanSkyboxPipeline final
 {
@@ -28,17 +27,18 @@ class VulkanSkyboxPipeline final
 
     void init(VulkanInstance const &vkInstance,
               VulkanSwapChain const &swapChain,
+              VulkanSceneRenderPass const &renderPass,
               std::string const &skyboxFolderPath,
               std::string const &skyboxFileType,
               VulkanTextureManager &texManager,
               VkBuffer systemUbo);
-    void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
+    void resize(VulkanSwapChain const &swapChain,
+                VulkanSceneRenderPass const &renderPass,
+                VkBuffer systemUbo);
     void clear();
 
     void setSkyboxInfo(glm::mat4 const &skyboxInfo);
 
-    [[nodiscard]] VulkanSkyboxRenderPass const &getVulkanSkyboxRenderPass()
-      const;
     void generateCommands(VkCommandBuffer cmdBuffer, size_t descriptorSetIndex);
     void setSkyboxModelMatOnGpu(uint32_t currentImg);
 
@@ -56,14 +56,14 @@ class VulkanSkyboxPipeline final
 
     // Global
     VulkanSkyboxPipelineData _pipelineData;
-    VulkanSkyboxRenderPass _pipelineRenderPass;
     std::vector<VkDescriptorSet> _descriptorSets;
     VkDescriptorPool _descriptorPool{};
 
     std::string _skyboxFolderPath;
     std::string _skyboxFiletype;
 
-    inline void createGfxPipeline(VulkanSwapChain const &swapChain);
+    inline void createGfxPipeline(VulkanSwapChain const &swapChain,
+                                  VulkanSceneRenderPass const &renderPass);
     inline void createDescriptorSets(VulkanSkyboxPipelineData &pipelineData,
                                      VkBuffer systemUbo,
                                      uint32_t descriptorCount);

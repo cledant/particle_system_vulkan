@@ -1,10 +1,10 @@
-#include "skybox/VulkanSkyboxRenderPass.hpp"
+#include "renderPass//VulkanSceneRenderPass.hpp"
 
 #include "interface/AVulkanRenderPassPrivate.hpp"
 
 void
-VulkanSkyboxRenderPass::implInit(VulkanInstance const &vkInstance,
-                                 VulkanSwapChain const &swapChain)
+VulkanSceneRenderPass::implInit(VulkanInstance const &vkInstance,
+                                VulkanSwapChain const &swapChain)
 {
     static_cast<void>(vkInstance);
     defaultCreateRenderPass(swapChain,
@@ -16,7 +16,7 @@ VulkanSkyboxRenderPass::implInit(VulkanInstance const &vkInstance,
 }
 
 void
-VulkanSkyboxRenderPass::implResize(VulkanSwapChain const &swapChain)
+VulkanSceneRenderPass::implResize(VulkanSwapChain const &swapChain)
 {
     clean();
     defaultCreateRenderPass(swapChain,
@@ -28,11 +28,11 @@ VulkanSkyboxRenderPass::implResize(VulkanSwapChain const &swapChain)
 }
 
 void
-VulkanSkyboxRenderPass::implClean()
+VulkanSceneRenderPass::implClean()
 {}
 
 void
-VulkanSkyboxRenderPass::implClear()
+VulkanSceneRenderPass::implClear()
 {
     clean();
 }

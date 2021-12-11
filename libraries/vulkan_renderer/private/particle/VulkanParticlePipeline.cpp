@@ -13,6 +13,7 @@
 void
 VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                              VulkanSwapChain const &swapChain,
+                             VulkanSceneRenderPass const &renderPass,
                              uint32_t nbParticles,
                              uint32_t maxSpeedParticle,
                              glm::vec3 const &particlesColor,
@@ -26,7 +27,6 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
     // Global
     _gfxUbo.color = particlesColor;
     _pipelineData.init(_devices, nbParticles);
-    _renderPass.init(vkInstance, swapChain);
     createDescriptorPool(swapChain.currentSwapChainNbImg);
 
     // Vertex / Fragment shaders related
@@ -37,7 +37,7 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    createGfxPipeline(swapChain);
+    createGfxPipeline(swapChain, renderPass);
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
     _compUbo.nbParticles = nbParticles;
     _compUbo.maxSpeed = maxSpeedParticle;
@@ -57,20 +57,20 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
 
 void
 VulkanParticlePipeline::resize(VulkanSwapChain const &swapChain,
+                               VulkanSceneRenderPass const &renderPass,
                                VkBuffer systemUbo)
 {
     _gfxUniform.clear();
     vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
     vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
 
-    _renderPass.resize(swapChain);
     _gfxUniform.allocate(_devices,
                          sizeof(ParticleGfxUbo) *
                            swapChain.currentSwapChainNbImg,
                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    createGfxPipeline(swapChain);
+    createGfxPipeline(swapChain, renderPass);
     createDescriptorPool(swapChain.currentSwapChainNbImg);
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
     createComputeDescriptorSets();
@@ -88,7 +88,6 @@ VulkanParticlePipeline::clear()
     _computeUniform.clear();
     _computeDescription.clear();
     _pipelineData.clear();
-    _renderPass.clear();
     vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
 
     _devices = VulkanDevices{};
@@ -177,12 +176,6 @@ VulkanParticlePipeline::setCompUboOnGpu()
                             &_compUbo);
 }
 
-VulkanParticleRenderPass const &
-VulkanParticlePipeline::getRenderPass() const
-{
-    return (_renderPass);
-}
-
 void
 VulkanParticlePipeline::generateCommands(VkCommandBuffer cmdBuffer,
                                          size_t descriptorSetIndex)
@@ -228,7 +221,9 @@ VulkanParticlePipeline::generateComputeCommands(
 }
 
 void
-VulkanParticlePipeline::createGfxPipeline(VulkanSwapChain const &swapChain)
+VulkanParticlePipeline::createGfxPipeline(
+  VulkanSwapChain const &swapChain,
+  VulkanSceneRenderPass const &renderPass)
 {
     // Shaders
     auto vert_shader = loadShader(
@@ -376,7 +371,7 @@ VulkanParticlePipeline::createGfxPipeline(VulkanSwapChain const &swapChain)
     gfx_pipeline_info.pColorBlendState = &color_blending_info;
     gfx_pipeline_info.pDynamicState = nullptr;
     gfx_pipeline_info.layout = _gfxDescription.pipelineLayout;
-    gfx_pipeline_info.renderPass = _renderPass.renderPass;
+    gfx_pipeline_info.renderPass = renderPass.renderPass;
     gfx_pipeline_info.subpass = 0;
     gfx_pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
     gfx_pipeline_info.basePipelineIndex = -1;

@@ -53,15 +53,18 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    _sceneRenderPass.init(_vkInstance, _swapChain);
     _ui.init(_vkInstance, _swapChain);
     _skybox.init(_vkInstance,
                  _swapChain,
+                 _sceneRenderPass,
                  "resources/textures/skybox",
                  "jpg",
                  _texManager,
                  _systemUniform.buffer);
     _particle.init(_vkInstance,
                    _swapChain,
+                   _sceneRenderPass,
                    DEFAULT_NB_PARTICLES,
                    DEFAULT_PARTICLE_MAX_SPEED,
                    DEFAULT_PARTICLES_COLOR,
@@ -89,8 +92,9 @@ VulkanRenderer::resize(uint32_t win_w, uint32_t win_h)
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     _ui.resize(_swapChain);
-    _skybox.resize(_swapChain, _systemUniform.buffer);
-    _particle.resize(_swapChain, _systemUniform.buffer);
+    _sceneRenderPass.resize(_swapChain);
+    _skybox.resize(_swapChain, _sceneRenderPass, _systemUniform.buffer);
+    _particle.resize(_swapChain, _sceneRenderPass, _systemUniform.buffer);
     recordRenderCmds();
     _updateComputeCmds = true;
 }
@@ -102,6 +106,7 @@ VulkanRenderer::clear()
     _skybox.clear();
     _particle.clear();
     _ui.clear();
+    _sceneRenderPass.clear();
     _sync.clear();
     _swapChain.clear();
     _texManager.clear();
@@ -272,7 +277,6 @@ VulkanRenderer::recordRenderCmds()
                            _swapChain.swapChainImageViews.size());
 
     size_t i = 0;
-    auto const &skybox_render_pass = _skybox.getVulkanSkyboxRenderPass();
     for (auto &it : _renderCommandBuffers) {
         VkCommandBufferBeginInfo cb_begin_info{};
         cb_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -290,8 +294,8 @@ VulkanRenderer::recordRenderCmds()
         clear_vals[1].depthStencil = { 1.0f, 0 };
         VkRenderPassBeginInfo rp_begin_info{};
         rp_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        rp_begin_info.renderPass = skybox_render_pass.renderPass;
-        rp_begin_info.framebuffer = skybox_render_pass.framebuffers[i];
+        rp_begin_info.renderPass = _sceneRenderPass.renderPass;
+        rp_begin_info.framebuffer = _sceneRenderPass.framebuffers[i];
         rp_begin_info.renderArea.offset = { 0, 0 };
         rp_begin_info.renderArea.extent = _swapChain.swapChainExtent;
         rp_begin_info.clearValueCount = clear_vals.size();
@@ -394,20 +398,20 @@ VulkanRenderer::emitDrawCmds(uint32_t img_index, glm::mat4 const &view_proj_mat)
           "VulkanRenderer: Failed to submit compute draw command buffer");
     }
 
-    // Send world rendering
-    VkSemaphore wait_world_sems[] = {
+    // Send scene rendering
+    VkSemaphore scene_world_sems[] = {
         _sync.computeFinishedSem[_sync.currentFrame],
     };
-    VkPipelineStageFlags world_wait_stages[] = {
+    VkPipelineStageFlags scene_wait_stages[] = {
         VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
     };
     VkSemaphore finish_model_sig_sems[] = {
-        _sync.worldFinishedSem[_sync.currentFrame],
+        _sync.sceneFinishedSem[_sync.currentFrame],
     };
     VkSubmitInfo submit_info{};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.pWaitSemaphores = wait_world_sems;
-    submit_info.pWaitDstStageMask = world_wait_stages;
+    submit_info.pWaitSemaphores = scene_world_sems;
+    submit_info.pWaitDstStageMask = scene_wait_stages;
     submit_info.waitSemaphoreCount = 1;
     submit_info.pSignalSemaphores = finish_model_sig_sems;
     submit_info.signalSemaphoreCount = 1;
@@ -422,7 +426,7 @@ VulkanRenderer::emitDrawCmds(uint32_t img_index, glm::mat4 const &view_proj_mat)
 
     // Send Ui rendering
     VkSemaphore wait_ui_sems[] = {
-        _sync.worldFinishedSem[_sync.currentFrame],
+        _sync.sceneFinishedSem[_sync.currentFrame],
         _sync.imageAvailableSem[_sync.currentFrame],
     };
     VkPipelineStageFlags world_ui_stages[] = {

@@ -11,8 +11,8 @@
 #include "VulkanSwapChain.hpp"
 #include "tex/VulkanTextureManager.hpp"
 #include "ubo/VulkanUboStructs.hpp"
+#include "renderPass/VulkanSceneRenderPass.hpp"
 #include "VulkanParticlePipelineData.hpp"
-#include "VulkanParticleRenderPass.hpp"
 #include "VulkanParticleGfxPipelineDescription.hpp"
 #include "VulkanParticleComputePipelineDescription.hpp"
 
@@ -38,12 +38,15 @@ class VulkanParticlePipeline final
 
     void init(VulkanInstance const &vkInstance,
               VulkanSwapChain const &swapChain,
+              VulkanSceneRenderPass const &renderPass,
               uint32_t nbParticles,
               uint32_t maxSpeedParticle,
               glm::vec3 const &particlesColor,
               float particleMass,
               VkBuffer systemUbo);
-    void resize(VulkanSwapChain const &swapChain, VkBuffer systemUbo);
+    void resize(VulkanSwapChain const &swapChain,
+                VulkanSceneRenderPass const &renderPass,
+                VkBuffer systemUbo);
     void clear();
 
     void setParticleNumber(uint32_t nbParticles,
@@ -57,7 +60,6 @@ class VulkanParticlePipeline final
     void setGfxUboOnGpu(uint32_t currentImg);
     void setCompUboOnGpu();
 
-    [[nodiscard]] VulkanParticleRenderPass const &getRenderPass() const;
     void generateCommands(VkCommandBuffer cmdBuffer, size_t descriptorSetIndex);
     void generateComputeCommands(VkCommandBuffer cmdBuffer,
                                  VulkanParticleComputeShaderType type);
@@ -73,7 +75,6 @@ class VulkanParticlePipeline final
     // Global
     VkDescriptorPool _descriptorPool{};
     VulkanParticlePipelineData _pipelineData;
-    VulkanParticleRenderPass _renderPass;
 
     // Vertex / Fragment shaders related
     VkPipeline _gfxPipeline{};
@@ -98,7 +99,8 @@ class VulkanParticlePipeline final
       };
     static constexpr float const DEFAULT_PARTICLE_MASS = 5.0f;
 
-    inline void createGfxPipeline(VulkanSwapChain const &swapChain);
+    inline void createGfxPipeline(VulkanSwapChain const &swapChain,
+                                  VulkanSceneRenderPass const &renderPass);
     inline void createDescriptorPool(uint32_t descriptorCount);
     inline void createGfxDescriptorSets(VkBuffer systemUbo,
                                         uint32_t descriptorCount);

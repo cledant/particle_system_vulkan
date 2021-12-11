@@ -8,7 +8,7 @@ VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
     _devices = vkInstance.devices;
     imageAvailableSem.resize(MAX_FRAME_INFLIGHT);
     computeFinishedSem.resize(MAX_FRAME_INFLIGHT);
-    worldFinishedSem.resize(MAX_FRAME_INFLIGHT);
+    sceneFinishedSem.resize(MAX_FRAME_INFLIGHT);
     allRenderFinishedSem.resize(MAX_FRAME_INFLIGHT);
     inflightFence.resize(MAX_FRAME_INFLIGHT);
     imgsInflightFence.resize(nbFramebufferImgs, VK_NULL_HANDLE);
@@ -28,7 +28,7 @@ VulkanSync::init(VulkanInstance const &vkInstance, uint32_t nbFramebufferImgs)
               _devices.device, &sem_info, nullptr, &computeFinishedSem[i]) !=
               VK_SUCCESS ||
             vkCreateSemaphore(
-              _devices.device, &sem_info, nullptr, &worldFinishedSem[i]) !=
+              _devices.device, &sem_info, nullptr, &sceneFinishedSem[i]) !=
               VK_SUCCESS ||
             vkCreateSemaphore(
               _devices.device, &sem_info, nullptr, &allRenderFinishedSem[i]) !=
@@ -53,7 +53,7 @@ VulkanSync::clear()
     for (size_t i = 0; i < MAX_FRAME_INFLIGHT; ++i) {
         vkDestroySemaphore(_devices.device, imageAvailableSem[i], nullptr);
         vkDestroySemaphore(_devices.device, computeFinishedSem[i], nullptr);
-        vkDestroySemaphore(_devices.device, worldFinishedSem[i], nullptr);
+        vkDestroySemaphore(_devices.device, sceneFinishedSem[i], nullptr);
         vkDestroySemaphore(_devices.device, allRenderFinishedSem[i], nullptr);
         vkDestroyFence(_devices.device, inflightFence[i], nullptr);
     }

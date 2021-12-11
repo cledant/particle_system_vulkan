@@ -10,6 +10,7 @@
 void
 VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
                            VulkanSwapChain const &swapChain,
+                           VulkanSceneRenderPass const &renderPass,
                            std::string const &skyboxFolderPath,
                            std::string const &skyboxFileType,
                            VulkanTextureManager &texManager,
@@ -21,7 +22,6 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
     _skyboxFolderPath = skyboxFolderPath;
     _skyboxFiletype = skyboxFileType;
 
-    _pipelineRenderPass.init(vkInstance, swapChain);
     _pipelineData.init(
       _devices,
       _cmdPools,
@@ -34,26 +34,26 @@ VulkanSkyboxPipeline::init(VulkanInstance const &vkInstance,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     createDescriptorPool(swapChain.currentSwapChainNbImg);
-    createGfxPipeline(swapChain);
+    createGfxPipeline(swapChain, renderPass);
     createDescriptorSets(
       _pipelineData, systemUbo, swapChain.currentSwapChainNbImg);
 }
 
 void
 VulkanSkyboxPipeline::resize(VulkanSwapChain const &swapChain,
+                             VulkanSceneRenderPass const &renderPass,
                              VkBuffer systemUbo)
 {
     _skyboxUniform.clear();
     vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
     vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
-    _pipelineRenderPass.resize(swapChain);
     _skyboxUniform.allocate(_devices,
                             sizeof(SkyboxUbo) * swapChain.currentSwapChainNbImg,
                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     createDescriptorPool(swapChain.currentSwapChainNbImg);
-    createGfxPipeline(swapChain);
+    createGfxPipeline(swapChain, renderPass);
     createDescriptorSets(
       _pipelineData, systemUbo, swapChain.currentSwapChainNbImg);
 }
@@ -64,7 +64,6 @@ VulkanSkyboxPipeline::clear()
     _skyboxUniform.clear();
     vkDestroyDescriptorPool(_devices.device, _descriptorPool, nullptr);
     vkDestroyPipeline(_devices.device, _gfxPipeline, nullptr);
-    _pipelineRenderPass.clear();
     _pipelineDescription.clear();
     _devices = VulkanDevices{};
     _cmdPools = VulkanCommandPools{};
@@ -79,12 +78,6 @@ void
 VulkanSkyboxPipeline::setSkyboxInfo(glm::mat4 const &skyboxInfo)
 {
     _skyboxUbo.model = skyboxInfo;
-}
-
-VulkanSkyboxRenderPass const &
-VulkanSkyboxPipeline::getVulkanSkyboxRenderPass() const
-{
-    return (_pipelineRenderPass);
 }
 
 void
@@ -125,7 +118,9 @@ VulkanSkyboxPipeline::setSkyboxModelMatOnGpu(uint32_t currentImg)
 }
 
 void
-VulkanSkyboxPipeline::createGfxPipeline(VulkanSwapChain const &swapChain)
+VulkanSkyboxPipeline::createGfxPipeline(
+  VulkanSwapChain const &swapChain,
+                                        VulkanSceneRenderPass const &renderPass)
 {
     // Shaders
     auto vert_shader =
@@ -273,7 +268,7 @@ VulkanSkyboxPipeline::createGfxPipeline(VulkanSwapChain const &swapChain)
     gfx_pipeline_info.pColorBlendState = &color_blending_info;
     gfx_pipeline_info.pDynamicState = nullptr;
     gfx_pipeline_info.layout = _pipelineDescription.pipelineLayout;
-    gfx_pipeline_info.renderPass = _pipelineRenderPass.renderPass;
+    gfx_pipeline_info.renderPass = renderPass.renderPass;
     gfx_pipeline_info.subpass = 0;
     gfx_pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
     gfx_pipeline_info.basePipelineIndex = -1;
