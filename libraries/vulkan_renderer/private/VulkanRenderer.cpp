@@ -62,14 +62,8 @@ VulkanRenderer::init(VkSurfaceKHR surface, uint32_t win_w, uint32_t win_h)
                  "jpg",
                  _texManager,
                  _systemUniform.buffer);
-    _particle.init(_vkInstance,
-                   _swapChain,
-                   _sceneRenderPass,
-                   DEFAULT_NB_PARTICLES,
-                   DEFAULT_PARTICLE_MAX_SPEED,
-                   DEFAULT_PARTICLES_COLOR,
-                   DEFAULT_PARTICLE_MASS,
-                   _systemUniform.buffer);
+    _particle.init(
+      _vkInstance, _swapChain, _sceneRenderPass, _systemUniform.buffer);
     recordRenderCmds();
     _updateComputeCmds = true;
 }

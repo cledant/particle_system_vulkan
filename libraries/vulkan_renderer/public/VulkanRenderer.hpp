@@ -67,14 +67,6 @@ class VulkanRenderer final
     // Render related
     void draw(glm::mat4 const &view_proj_mat);
 
-    static constexpr uint64_t const DEFAULT_NB_PARTICLES = 1000000;
-    static constexpr uint64_t const DEFAULT_PARTICLE_MAX_SPEED = 100;
-    static constexpr float const DEFAULT_PARTICLE_MASS = 5.0f;
-    static constexpr glm::vec3 const DEFAULT_PARTICLES_COLOR{ 0.0f,
-                                                              0.5f,
-                                                              0.3f };
-    static constexpr glm::vec3 const DEFAULT_PARTICLES_GRAVITY_CENTER{};
-
   private:
     std::string _appName;
     std::string _engineName;

@@ -14,10 +14,6 @@ void
 VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                              VulkanSwapChain const &swapChain,
                              VulkanSceneRenderPass const &renderPass,
-                             uint32_t nbParticles,
-                             uint32_t maxSpeedParticle,
-                             glm::vec3 const &particlesColor,
-                             float particleMass,
                              VkBuffer systemUbo)
 {
     _devices = vkInstance.devices;
@@ -25,8 +21,8 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
     _queues = vkInstance.queues;
 
     // Global
-    _gfxUbo.color = particlesColor;
-    _pipelineData.init(_devices, nbParticles);
+    _gfxUbo.color = _gfxUbo.color;
+    _pipelineData.init(_devices, _compUbo.nbParticles);
     createDescriptorPool(swapChain.currentSwapChainNbImg);
 
     // Vertex / Fragment shaders related
@@ -39,9 +35,6 @@ VulkanParticlePipeline::init(VulkanInstance const &vkInstance,
                            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     createGfxPipeline(swapChain, renderPass);
     createGfxDescriptorSets(systemUbo, swapChain.currentSwapChainNbImg);
-    _compUbo.nbParticles = nbParticles;
-    _compUbo.maxSpeed = maxSpeedParticle;
-    _compUbo.particleMass = particleMass;
     generateRandomSeed();
 
     // Compute shaders related

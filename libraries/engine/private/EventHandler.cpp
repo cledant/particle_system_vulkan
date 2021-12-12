@@ -382,16 +382,15 @@ EventHandler::_ui_pause_start_particles()
 void
 EventHandler::_ui_reset_simulation()
 {
-    _renderer->setParticleGravityCenter(
-      VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
+    _renderer->setParticleGravityCenter(DEFAULT_PARTICLES_GRAVITY_CENTER);
     _renderer->setParticlesNumber(_ui->getNbParticles());
-    _renderer->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
+    _renderer->setParticleMass(DEFAULT_PARTICLE_MASS);
     _camera->setPosition(START_POS);
     _camera->setYawPitch(START_YAW, START_PITCH);
     _camera->updateMatrices();
-    _ui->setGravityCenterPos(VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
+    _ui->setGravityCenterPos(DEFAULT_PARTICLES_GRAVITY_CENTER);
     _ui->setCameraPos(START_POS);
-    _ui->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
+    _ui->setParticleMass(DEFAULT_PARTICLE_MASS);
     _particle_mass_multiplier = 0;
 }
 
@@ -413,13 +412,13 @@ void
 EventHandler::_ui_particle_number()
 {
     _renderer->setParticlesNumber(_ui->getNbParticles());
-    _renderer->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
+    _renderer->setParticleMass(DEFAULT_PARTICLE_MASS);
     _camera->setPosition(START_POS);
     _camera->setYawPitch(START_YAW, START_PITCH);
     _camera->updateMatrices();
-    _ui->setGravityCenterPos(VulkanRenderer::DEFAULT_PARTICLES_GRAVITY_CENTER);
+    _ui->setGravityCenterPos(DEFAULT_PARTICLES_GRAVITY_CENTER);
     _ui->setCameraPos(START_POS);
-    _ui->setParticleMass(VulkanRenderer::DEFAULT_PARTICLE_MASS);
+    _ui->setParticleMass(DEFAULT_PARTICLE_MASS);
     _particle_mass_multiplier = 0;
 }
 
@@ -494,8 +493,7 @@ EventHandler::_compute_particle_mass() const
     float gravity{};
 
     if (_particle_mass_multiplier >= 0) {
-        gravity = VulkanRenderer::DEFAULT_PARTICLE_MASS +
-                  2.5f * _particle_mass_multiplier;
+        gravity = DEFAULT_PARTICLE_MASS + 2.5f * _particle_mass_multiplier;
     } else if (_particle_mass_multiplier == -1) {
         gravity = 1.0f;
     } else {

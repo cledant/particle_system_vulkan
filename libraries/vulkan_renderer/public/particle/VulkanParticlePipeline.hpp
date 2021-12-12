@@ -39,10 +39,6 @@ class VulkanParticlePipeline final
     void init(VulkanInstance const &vkInstance,
               VulkanSwapChain const &swapChain,
               VulkanSceneRenderPass const &renderPass,
-              uint32_t nbParticles,
-              uint32_t maxSpeedParticle,
-              glm::vec3 const &particlesColor,
-              float particleMass,
               VkBuffer systemUbo);
     void resize(VulkanSwapChain const &swapChain,
                 VulkanSceneRenderPass const &renderPass,
