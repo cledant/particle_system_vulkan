@@ -1,7 +1,6 @@
 #include "tex/VulkanTextureManager.hpp"
 
 #include "utils/VulkanMemory.hpp"
-#include "utils/VulkanTextureUtils.hpp"
 
 void
 VulkanTextureManager::init(VulkanInstance const &vkInstance)
@@ -42,7 +41,7 @@ VulkanTextureManager::loadTexture(std::string const &texturePath)
 
     VulkanTexture gpuTexture{};
     gpuTexture.loadTextureOnGPU(
-      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_SRGB);
+      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_UNORM);
     stagingTex.clear();
     _textures.emplace(texturePath, gpuTexture);
 }
@@ -61,7 +60,7 @@ VulkanTextureManager::loadCubemap(std::string const &cubemapFolder,
 
     VulkanTexture gpuTexture{};
     gpuTexture.loadTextureOnGPU(
-      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_SRGB);
+      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_UNORM);
     stagingTex.clear();
     _textures.emplace(cubemapFolder, gpuTexture);
 }
@@ -108,7 +107,7 @@ VulkanTextureManager::loadAndGetTexture(std::string const &texturePath)
 
     VulkanTexture gpuTexture{};
     gpuTexture.loadTextureOnGPU(
-      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_SRGB);
+      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_UNORM);
     stagingTex.clear();
     _textures.emplace(texturePath, gpuTexture);
     return (gpuTexture);
@@ -128,7 +127,7 @@ VulkanTextureManager::loadAndGetCubemap(std::string const &cubemapFolder,
 
     VulkanTexture gpuTexture{};
     gpuTexture.loadTextureOnGPU(
-      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_SRGB);
+      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_UNORM);
     stagingTex.clear();
     _textures.emplace(cubemapFolder, gpuTexture);
     return (gpuTexture);
@@ -144,7 +143,7 @@ VulkanTextureManager::_load_default_texture()
 
     VulkanTexture gpuTexture{};
     gpuTexture.loadTextureOnGPU(
-      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_SRGB);
+      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_UNORM);
     stagingTex.clear();
     _textures.emplace(TEX_MANAGER_DEFAULT_TEXTURE, gpuTexture);
 }
@@ -162,7 +161,7 @@ VulkanTextureManager::_load_default_cubemap()
 
     VulkanTexture gpuTexture{};
     gpuTexture.loadTextureOnGPU(
-      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_SRGB);
+      _devices, _cmdPools, _queues, stagingTex, VK_FORMAT_R8G8B8A8_UNORM);
     stagingTex.clear();
     _textures.emplace(TEX_MANAGER_DEFAULT_CUBEMAP, gpuTexture);
 }

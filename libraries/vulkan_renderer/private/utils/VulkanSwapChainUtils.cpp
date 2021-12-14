@@ -60,7 +60,7 @@ getSwapChainSurfaceFormat(
     std::optional<VkSurfaceFormatKHR> surface_format{};
 
     for (auto const &it : available_formats) {
-        if (it.format == VK_FORMAT_B8G8R8A8_SRGB &&
+        if (it.format == VK_FORMAT_B8G8R8A8_UNORM &&
             it.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR) {
             surface_format = it;
             break;
