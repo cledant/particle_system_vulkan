@@ -3,9 +3,9 @@ project(particle_system_vulkan)
 
 #App info
 set(APP_BINARY_NAME particle_system)
-set(APP_VERSION_MAJOR 0)
-set(APP_VERSION_MINOR 1)
-set(APP_VERSION_PATCH 2)
+set(APP_VERSION_MAJOR 1)
+set(APP_VERSION_MINOR 0)
+set(APP_VERSION_PATCH 0)
 
 #Detecting + setting global LTO
 include(CheckIPOSupported)
