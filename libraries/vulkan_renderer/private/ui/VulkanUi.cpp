@@ -16,7 +16,7 @@ VulkanUi::init(VulkanInstance const &vkInstance,
     _init_imgui(swapChain);
     _ui_command_pools =
       createCommandPool(_devices.device,
-                        _queues.graphicQueueIndex,
+                        _queues.graphicFamilyIndex,
                         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     _create_ui_command_buffers(swapChain.currentSwapChainNbImg);
     _load_fonts();
@@ -33,7 +33,7 @@ VulkanUi::resize(VulkanSwapChain const &swapChain)
     _init_imgui(swapChain);
     _ui_command_pools =
       createCommandPool(_devices.device,
-                        _queues.graphicQueueIndex,
+                        _queues.graphicFamilyIndex,
                         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     _create_ui_command_buffers(swapChain.currentSwapChainNbImg);
     _load_fonts();
@@ -126,7 +126,7 @@ VulkanUi::_init_imgui(VulkanSwapChain const &swapChain)
     init_info.Instance = _instance;
     init_info.PhysicalDevice = _devices.physicalDevice;
     init_info.Device = _devices.device;
-    init_info.QueueFamily = _queues.graphicQueueIndex;
+    init_info.QueueFamily = _queues.graphicFamilyIndex;
     init_info.Queue = _queues.graphicQueue;
     init_info.PipelineCache = VK_NULL_HANDLE;
     init_info.Allocator = VK_NULL_HANDLE;

@@ -65,11 +65,11 @@ VulkanInstance::init(VkSurfaceKHR windowSurface)
     _select_physical_device();
     _create_queues();
     cmdPools.renderCommandPool =
-      createCommandPool(devices.device, queues.graphicQueueIndex, 0);
+      createCommandPool(devices.device, queues.graphicFamilyIndex, 0);
     cmdPools.computeCommandPool =
-      (queues.computeQueueIndex == queues.graphicQueueIndex)
+      (queues.computeFamilyIndex == queues.graphicFamilyIndex)
         ? cmdPools.renderCommandPool
-        : createCommandPool(devices.device, queues.computeQueueIndex, 0);
+        : createCommandPool(devices.device, queues.computeFamilyIndex, 0);
 }
 
 void
@@ -77,7 +77,7 @@ VulkanInstance::clear()
 {
     if (cmdPools.computeCommandPool != cmdPools.renderCommandPool) {
         vkDestroyCommandPool(
-          devices.device, cmdPools.renderCommandPool, nullptr);
+          devices.device, cmdPools.computeCommandPool, nullptr);
     }
     vkDestroyCommandPool(devices.device, cmdPools.renderCommandPool, nullptr);
     vkDestroyDevice(devices.device, nullptr);
@@ -131,9 +131,9 @@ void
 VulkanInstance::_create_queues()
 {
     auto dfr = getDeviceRequirement(devices.physicalDevice, surface);
-    std::set<uint32_t> queue_families = { dfr.graphic_queue_index.value(),
-                                          dfr.present_queue_index.value(),
-                                          dfr.compute_queue_index.value() };
+    std::set<uint32_t> queue_families = { dfr.graphic_family_index.value(),
+                                          dfr.present_family_index.value(),
+                                          dfr.compute_family_index.value() };
     std::vector<VkDeviceQueueCreateInfo> vec_queue_create_info;
 
     // Graphic queue info
@@ -175,15 +175,21 @@ VulkanInstance::_create_queues()
         throw std::runtime_error(
           "VulkanInstance: Failed to create logical device");
     }
-    vkGetDeviceQueue(
-      devices.device, dfr.graphic_queue_index.value(), 0, &queues.graphicQueue);
-    vkGetDeviceQueue(
-      devices.device, dfr.present_queue_index.value(), 0, &queues.presentQueue);
-    vkGetDeviceQueue(
-      devices.device, dfr.compute_queue_index.value(), 0, &queues.computeQueue);
-    queues.graphicQueueIndex = dfr.graphic_queue_index.value();
-    queues.presentQueueIndex = dfr.present_queue_index.value();
-    queues.computeQueueIndex = dfr.compute_queue_index.value();
+    vkGetDeviceQueue(devices.device,
+                     dfr.graphic_family_index.value(),
+                     0,
+                     &queues.graphicQueue);
+    vkGetDeviceQueue(devices.device,
+                     dfr.present_family_index.value(),
+                     0,
+                     &queues.presentQueue);
+    vkGetDeviceQueue(devices.device,
+                     dfr.compute_family_index.value(),
+                     0,
+                     &queues.computeQueue);
+    queues.graphicFamilyIndex = dfr.graphic_family_index.value();
+    queues.presentFamilyIndex = dfr.present_family_index.value();
+    queues.computeFamilyIndex = dfr.compute_family_index.value();
 }
 
 // Dbg related

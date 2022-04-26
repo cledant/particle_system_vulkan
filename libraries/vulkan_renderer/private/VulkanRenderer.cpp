@@ -280,7 +280,6 @@ VulkanRenderer::recordRenderCmds()
             throw std::runtime_error("VulkanRenderer: Failed to begin "
                                      "recording render command buffer");
         }
-        _particle.acquireComputeBufferBarrier(it);
 
         // Begin skybox renderpass
         std::array<VkClearValue, 2> clear_vals{};
@@ -299,7 +298,6 @@ VulkanRenderer::recordRenderCmds()
         _particle.generateCommands(it, i);
         vkCmdEndRenderPass(it);
 
-        _particle.releaseComputeBufferBarrier(it);
         if (vkEndCommandBuffer(it) != VK_SUCCESS) {
             throw std::runtime_error(
               "VulkanRenderer: Failed to record render command Buffer");
@@ -327,11 +325,9 @@ VulkanRenderer::recordComputeCmds(VulkanParticleComputeShaderType type,
             throw std::runtime_error("VulkanRenderer: Failed to begin "
                                      "recording compute command buffer");
         }
-        _particle.acquireComputeBufferBarrier(it);
         if (registerCmd) {
             _particle.generateComputeCommands(it, type);
         }
-        _particle.releaseComputeBufferBarrier(it);
         vkEndCommandBuffer(it);
     }
 }

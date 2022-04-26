@@ -73,9 +73,9 @@ VulkanSwapChain::_create_swap_chain(uint32_t fb_w, uint32_t fb_h)
 
     DeviceRequirement dr{};
     getDeviceQueues(_devices.physicalDevice, _surface, dr);
-    uint32_t queue_family_indices[] = { dr.present_queue_index.value(),
-                                        dr.graphic_queue_index.value() };
-    if (dr.present_queue_index.value() != dr.graphic_queue_index.value()) {
+    uint32_t queue_family_indices[] = { dr.present_family_index.value(),
+                                        dr.graphic_family_index.value() };
+    if (dr.present_family_index.value() != dr.graphic_family_index.value()) {
         create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         create_info.queueFamilyIndexCount = 2;
         create_info.pQueueFamilyIndices = queue_family_indices;

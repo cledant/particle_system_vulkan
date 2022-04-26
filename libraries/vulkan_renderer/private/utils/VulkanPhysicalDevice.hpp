@@ -10,9 +10,9 @@
 
 struct DeviceRequirement final
 {
-    std::optional<uint32_t> graphic_queue_index;
-    std::optional<uint32_t> present_queue_index;
-    std::optional<uint32_t> compute_queue_index;
+    std::optional<uint32_t> graphic_family_index;
+    std::optional<uint32_t> present_family_index;
+    std::optional<uint32_t> compute_family_index;
     VkBool32 geometry_shader{};
     VkBool32 sampler_aniso{};
     VkBool32 fill_mode_non_solid{};

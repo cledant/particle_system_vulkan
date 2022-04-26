@@ -22,9 +22,9 @@ struct VulkanQueues final
     VkQueue graphicQueue{};
     VkQueue presentQueue{};
     VkQueue computeQueue{};
-    uint32_t graphicQueueIndex{};
-    uint32_t presentQueueIndex{};
-    uint32_t computeQueueIndex{};
+    uint32_t graphicFamilyIndex{};
+    uint32_t presentFamilyIndex{};
+    uint32_t computeFamilyIndex{};
 };
 
 struct VulkanBuffer final

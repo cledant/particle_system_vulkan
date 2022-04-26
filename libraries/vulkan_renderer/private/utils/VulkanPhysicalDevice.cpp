@@ -11,9 +11,9 @@
 bool
 DeviceRequirement::isValid() const
 {
-    return (graphic_queue_index.has_value() &&
-            present_queue_index.has_value() &&
-            compute_queue_index.has_value() && sampler_aniso &&
+    return (graphic_family_index.has_value() &&
+            present_family_index.has_value() &&
+            compute_family_index.has_value() && sampler_aniso &&
             fill_mode_non_solid && all_extension_supported);
 }
 
@@ -155,34 +155,34 @@ getDeviceQueues(VkPhysicalDevice device,
     uint32_t index = 0;
     for (auto const &it : families) {
         if (it.queueFlags & VK_QUEUE_GRAPHICS_BIT && it.queueCount > 0) {
-            dr.graphic_queue_index = index;
+            dr.graphic_family_index = index;
         }
         if (it.queueFlags & VK_QUEUE_COMPUTE_BIT && it.queueCount > 0) {
-            dr.compute_queue_index = index;
+            dr.compute_family_index = index;
         }
 
         VkBool32 present_support = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(
           device, index, surface, &present_support);
         if (present_support) {
-            dr.present_queue_index = index;
+            dr.present_family_index = index;
         }
 
-        if (dr.graphic_queue_index.has_value() &&
-            dr.present_queue_index.has_value() &&
-            dr.compute_queue_index.has_value()) {
+        if (dr.graphic_family_index.has_value() &&
+            dr.present_family_index.has_value() &&
+            dr.compute_family_index.has_value()) {
             break;
         }
         ++index;
     }
 
-    // Check for dedicated compute queue
+    // Check for dedicated compute queue family
     index = 0;
-    if (dr.compute_queue_index == dr.graphic_queue_index) {
+    if (dr.compute_family_index == dr.graphic_family_index) {
         for (auto const &it : families) {
             if (it.queueFlags & VK_QUEUE_COMPUTE_BIT && it.queueCount > 0 &&
-                index != dr.compute_queue_index) {
-                dr.compute_queue_index = index;
+                index != dr.compute_family_index) {
+                dr.compute_family_index = index;
                 break;
             }
             ++index;
