@@ -40,8 +40,6 @@ class Camera final
     [[nodiscard]] std::array<glm::vec4, 6> const &getAbsFrustumPlanes() const;
 
   private:
-    static float constexpr const DEFAULT_MOVEMENT_SPEED = 0.075f * 2;
-    static float constexpr const DEFAULT_MOUSE_SENSITIVITY = 0.05f * 2;
     static constexpr glm::vec3 const DEFAULT_WORLD_UP =
       glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -69,9 +67,6 @@ class Camera final
     std::array<glm::vec4, F_NB_PLANE> _frustum_planes{};
     std::array<glm::vec4, F_NB_PLANE> _abs_frustum_planes{};
     inline void _extractFrustumPlanes();
-
-    float _mouse_sensitivity = DEFAULT_MOUSE_SENSITIVITY;
-    float _movement_speed = DEFAULT_MOVEMENT_SPEED;
 
     float _yaw{};
     float _pitch{};

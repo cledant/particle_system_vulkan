@@ -8,17 +8,17 @@
 void
 Camera::updatePosition(glm::ivec3 const &mov, float coeff)
 {
-    _pos += mov.x * _movement_speed * coeff * _front;
-    _pos += mov.y * _movement_speed * coeff * _right;
-    _pos += mov.z * _movement_speed * coeff * glm::vec3(0.0f, 1.0f, 0.0f);
+    _pos += mov.x * coeff * _front;
+    _pos += mov.y * coeff * _right;
+    _pos += mov.z * coeff * _world_up;
     _updated = true;
 }
 
 void
 Camera::updateFront(glm::vec2 const &offsets, float coeff)
 {
-    _yaw += offsets.x * _mouse_sensitivity * coeff;
-    _pitch += offsets.y * _mouse_sensitivity * coeff;
+    _yaw += offsets.x * coeff;
+    _pitch += offsets.y * coeff;
     if (_pitch > 89.0f)
         _pitch = 89.0f;
     if (_pitch < -89.0f)

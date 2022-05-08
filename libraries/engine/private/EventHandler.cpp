@@ -455,12 +455,13 @@ EventHandler::_update_camera(glm::vec2 const &mouse_pos)
         offset.y = -offset.y;
     }
     if (_movements != glm::ivec3(0)) {
-        _camera->updatePosition(_movements,
-                                _timers.timer_diff[ET_CAMERA] /
-                                  _timers.timer_values[ET_CAMERA]);
+        _camera->updatePosition(
+          _movements,
+          MOVEMENT_SPEED *
+            (_timers.timer_diff[ET_CAMERA] / _timers.timer_values[ET_CAMERA]));
     }
     if (offset != glm::vec2(0.0)) {
-        _camera->updateFront(offset, 0.5f);
+        _camera->updateFront(offset, MOUSE_SENSITIVITY);
         _previous_mouse_pos = _mouse_pos;
     }
     _camera->updateMatrices();

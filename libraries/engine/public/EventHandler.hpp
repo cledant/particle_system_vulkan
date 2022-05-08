@@ -31,6 +31,8 @@ class EventHandler final
     void processEvents(IOEvents const &ioEvents, UiEvent const &uiEvent);
 
   private:
+    static constexpr double const MOVEMENT_SPEED = 0.70;
+    static constexpr double const MOUSE_SENSITIVITY = 0.25;
     static constexpr double const TARGET_PLAYER_TICK = 20.0f;
     static constexpr float const SCALING_PER_SCROLL = 0.05f;
 
